@@ -56,6 +56,9 @@
   input[type=text],input[type=date],input[type=number],input[type=password],input[type=url],select,textarea{
     width:100%;padding:9px 10px;border:1px solid #c4ccda;border-radius:8px;font:inherit;font-size:15px;background:#fff}
   textarea{min-height:64px;resize:vertical}
+  textarea[rows="2"]{min-height:0}
+  ::placeholder{color:#9aa3b2;opacity:1;font-style:italic}
+  input:focus::placeholder,textarea:focus::placeholder{color:transparent}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
   .item{padding:10px 0;border-bottom:1px solid var(--line)}
   .item:last-of-type{border-bottom:0}
@@ -129,28 +132,29 @@
         <select id="sekolah" name="sekolah" required></select>
         <div class="grid2">
           <div><label class="f">Diisi oleh</label><div class="opts" data-radio="peran" data-opts="Pengimbas|Satuan pendidikan"></div></div>
-          <div><label class="f" for="pengisi">Nama pengisi</label><input type="text" id="pengisi" name="pengisi"></div>
+          <div><label class="f" for="pengisi">Nama pengisi</label><input type="text" id="pengisi" name="pengisi" placeholder="Nama Bapak/Ibu yang mengisi formulir ini"></div>
         </div>
         <div class="grid2">
           <div><label class="f" for="tanggal">Tanggal pendampingan</label><input type="date" id="tanggal" name="tanggal" required></div>
           <div><label class="f">Pendampingan ke-</label><div class="opts" data-radio="ke" data-opts="1|2"></div></div>
         </div>
-        <label class="f" for="kepsek">Kepala sekolah</label><input type="text" id="kepsek" name="kepsek">
+        <label class="f" for="kepsek">Kepala sekolah</label><input type="text" id="kepsek" name="kepsek" placeholder="Contoh: Siti Aminah, S.Pd.">
         <label class="f">Guru yang hadir <span class="small" id="guru-jml"></span></label>
         <div id="guru-list"></div>
         <button type="button" class="btn ghost kecil" id="tambah-guru">+ Tambah guru</button>
         <input type="hidden" id="guru_hadir" name="guru_hadir">
         <div class="grid2">
-          <div><label class="f" for="jml_peserta">Jumlah guru peserta pengimbasan</label><input type="number" min="0" id="jml_peserta" name="jml_peserta"></div>
-          <div><label class="f" for="jml_guru">Jumlah guru di sekolah</label><input type="number" min="0" id="jml_guru" name="jml_guru"></div>
+          <div><label class="f" for="jml_peserta">Jumlah guru peserta pengimbasan</label><input type="number" min="0" id="jml_peserta" name="jml_peserta" placeholder="Contoh: 2"></div>
+          <div><label class="f" for="jml_guru">Jumlah guru di sekolah</label><input type="number" min="0" id="jml_guru" name="jml_guru" placeholder="Contoh: 9"></div>
         </div>
       </fieldset>
 
       <fieldset><legend>B. Benang merah</legend>
-        <label class="f" for="b_spmi">SPMI: indikator prioritas (LK-1) — kode dan nama</label><input type="text" id="b_spmi" name="b_spmi" placeholder="mis. A.1.5 Kompetensi mengevaluasi dan merefleksikan isi teks">
-        <label class="f" for="b_litnum">Litnum: kompetensi prioritas (LK-B Bagian III)</label><input type="text" id="b_litnum" name="b_litnum">
-        <label class="f" for="b_tp">Litnum: tujuan pembelajaran (LK-D)</label><input type="text" id="b_tp" name="b_tp">
-        <label class="f" for="b_mpi">Digitalisasi: topik/kompetensi MPI (LK-1)</label><input type="text" id="b_mpi" name="b_mpi">
+        <p class="small" style="margin:6px 0 0">Keempat isian ini sebaiknya membahas kompetensi yang sama. Salin dari LK masing-masing.</p>
+        <label class="f" for="b_spmi">SPMI: indikator prioritas (LK-1) — kode dan nama</label><textarea rows="2" id="b_spmi" name="b_spmi" placeholder="Salin dari LK-1 SPMI: kode dan nama indikator. Contoh: A.1.5 Kompetensi mengevaluasi dan merefleksikan isi teks"></textarea>
+        <label class="f" for="b_litnum">Litnum: kompetensi prioritas (LK-B Bagian III)</label><textarea rows="2" id="b_litnum" name="b_litnum" placeholder="Salin dari LK-B Bagian III. Contoh: Mengevaluasi isi teks informasi (membedakan fakta dan opini)"></textarea>
+        <label class="f" for="b_tp">Litnum: tujuan pembelajaran (LK-D)</label><textarea rows="2" id="b_tp" name="b_tp" placeholder="Salin tujuan pembelajaran dari LK-D. Contoh: Murid kelas V dapat membedakan fakta dan opini dalam teks informasi pendek dengan alasan dari bagian teks"></textarea>
+        <label class="f" for="b_mpi">Digitalisasi: topik/kompetensi MPI (LK-1)</label><textarea rows="2" id="b_mpi" name="b_mpi" placeholder="Salin dari LK-1 Digitalisasi. Contoh: Kuis interaktif &quot;Fakta atau Opini?&quot; untuk kelas V (Canva Kode)"></textarea>
         <label class="f">Keselarasan keempat produk</label>
         <div class="opts" data-radio="b_selaras" data-opts="Selaras|Sebagian selaras|Belum selaras"></div>
       </fieldset>
@@ -162,35 +166,35 @@
       </fieldset>
 
       <fieldset><legend>D. SPMI</legend><div id="items-d"></div>
-        <label class="f" for="d_catatan">Catatan SPMI</label><textarea id="d_catatan" name="d_catatan"></textarea>
+        <label class="f" for="d_catatan">Catatan SPMI</label><textarea id="d_catatan" name="d_catatan" placeholder="Contoh: LK-1 dan LK-2 sudah lengkap; SK TPMPS masih draf, ditandatangani pekan depan"></textarea>
       </fieldset>
 
       <fieldset><legend>E. Penguatan Literasi dan Numerasi</legend><div id="items-e"></div>
         <label class="f">Level pelaksanaan Litnum</label>
         <div class="opts" data-radio="e_level" data-opts="Belum|Mulai|Berkembang|Membudaya"></div>
-        <label class="f" for="e_catatan">Catatan Litnum</label><textarea id="e_catatan" name="e_catatan"></textarea>
+        <label class="f" for="e_catatan">Catatan Litnum</label><textarea id="e_catatan" name="e_catatan" placeholder="Contoh: Pojok baca kelas sudah berjalan (ada foto); rancangan LK-D belum diterapkan di kelas"></textarea>
       </fieldset>
 
       <fieldset><legend>F. Digitalisasi Pembelajaran</legend><div id="items-f"></div>
         <div class="grid2">
-          <div><label class="f" for="f_buat">Guru membuat MPI (orang)</label><input type="number" min="0" id="f_buat" name="f_buat"></div>
-          <div><label class="f" for="f_jadi">MPI jadi dan dapat dibuka (orang)</label><input type="number" min="0" id="f_jadi" name="f_jadi"></div>
-          <div><label class="f" for="f_rpp">RPP TPACK memuat MPI (orang)</label><input type="number" min="0" id="f_rpp" name="f_rpp"></div>
-          <div><label class="f" for="f_praktik">Sudah praktik di kelas (orang)</label><input type="number" min="0" id="f_praktik" name="f_praktik"></div>
+          <div><label class="f" for="f_buat">Guru membuat MPI (orang)</label><input type="number" min="0" id="f_buat" name="f_buat" placeholder="Contoh: 3"></div>
+          <div><label class="f" for="f_jadi">MPI jadi dan dapat dibuka (orang)</label><input type="number" min="0" id="f_jadi" name="f_jadi" placeholder="Contoh: 2"></div>
+          <div><label class="f" for="f_rpp">RPP TPACK memuat MPI (orang)</label><input type="number" min="0" id="f_rpp" name="f_rpp" placeholder="Contoh: 2"></div>
+          <div><label class="f" for="f_praktik">Sudah praktik di kelas (orang)</label><input type="number" min="0" id="f_praktik" name="f_praktik" placeholder="Contoh: 1"></div>
         </div>
-        <label class="f" for="f_catatan">Catatan Digitalisasi</label><textarea id="f_catatan" name="f_catatan"></textarea>
+        <label class="f" for="f_catatan">Catatan Digitalisasi</label><textarea id="f_catatan" name="f_catatan" placeholder="Contoh: 3 guru membuat MPI; 1 MPI belum bisa dibuka karena tautan Canva masih privat"></textarea>
       </fieldset>
 
       <fieldset><legend>G. Catatan dan rencana tindak lanjut</legend>
-        <label class="f" for="g_baik">Praktik baik yang ditemukan</label><textarea id="g_baik" name="g_baik"></textarea>
-        <label class="f" for="g_kendala">Kendala</label><textarea id="g_kendala" name="g_kendala"></textarea>
-        <label class="f" for="g_dukungan">Dukungan yang diperlukan dari pengimbas</label><textarea id="g_dukungan" name="g_dukungan"></textarea>
+        <label class="f" for="g_baik">Praktik baik yang ditemukan</label><textarea id="g_baik" name="g_baik" placeholder="Contoh: Guru kelas V memakai kuis MPI di PID; murid bergantian maju menjawab"></textarea>
+        <label class="f" for="g_kendala">Kendala</label><textarea id="g_kendala" name="g_kendala" placeholder="Contoh: Laptop terbatas; jadwal praktik bertabrakan dengan kegiatan sekolah"></textarea>
+        <label class="f" for="g_dukungan">Dukungan yang diperlukan dari pengimbas</label><textarea id="g_dukungan" name="g_dukungan" placeholder="Contoh: Pendampingan menyusun instrumen monev; contoh RPP TPACK"></textarea>
         <label class="f">Hasil refleksi (Pendampingan 2)</label>
         <div class="opts" data-radio="g_refleksi" data-opts="Dilanjutkan|Disesuaikan|Analisis ulang akar masalah"></div>
-        <label class="f" for="g_rtl">Rencana tindak lanjut (langkah, PJ, waktu)</label><textarea id="g_rtl" name="g_rtl"></textarea>
+        <label class="f" for="g_rtl">Rencana tindak lanjut (langkah, PJ, waktu)</label><textarea id="g_rtl" name="g_rtl" placeholder="Contoh: 1) Finalisasi SK TPMPS – Kepala Sekolah – 15 Okt; 2) Praktik MPI kelas V – Bu Ani – 20 Okt"></textarea>
         <div class="grid2">
           <div><label class="f" for="g_tgl_berikut">Tanggal pendampingan berikutnya</label><input type="date" id="g_tgl_berikut" name="g_tgl_berikut"></div>
-          <div><label class="f" for="g_fokus_berikut">Fokus pendampingan berikutnya</label><input type="text" id="g_fokus_berikut" name="g_fokus_berikut"></div>
+          <div><label class="f" for="g_fokus_berikut">Fokus pendampingan berikutnya</label><input type="text" id="g_fokus_berikut" name="g_fokus_berikut" placeholder="Contoh: Evaluasi LK-5 dan observasi praktik MPI"></div>
         </div>
         <label class="f" for="foto">Tautan foto lembar bertanda tangan (Google Drive)</label><input type="url" id="foto" name="foto" placeholder="https://drive.google.com/...">
       </fieldset>
@@ -277,7 +281,7 @@ function syncGuru(){
 function tambahGuru(nilai = '', fokus = false){
   const list = $('#guru-list'); const n = list.children.length + 1;
   const row = document.createElement('div'); row.className = 'guru-row';
-  row.innerHTML = `<span>${n}.</span><input type="text" class="guru-nama" placeholder="Nama guru (kelas/mapel)"><button type="button" title="Hapus">×</button>`;
+  row.innerHTML = `<span>${n}.</span><input type="text" class="guru-nama" placeholder="Contoh: Bu Ani (kelas 5)"><button type="button" title="Hapus">×</button>`;
   row.querySelector('input').value = nilai;
   row.querySelector('button').onclick = () => {
     if (list.children.length > 1) row.remove(); else row.querySelector('input').value = '';
