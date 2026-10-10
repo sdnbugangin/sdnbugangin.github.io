@@ -188,9 +188,12 @@
       <fieldset><legend>D. SPMI</legend>
         <div id="items-d"></div>
         <div class="p1-tuntas small" id="tuntas-d"></div>
-        <div class="grid2" id="d-awal-grp">
+        <div id="d-awal-grp">
+          <label class="f" for="d_kegiatan">Kegiatan benahi (dari LK-3)</label><textarea rows="2" id="d_kegiatan" name="d_kegiatan" placeholder="Contoh: Guru kelas V memberikan satu teks informasi pendek setiap minggu selama 4 minggu disertai pertanyaan menilai isi teks"></textarea>
+          <div class="grid2">
           <div><label class="f" for="d_awal">Kondisi awal (dari LK-3)</label><textarea id="d_awal" name="d_awal" placeholder="Contoh: 1 dari 5 murid sampel kelas V mampu menilai isi teks (skor 2)"></textarea></div>
           <div><label class="f" for="d_target">Target keberhasilan (dari LK-3)</label><textarea id="d_target" name="d_target" placeholder="Contoh: Minimal 3 dari 5 murid sampel memperoleh skor 2"></textarea></div>
+          </div>
         </div>
         <div data-tahap="2">
           <div class="p1box" id="d-p1"></div>
@@ -377,7 +380,12 @@ function terapkanTahap(){
   document.querySelectorAll('[data-tahap]').forEach(el => setVis(el, !!ke && el.dataset.tahap.includes(ke)));
   for (const sec of ['d','e','f']) {
     let no = 0, tertunda = 0, tuntas = 0;
-    document.querySelectorAll(`#items-${sec} .item`).forEach(el => {
+    const wadah = $('#items-'+sec), urut = ITEMS[sec].map(x => x[0]);
+    [...wadah.children].sort((a, b) => {
+      const pa = ke === '2' ? (a.dataset.t === '2' ? 0 : 1) : 0, pb = ke === '2' ? (b.dataset.t === '2' ? 0 : 1) : 0;
+      return pa - pb || urut.indexOf(a.dataset.key) - urut.indexOf(b.dataset.key);
+    }).forEach(el => wadah.appendChild(el));
+    wadah.querySelectorAll('.item').forEach(el => {
       const t = el.dataset.t, v = P1 ? P1[el.dataset.key] : '';
       let show = !!ke && t === ke, info = '';
       if (ke === '2' && t === '1') {
@@ -397,8 +405,8 @@ function terapkanTahap(){
     const ubah = nilai('b_tetap') === 'Ada perubahan';
     if (ubah) ['b_spmi','b_litnum','b_tp','b_mpi'].forEach(k => { if (!$('#'+k).value) $('#'+k).value = P1[k] || ''; });
     setVis($('#b-edit'), ubah);
-    $('#d-p1').innerHTML = '<b>Dari Pendampingan 1 (LK-3)</b>' + dl([['Kondisi awal', P1.d_awal], ['Target keberhasilan', P1.d_target]]);
-    setVis($('#d-awal-grp'), !(P1.d_awal && P1.d_target));   // data P1 lama: boleh dilengkapi di sini
+    $('#d-p1').innerHTML = '<b>Dari Pendampingan 1 (LK-3)</b>' + dl([['Kegiatan benahi', P1.d_kegiatan], ['Kondisi awal', P1.d_awal], ['Target keberhasilan', P1.d_target]]);
+    setVis($('#d-awal-grp'), !(P1.d_kegiatan && P1.d_awal && P1.d_target));   // data P1 lama: boleh dilengkapi di sini
   } else {
     setVis($('#b-edit'), ke === '1');
     setVis($('#d-awal-grp'), ke === '1');
