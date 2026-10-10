@@ -83,6 +83,13 @@
     .ind-row{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:12px;align-items:center}
   }
   @media (max-width:520px){ .grid2{grid-template-columns:1fr} }
+  .p1box{background:#F1F4FA;border:1px dashed #b9c3d6;border-radius:8px;padding:10px 12px;font-size:13px;margin:4px 0 6px}
+  .p1box b{color:var(--navy)}
+  .p1box dl{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;margin:6px 0 0}
+  .p1box dt{color:var(--muted)} .p1box dd{margin:0}
+  .p1info{display:inline-block;margin:0 0 6px;font-size:12px;font-weight:600;color:var(--mid);background:var(--mid-bg);border-radius:6px;padding:2px 8px}
+  .p1-tuntas{color:var(--ok);margin:8px 0 0}
+  .tahap-ket{background:var(--navy);color:#fff;border-radius:10px;padding:10px 14px;font-size:14px;margin:0 0 14px}
   footer{text-align:center;font-size:12px;color:var(--muted);padding:16px}
 </style>
 </head>
@@ -125,38 +132,51 @@
     </div>
 
     <form id="form" class="hidden" autocomplete="off">
-      <p class="notice"><b>Pengimbas</b>: salin isian lembar observasi cetak setelah kunjungan (data terverifikasi). <b>Satuan pendidikan</b>: laporkan progres terbaru di antara kunjungan (laporan mandiri). Isi urut Bagian A–G. Isian tersimpan sementara di perangkat ini sampai dikirim. Mengirim ulang untuk sekolah dan pendampingan yang sama akan memperbarui data.</p>
+      <p class="notice"><b>Pendampingan 1</b> (menetapkan, memetakan, merencanakan): diisi lengkap. <b>Pendampingan 2</b> (melaksanakan, mengevaluasi, mengendalikan): formulir mengambil data Pendampingan 1, jadi hanya yang berubah dan yang baru yang diisi. <b>Pengimbas</b> menyalin lembar cetak setelah kunjungan; <b>satuan pendidikan</b> melaporkan progres di antara kunjungan.</p>
 
       <fieldset><legend>A. Identitas</legend>
         <label class="f" for="sekolah">Satuan pendidikan</label>
         <select id="sekolah" name="sekolah" required></select>
         <div class="grid2">
+          <div><label class="f">Pendampingan ke-</label><div class="opts" data-radio="ke" data-opts="1|2"></div></div>
+          <div><label class="f" for="tanggal">Tanggal pendampingan</label><input type="date" id="tanggal" name="tanggal" required></div>
+        </div>
+        <div class="grid2">
           <div><label class="f">Diisi oleh</label><div class="opts" data-radio="peran" data-opts="Pengimbas|Satuan pendidikan"></div></div>
           <div><label class="f" for="pengisi">Nama pengisi</label><input type="text" id="pengisi" name="pengisi" placeholder="Nama Bapak/Ibu yang mengisi formulir ini"></div>
         </div>
-        <div class="grid2">
-          <div><label class="f" for="tanggal">Tanggal pendampingan</label><input type="date" id="tanggal" name="tanggal" required></div>
-          <div><label class="f">Pendampingan ke-</label><div class="opts" data-radio="ke" data-opts="1|2"></div></div>
-        </div>
-        <label class="f" for="kepsek">Kepala sekolah</label><input type="text" id="kepsek" name="kepsek" placeholder="Contoh: Siti Aminah, S.Pd.">
+        <div data-tahap="1"><label class="f" for="kepsek">Kepala sekolah</label><input type="text" id="kepsek" name="kepsek" placeholder="Contoh: Siti Aminah, S.Pd."></div>
         <label class="f">Guru yang hadir <span class="small" id="guru-jml"></span></label>
         <div id="guru-list"></div>
         <button type="button" class="btn ghost kecil" id="tambah-guru">+ Tambah guru</button>
         <input type="hidden" id="guru_hadir" name="guru_hadir">
-        <div class="grid2">
+        <div class="grid2" data-tahap="1">
           <div><label class="f" for="jml_peserta">Jumlah guru peserta pengimbasan</label><input type="number" min="0" id="jml_peserta" name="jml_peserta" placeholder="Contoh: 2"></div>
           <div><label class="f" for="jml_guru">Jumlah guru di sekolah</label><input type="number" min="0" id="jml_guru" name="jml_guru" placeholder="Contoh: 9"></div>
         </div>
       </fieldset>
 
+      <div id="pilih-tahap" class="notice">Pilih <b>satuan pendidikan</b> dan <b>Pendampingan ke-</b> untuk menampilkan isian.</div>
+      <div id="p1-status" class="msg"></div>
+
+      <div id="isian" class="hidden">
+      <p class="tahap-ket" id="tahap-ket"></p>
+
       <fieldset><legend>B. Benang merah</legend>
-        <p class="small" style="margin:6px 0 0">Keempat isian ini sebaiknya membahas kompetensi yang sama. Salin dari LK masing-masing.</p>
-        <label class="f" for="b_spmi">SPMI: indikator prioritas (LK-1) — kode dan nama</label><textarea rows="2" id="b_spmi" name="b_spmi" placeholder="Salin dari LK-1 SPMI: kode dan nama indikator. Contoh: A.1.5 Kompetensi mengevaluasi dan merefleksikan isi teks"></textarea>
-        <label class="f" for="b_litnum">Litnum: kompetensi prioritas (LK-B Bagian III)</label><textarea rows="2" id="b_litnum" name="b_litnum" placeholder="Salin dari LK-B Bagian III. Contoh: Mengevaluasi isi teks informasi (membedakan fakta dan opini)"></textarea>
-        <label class="f" for="b_tp">Litnum: tujuan pembelajaran (LK-D)</label><textarea rows="2" id="b_tp" name="b_tp" placeholder="Salin tujuan pembelajaran dari LK-D. Contoh: Murid kelas V dapat membedakan fakta dan opini dalam teks informasi pendek dengan alasan dari bagian teks"></textarea>
-        <label class="f" for="b_mpi">Digitalisasi: topik/kompetensi MPI (LK-1)</label><textarea rows="2" id="b_mpi" name="b_mpi" placeholder="Salin dari LK-1 Digitalisasi. Contoh: Kuis interaktif &quot;Fakta atau Opini?&quot; untuk kelas V (Canva Kode)"></textarea>
-        <label class="f">Keselarasan keempat produk</label>
-        <div class="opts" data-radio="b_selaras" data-opts="Selaras|Sebagian selaras|Belum selaras"></div>
+        <div data-tahap="2">
+          <div class="p1box" id="b-p1"></div>
+          <label class="f">Apakah benang merah masih sama dengan Pendampingan 1?</label>
+          <div class="opts" data-radio="b_tetap" data-opts="Masih sama|Ada perubahan"></div>
+        </div>
+        <div id="b-edit">
+          <p class="small" style="margin:6px 0 0">Keempat isian ini sebaiknya membahas kompetensi yang sama. Salin dari LK masing-masing.</p>
+          <label class="f" for="b_spmi">SPMI: indikator prioritas (LK-1) — kode dan nama</label><textarea rows="2" id="b_spmi" name="b_spmi" placeholder="Salin dari LK-1 SPMI: kode dan nama indikator. Contoh: A.1.5 Kompetensi mengevaluasi dan merefleksikan isi teks"></textarea>
+          <label class="f" for="b_litnum">Litnum: kompetensi prioritas (LK-B Bagian III)</label><textarea rows="2" id="b_litnum" name="b_litnum" placeholder="Salin dari LK-B Bagian III. Contoh: Mengevaluasi isi teks informasi (membedakan fakta dan opini)"></textarea>
+          <label class="f" for="b_tp">Litnum: tujuan pembelajaran (LK-D)</label><textarea rows="2" id="b_tp" name="b_tp" placeholder="Salin tujuan pembelajaran dari LK-D. Contoh: Murid kelas V dapat membedakan fakta dan opini dalam teks informasi pendek dengan alasan dari bagian teks"></textarea>
+          <label class="f" for="b_mpi">Digitalisasi: topik/kompetensi MPI (LK-1)</label><textarea rows="2" id="b_mpi" name="b_mpi" placeholder="Salin dari LK-1 Digitalisasi. Contoh: Kuis interaktif &quot;Fakta atau Opini?&quot; untuk kelas V (Canva Kode)"></textarea>
+          <label class="f">Keselarasan keempat produk</label>
+          <div class="opts" data-radio="b_selaras" data-opts="Selaras|Sebagian selaras|Belum selaras"></div>
+        </div>
       </fieldset>
 
       <fieldset><legend>C. Status pelaksanaan per program</legend>
@@ -165,39 +185,61 @@
         <div class="item"><div class="t">Digitalisasi Pembelajaran</div><div class="opts" data-radio="c_digital" data-opts="Belum dilaksanakan|Sedang dilaksanakan|Sudah dilaksanakan"></div></div>
       </fieldset>
 
-      <fieldset><legend>D. SPMI</legend><div id="items-d"></div>
+      <fieldset><legend>D. SPMI</legend>
+        <div id="items-d"></div>
+        <div class="p1-tuntas small" id="tuntas-d"></div>
+        <div class="grid2" id="d-awal-grp">
+          <div><label class="f" for="d_awal">Kondisi awal (dari LK-3)</label><textarea id="d_awal" name="d_awal" placeholder="Contoh: 1 dari 5 murid sampel kelas V mampu menilai isi teks (skor 2)"></textarea></div>
+          <div><label class="f" for="d_target">Target keberhasilan (dari LK-3)</label><textarea id="d_target" name="d_target" placeholder="Contoh: Minimal 3 dari 5 murid sampel memperoleh skor 2"></textarea></div>
+        </div>
+        <div data-tahap="2">
+          <div class="p1box" id="d-p1"></div>
+          <label class="f" for="d_realisasi">Realisasi hasil (kondisi akhir)</label><textarea id="d_realisasi" name="d_realisasi" placeholder="Contoh: 4 dari 5 murid sampel memperoleh skor 2 setelah 4 minggu"></textarea>
+          <label class="f">Ketercapaian target</label>
+          <div class="opts" data-radio="d_capai" data-opts="Tercapai|Sebagian tercapai|Belum tercapai"></div>
+        </div>
         <label class="f" for="d_catatan">Catatan SPMI</label><textarea id="d_catatan" name="d_catatan" placeholder="Contoh: LK-1 dan LK-2 sudah lengkap; SK TPMPS masih draf, ditandatangani pekan depan"></textarea>
       </fieldset>
 
-      <fieldset><legend>E. Penguatan Literasi dan Numerasi</legend><div id="items-e"></div>
-        <label class="f">Level pelaksanaan Litnum</label>
-        <div class="opts" data-radio="e_level" data-opts="Belum|Mulai|Berkembang|Membudaya"></div>
+      <fieldset><legend>E. Penguatan Literasi dan Numerasi</legend>
+        <div id="items-e"></div>
+        <div class="p1-tuntas small" id="tuntas-e"></div>
+        <div data-tahap="2">
+          <label class="f">Level pelaksanaan Litnum</label>
+          <div class="opts" data-radio="e_level" data-opts="Belum|Mulai|Berkembang|Membudaya"></div>
+        </div>
         <label class="f" for="e_catatan">Catatan Litnum</label><textarea id="e_catatan" name="e_catatan" placeholder="Contoh: Pojok baca kelas sudah berjalan (ada foto); rancangan LK-D belum diterapkan di kelas"></textarea>
       </fieldset>
 
-      <fieldset><legend>F. Digitalisasi Pembelajaran</legend><div id="items-f"></div>
-        <div class="grid2">
+      <fieldset><legend>F. Digitalisasi Pembelajaran</legend>
+        <div id="items-f"></div>
+        <div class="p1-tuntas small" id="tuntas-f"></div>
+        <div class="grid2" data-tahap="1">
           <div><label class="f" for="f_buat">Guru membuat MPI (orang)</label><input type="number" min="0" id="f_buat" name="f_buat" placeholder="Contoh: 3"></div>
           <div><label class="f" for="f_jadi">MPI jadi dan dapat dibuka (orang)</label><input type="number" min="0" id="f_jadi" name="f_jadi" placeholder="Contoh: 2"></div>
           <div><label class="f" for="f_rpp">RPP TPACK memuat MPI (orang)</label><input type="number" min="0" id="f_rpp" name="f_rpp" placeholder="Contoh: 2"></div>
-          <div><label class="f" for="f_praktik">Sudah praktik di kelas (orang)</label><input type="number" min="0" id="f_praktik" name="f_praktik" placeholder="Contoh: 1"></div>
         </div>
+        <div data-tahap="2"><label class="f" for="f_praktik">Guru yang sudah praktik di kelas (orang)</label><input type="number" min="0" id="f_praktik" name="f_praktik" placeholder="Contoh: 2"></div>
         <label class="f" for="f_catatan">Catatan Digitalisasi</label><textarea id="f_catatan" name="f_catatan" placeholder="Contoh: 3 guru membuat MPI; 1 MPI belum bisa dibuka karena tautan Canva masih privat"></textarea>
       </fieldset>
 
       <fieldset><legend>G. Catatan dan rencana tindak lanjut</legend>
         <label class="f" for="g_baik">Praktik baik yang ditemukan</label><textarea id="g_baik" name="g_baik" placeholder="Contoh: Guru kelas V memakai kuis MPI di PID; murid bergantian maju menjawab"></textarea>
         <label class="f" for="g_kendala">Kendala</label><textarea id="g_kendala" name="g_kendala" placeholder="Contoh: Laptop terbatas; jadwal praktik bertabrakan dengan kegiatan sekolah"></textarea>
-        <label class="f" for="g_dukungan">Dukungan yang diperlukan dari pengimbas</label><textarea id="g_dukungan" name="g_dukungan" placeholder="Contoh: Pendampingan menyusun instrumen monev; contoh RPP TPACK"></textarea>
-        <label class="f">Hasil refleksi (Pendampingan 2)</label>
-        <div class="opts" data-radio="g_refleksi" data-opts="Dilanjutkan|Disesuaikan|Analisis ulang akar masalah"></div>
+        <div data-tahap="1"><label class="f" for="g_dukungan">Dukungan yang diperlukan dari pengimbas</label><textarea id="g_dukungan" name="g_dukungan" placeholder="Contoh: Pendampingan menyusun instrumen monev; contoh RPP TPACK"></textarea></div>
+        <div data-tahap="2">
+          <label class="f">Hasil refleksi</label>
+          <div class="opts" data-radio="g_refleksi" data-opts="Dilanjutkan|Disesuaikan|Analisis ulang akar masalah"></div>
+          <label class="f" for="g_rekomendasi">Rekomendasi perbaikan</label><textarea id="g_rekomendasi" name="g_rekomendasi" placeholder="Contoh: Kegiatan menilai isi teks diperluas ke kelas IV; rubrik disederhanakan"></textarea>
+        </div>
         <label class="f" for="g_rtl">Rencana tindak lanjut (langkah, PJ, waktu)</label><textarea id="g_rtl" name="g_rtl" placeholder="Contoh: 1) Finalisasi SK TPMPS – Kepala Sekolah – 15 Okt; 2) Praktik MPI kelas V – Bu Ani – 20 Okt"></textarea>
-        <div class="grid2">
-          <div><label class="f" for="g_tgl_berikut">Tanggal pendampingan berikutnya</label><input type="date" id="g_tgl_berikut" name="g_tgl_berikut"></div>
-          <div><label class="f" for="g_fokus_berikut">Fokus pendampingan berikutnya</label><input type="text" id="g_fokus_berikut" name="g_fokus_berikut" placeholder="Contoh: Evaluasi LK-5 dan observasi praktik MPI"></div>
+        <div class="grid2" data-tahap="1">
+          <div><label class="f" for="g_tgl_berikut">Tanggal Pendampingan 2</label><input type="date" id="g_tgl_berikut" name="g_tgl_berikut"></div>
+          <div><label class="f" for="g_fokus_berikut">Fokus Pendampingan 2</label><input type="text" id="g_fokus_berikut" name="g_fokus_berikut" placeholder="Contoh: Evaluasi LK-5 dan observasi praktik MPI"></div>
         </div>
         <label class="f" for="foto">Tautan foto lembar bertanda tangan (Google Drive)</label><input type="url" id="foto" name="foto" placeholder="https://drive.google.com/...">
       </fieldset>
+      </div>
 
       <div id="form-msg" class="msg"></div>
       <div class="actions">
@@ -216,26 +258,26 @@ const API_URL = 'https://script.google.com/macros/s/AKfycbwHX2UisnVP8LKwDJIykvd1
 
 const SEKOLAH = ['SD N 1 Patukangan','SD N 2 Patukangan','SD N 1 Pegulon','SD N 2 Pegulon','SD N Kalibuntu Wetan'];
 const KEADAAN = 'Ada|Proses|Belum ada';
-const ITEMS = {
-  d: [['LK-1 Analisis Rapor Pendidikan','Satu indikator prioritas; sesuai data Rapor Pendidikan'],
-      ['LK-2 Identifikasi akar masalah','Akar masalah, data pendukung, rencana verifikasi data'],
-      ['LK-3 Rencana Kerja Tahunan (setara LK-01)','Kegiatan benahi, sasaran, kondisi awal, target, jadwal, PJ, instrumen monev'],
-      ['LK-4 Rencana aksi implementasi SPMI (setara LK-03)','Tahapan, jadwal, PJ, status'],
-      ['SK Tim Penjaminan Mutu Pendidikan Sekolah (TPMPS)',''],
-      ['Kegiatan benahi tercantum dalam RKT',''],
-      ['Kegiatan tercantum dalam ARKAS','Apabila berbiaya','Tidak relevan'],
-      ['LK-5 Evaluasi dan pengendalian (setara LK-02)','Pendampingan 2: realisasi dibandingkan target','Belum jadwalnya']],
-  e: [['LK-A Cek konsep literasi dan numerasi','Termasuk refleksi miskonsepsi sekolah'],
-      ['LK-B Analisis capaian litnum dan akar masalah','Rapor Pendidikan/TKA; satu kompetensi prioritas'],
-      ['LK-C Strategi penguatan 3 lingkungan','Fisik, sosial-afektif, akademik'],
-      ['Bukti pelaksanaan produk LK-C','Foto/dokumen'],
-      ['LK-D Rancangan pembelajaran (backward design)','Tujuan → asesmen → aktivitas'],
-      ['Dokumen rancangan pembelajaran (RPP/perangkat) hasil LK-D',''],
-      ['Hasil kerja/asesmen murid','Apabila rancangan sudah diterapkan','Belum jadwalnya']],
-  f: [['File/tautan MPI','MPI sudah jadi dan dapat dibuka'],
-      ['Histori prompt','Prompt awal dan minimal 1 prompt perbaikan'],
-      ['RPP Pembelajaran Mendalam berbasis TPACK','MPI disebut pada kolom pemanfaatan digital'],
-      ['Bukti penerapan di kelas','Lembar Observasi dan Laporan Refleksi terisi','Belum jadwalnya']],
+const ITEMS = {   // [kunci, judul, petunjuk, pilihan tambahan, tahap]
+  d: [['d1','LK-1 Analisis Rapor Pendidikan','Satu indikator prioritas; sesuai data Rapor Pendidikan','','1'],
+      ['d2','LK-2 Identifikasi akar masalah','Akar masalah, data pendukung, rencana verifikasi data','','1'],
+      ['d3','LK-3 Rencana Kerja Tahunan (setara LK-01)','Kegiatan benahi, sasaran, kondisi awal, target, jadwal, PJ, instrumen monev','','1'],
+      ['d4','LK-4 Rencana aksi implementasi SPMI (setara LK-03)','Tahapan, jadwal, PJ, status','','1'],
+      ['d5','SK Tim Penjaminan Mutu Pendidikan Sekolah (TPMPS)','','','1'],
+      ['d6','Kegiatan benahi tercantum dalam RKT','','','1'],
+      ['d7','Kegiatan tercantum dalam ARKAS','Apabila berbiaya','Tidak relevan','1'],
+      ['d8','LK-5 Evaluasi dan pengendalian (setara LK-02)','Realisasi dibandingkan target; refleksi dan tindak lanjut','','2']],
+  e: [['e1','LK-A Cek konsep literasi dan numerasi','Termasuk refleksi miskonsepsi sekolah','','1'],
+      ['e2','LK-B Analisis capaian litnum dan akar masalah','Rapor Pendidikan/TKA; satu kompetensi prioritas','','1'],
+      ['e3','LK-C Strategi penguatan 3 lingkungan','Fisik, sosial-afektif, akademik','','1'],
+      ['e5','LK-D Rancangan pembelajaran (backward design)','Tujuan → asesmen → aktivitas','','1'],
+      ['e6','Dokumen rancangan pembelajaran (RPP/perangkat) hasil LK-D','','','1'],
+      ['e4','Bukti pelaksanaan produk LK-C','Foto/dokumen kegiatan yang sudah berjalan','','2'],
+      ['e7','Hasil kerja/asesmen murid','Dari rancangan LK-D yang sudah diterapkan','','2']],
+  f: [['f1','File/tautan MPI','MPI sudah jadi dan dapat dibuka','','1'],
+      ['f2','Histori prompt','Prompt awal dan minimal 1 prompt perbaikan','','1'],
+      ['f3','RPP Pembelajaran Mendalam berbasis TPACK','MPI disebut pada kolom pemanfaatan digital','','1'],
+      ['f4','Bukti penerapan di kelas','Lembar Observasi dan Laporan Refleksi terisi','','2']],
 };
 
 const $ = s => document.querySelector(s);
@@ -265,9 +307,10 @@ function radio(name, opts){
 document.querySelectorAll('[data-radio]').forEach(el => el.innerHTML = radio(el.dataset.radio, el.dataset.opts));
 $('#sekolah').innerHTML = '<option value="">— pilih —</option>' + SEKOLAH.map(s => `<option>${esc(s)}</option>`).join('');
 for (const sec of ['d','e','f']) {
-  $('#items-'+sec).innerHTML = ITEMS[sec].map(([t,h,jadwal],i) => `
-    <div class="item"><div class="t">${i+1}. ${esc(t)}</div>${h?`<div class="h">${esc(h)}</div>`:''}
-    <div class="opts">${radio(sec+(i+1), KEADAAN + (jadwal ? '|' + jadwal : ''))}</div></div>`).join('');
+  $('#items-'+sec).innerHTML = ITEMS[sec].map(([k,t,h,extra,tahap]) => `
+    <div class="item" data-key="${k}" data-t="${tahap}"><div class="t"><span class="no"></span>${esc(t)}</div>${h?`<div class="h">${esc(h)}</div>`:''}
+    <div class="p1info hidden"></div>
+    <div class="opts">${radio(k, KEADAAN + (extra ? '|' + extra : ''))}</div></div>`).join('');
 }
 
 /* ---------- draf di perangkat ---------- */
@@ -317,12 +360,85 @@ function isiData(o){
 $('#form').addEventListener('input', () => store.set(DRAFT, JSON.stringify(ambilData())));
 $('#form').addEventListener('change', () => store.set(DRAFT, JSON.stringify(ambilData())));
 try { isiData(JSON.parse(store.get(DRAFT) || '{}')); } catch(e){}
-$('#kosongkan').onclick = () => { if (confirm('Kosongkan seluruh isian formulir?')) { $('#form').reset(); aturGuru(''); store.del(DRAFT); } };
+$('#kosongkan').onclick = () => { if (confirm('Kosongkan seluruh isian formulir?')) { $('#form').reset(); aturGuru(''); store.del(DRAFT); P1 = null; $('#p1-status').className = 'msg'; terapkanTahap(); } };
+
+
+/* ---------- tahap pendampingan (1 / 2) ---------- */
+let P1 = null;   // data Pendampingan 1 sekolah terpilih (untuk Pendampingan 2)
+const nilai = n => { const r = document.querySelector(`input[name="${n}"]:checked`); return r ? r.value : ''; };
+function setVis(el, show){ el.classList.toggle('hidden', !show); el.querySelectorAll('input,textarea,select').forEach(i => i.disabled = !show); }
+function dl(pairs){ return '<dl>' + pairs.map(([k,v]) => `<dt>${esc(k)}</dt><dd>${v ? esc(v) : '<i>belum diisi</i>'}</dd>`).join('') + '</dl>'; }
+const TUNTAS = ['Ada','Tidak relevan'];
+function terapkanTahap(){
+  const ke = nilai('ke'), sek = $('#sekolah').value;
+  const siap = !!sek && (ke === '1' || (ke === '2' && P1 && P1.sekolah === sek));
+  $('#isian').querySelectorAll('input,textarea,select').forEach(i => i.disabled = false);   // aturan per bagian diterapkan di bawah
+  $('#pilih-tahap').classList.toggle('hidden', !!(ke && sek));
+  document.querySelectorAll('[data-tahap]').forEach(el => setVis(el, !!ke && el.dataset.tahap.includes(ke)));
+  for (const sec of ['d','e','f']) {
+    let no = 0, tertunda = 0, tuntas = 0;
+    document.querySelectorAll(`#items-${sec} .item`).forEach(el => {
+      const t = el.dataset.t, v = P1 ? P1[el.dataset.key] : '';
+      let show = !!ke && t === ke, info = '';
+      if (ke === '2' && t === '1') {
+        if (TUNTAS.includes(v)) tuntas++;
+        else { show = true; tertunda++; info = 'Belum tuntas di Pendampingan 1: ' + (v || 'belum diisi'); }
+      }
+      setVis(el, show);
+      const pi = el.querySelector('.p1info'); pi.textContent = info; pi.classList.toggle('hidden', !info);
+      if (show) el.querySelector('.no').textContent = (++no) + '. ';
+    });
+    $('#tuntas-'+sec).textContent = (ke === '2' && tuntas) ? `✓ ${tuntas} tagihan sudah tuntas di Pendampingan 1 (tidak perlu diisi ulang).` : '';
+  }
+  if (ke === '2' && P1) {
+    $('#b-p1').innerHTML = '<b>Benang merah di Pendampingan 1</b>' + dl([
+      ['Indikator SPMI', P1.b_spmi], ['Kompetensi Litnum', P1.b_litnum], ['Tujuan pembelajaran', P1.b_tp],
+      ['Topik MPI', P1.b_mpi], ['Keselarasan', P1.b_selaras]]);
+    const ubah = nilai('b_tetap') === 'Ada perubahan';
+    if (ubah) ['b_spmi','b_litnum','b_tp','b_mpi'].forEach(k => { if (!$('#'+k).value) $('#'+k).value = P1[k] || ''; });
+    setVis($('#b-edit'), ubah);
+    $('#d-p1').innerHTML = '<b>Dari Pendampingan 1 (LK-3)</b>' + dl([['Kondisi awal', P1.d_awal], ['Target keberhasilan', P1.d_target]]);
+    setVis($('#d-awal-grp'), !(P1.d_awal && P1.d_target));   // data P1 lama: boleh dilengkapi di sini
+  } else {
+    setVis($('#b-edit'), ke === '1');
+    setVis($('#d-awal-grp'), ke === '1');
+  }
+  $('#tahap-ket').innerHTML = ke === '1'
+    ? '<b>Pendampingan 1</b> · menetapkan, memetakan, merencanakan. Isi semua bagian.'
+    : '<b>Pendampingan 2</b> · melaksanakan, mengevaluasi, mengendalikan. Hanya isian yang berubah dan yang baru; data lain dibawa dari Pendampingan 1.';
+  const isi = $('#isian');
+  isi.classList.toggle('hidden', !siap);
+  if (!siap) isi.querySelectorAll('input,textarea,select').forEach(i => i.disabled = true);
+}
+async function muatP1(){
+  const ke = nilai('ke'), sek = $('#sekolah').value, st = $('#p1-status');
+  $('#form-msg').className = 'msg';
+  if (ke !== '2' || !sek) { P1 = null; st.className = 'msg'; terapkanTahap(); return; }
+  if (P1 && P1.sekolah === sek) { terapkanTahap(); return; }
+  P1 = null; terapkanTahap();
+  if (!PIN || !apiSiap()) return;
+  st.className = 'msg ok'; st.textContent = 'Memuat data Pendampingan 1 ' + sek + '…';
+  try {
+    const res = await kirimApi({ aksi: 'ambilP1', pin: PIN, sekolah: sek });
+    if ($('#sekolah').value !== sek || nilai('ke') !== '2') return;
+    if (res.ok && res.data) {
+      P1 = res.data;
+      st.className = 'msg ok';
+      st.textContent = `Data Pendampingan 1 dimuat (${fmtTgl(P1.tanggal) || 'tanpa tanggal'}, ${P1.peran === 'Pengimbas' ? 'terverifikasi pengimbas' : 'laporan mandiri sekolah'}). Tagihan yang sudah "Ada" tidak ditanyakan lagi.`;
+    } else if (res.ok) {
+      st.className = 'msg err'; st.textContent = 'Belum ada data Pendampingan 1 untuk ' + sek + '. Isi Pendampingan 1 lebih dulu.';
+    } else { st.className = 'msg err'; st.textContent = res.pesan || 'Gagal memuat data Pendampingan 1.'; }
+  } catch(e){ st.className = 'msg err'; st.textContent = 'Tidak dapat memuat data Pendampingan 1. Periksa sinyal, lalu pilih ulang sekolah.'; }
+  terapkanTahap();
+}
+$('#sekolah').addEventListener('change', muatP1);
+document.querySelectorAll('input[name="ke"]').forEach(r => r.addEventListener('change', muatP1));
+document.querySelectorAll('input[name="b_tetap"]').forEach(r => r.addEventListener('change', terapkanTahap));
 
 /* ---------- PIN ---------- */
 let PIN = '';
 try { PIN = sessionStorage.getItem('pendampingan-pin') || ''; } catch(e){}
-function tampilForm(){ $('#pin-box').classList.add('hidden'); $('#form').classList.remove('hidden'); }
+function tampilForm(){ $('#pin-box').classList.add('hidden'); $('#form').classList.remove('hidden'); muatP1(); }
 if (PIN) tampilForm();
 async function kirimApi(body){
   const r = await fetch(API_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(body) });
@@ -351,13 +467,14 @@ $('#form').addEventListener('submit', async e => {
   if (!d.ke) kurang.push('pendampingan ke-');
   if (!d.peran) kurang.push('diisi oleh');
   if (!(d.pengisi||'').trim()) kurang.push('nama pengisi');
+  if (d.ke === '2' && !(P1 && P1.sekolah === d.sekolah)) kurang.push('data Pendampingan 1 sekolah ini (isi Pendampingan 1 lebih dulu)');
   if (kurang.length) { m.className='msg err'; m.textContent='Lengkapi dulu: ' + kurang.join(', ') + '.'; m.scrollIntoView({block:'center'}); return; }
   $('#kirim').disabled = true; m.className='msg';
   try {
     const res = await kirimApi({ pin: PIN, data: d });
     if (res.ok) {
       m.className='msg ok'; m.textContent = `Tersimpan: ${d.sekolah}, pendampingan ke-${d.ke}. Rekap BBPMP di Sheet sudah diperbarui.`;
-      store.del(DRAFT); $('#form').reset(); aturGuru('');
+      store.del(DRAFT); $('#form').reset(); aturGuru(''); P1 = null; $('#p1-status').className = 'msg'; terapkanTahap();
     } else {
       m.className='msg err'; m.textContent = res.pesan || 'Gagal menyimpan.';
       if (/PIN|sandi/.test(res.pesan||'')) { try { sessionStorage.removeItem('pendampingan-pin'); } catch(e){} }
@@ -369,7 +486,7 @@ $('#form').addEventListener('submit', async e => {
 /* ---------- progres ---------- */
 function chip(v){
   if (!v) return '<span class="chip c-na">Belum terdata</span>';
-  const cls = /^(Sudah|Selaras$|Membudaya)/.test(v) ? 'c-ok' : /^(Sedang|Sebagian|Berkembang|Mulai)/.test(v) ? 'c-mid' : 'c-no';
+  const cls = /^(Sudah|Selaras$|Membudaya|Tercapai)/.test(v) ? 'c-ok' : /^(Sedang|Sebagian|Berkembang|Mulai)/.test(v) ? 'c-mid' : 'c-no';
   return `<span class="chip ${cls}">${esc(v)}</span>`;
 }
 function fmtTgl(t){ if(!t) return ''; const d = new Date(t+'T00:00:00'); return isNaN(d) ? t : d.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}); }
@@ -386,6 +503,7 @@ function kunjungan(label, p){
       <span>Level Litnum</span><span>${chip(p.level)}</span>
       <span>Digitalisasi</span><span>${chip(p.digital)}${tag('digital')}</span>
       <span>MPI jadi / praktik</span><span><b>${esc(p.mpiJadi||0)}</b> / <b>${esc(p.praktik||0)}</b> guru</span>
+      ${label === 'Pendampingan 2' ? `<span>Target benahi</span><span>${chip(p.capai)}</span>` : ''}
     </div>${p.berikut ? `<div class="small" style="margin-top:6px">Pendampingan berikutnya: ${fmtTgl(p.berikut)}</div>`:''}</div>`;
 }
 function render(data){
@@ -405,6 +523,7 @@ async function muatProgres(){
   } catch(e){ $('#updated').textContent = 'Data belum dapat dimuat. Periksa koneksi, lalu muat ulang halaman.'; }
 }
 if (location.hash === '#input') bukaTab('input');
+terapkanTahap();
 muatProgres();
 </script>
 </body>
