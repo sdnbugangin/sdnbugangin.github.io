@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#d71920">
 <meta name="robots" content="noindex">
-<title>Bantuan Siswa | SD N BUGANGIN</title>
+<title>Ruang Guru | SD N BUGANGIN</title>
 <link rel="icon" type="image/png" href="../logo.png">
 <style>
 :root{--red:#d71920;--red-dark:#9e1117;--yellow:#ffd21f;--blue:#12314f;--cream:#fffaf0;--ink:#16202a;--muted:#64748b;--line:#eadfc7;--ok:#1d7a37;--warn:#9a6c00;--bad:#b42318}
@@ -64,13 +64,13 @@ footer{text-align:center;color:var(--muted);font-size:13px;line-height:1.7;paddi
 <div class="topline"></div>
 <div class="wrap">
   <a class="back" href="../">&larr; Kembali ke Beranda</a>
-  <header><img src="../logo.png" alt="Logo SD N BUGANGIN"><div><h1>Bantuan Siswa</h1><p>Pendataan penerima PIP, BAZNAS, dan Santunan Yatim Piatu, serta daftar prioritas usulan.</p></div></header>
+  <header><img src="../logo.png" alt="Logo SD N BUGANGIN"><div><h1 id="judul">Ruang Guru</h1><p id="judul-sub">Layanan internal guru dan tenaga kependidikan SD N BUGANGIN.</p></div></header>
 
-  <div id="cfg-notice" class="notice hidden">Sistem belum tersambung. Isi <code>API_URL</code> di berkas <code>bantuan/index.html</code> dengan URL Aplikasi web dari Apps Script (lihat <code>bantuan/apps-script/Kode.gs</code>).</div>
+  <div id="cfg-notice" class="notice hidden">Sistem belum tersambung. Isi <code>API_URL</code> di berkas <code>ruang-guru/index.html</code> dengan URL Aplikasi web dari Apps Script (lihat <code>ruang-guru/apps-script/Kode.gs</code>).</div>
 
   <section id="login" class="card">
     <h2>Masuk</h2>
-    <p>Khusus guru dan pengurus bantuan. Data di halaman ini bersifat rahasia, jangan dibagikan ke pihak lain.</p>
+    <p>Khusus guru dan tenaga kependidikan. Masuk dengan nama Anda dan kata sandi sekolah.</p>
     <div class="field"><label for="oleh">Nama Anda</label><input type="text" id="oleh" autocomplete="name" placeholder="Contoh: Bu Sumiyati"></div>
     <div class="field"><label for="sandi">Kata sandi</label><input type="password" id="sandi" autocomplete="current-password" placeholder="Kata sandi"></div>
     <button class="btn" id="masuk" style="width:100%">Masuk</button>
@@ -178,8 +178,8 @@ footer{text-align:center;color:var(--muted);font-size:13px;line-height:1.7;paddi
 </div>
 
 <script>
-/* URL Aplikasi web Apps Script (berakhiran /exec). Lihat bantuan/apps-script/Kode.gs */
-const API_URL = '';
+/* URL Aplikasi web Apps Script (berakhiran /exec). Lihat ruang-guru/apps-script/Kode.gs */
+const API_URL = 'https://script.google.com/macros/s/AKfycbyE3fM1cmCXeMsdoygOAP92MIKSngirrd3pOd2U1t4Nr63wAO3lOfEjUyCPBUA7PTor/exec';
 
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -336,7 +336,12 @@ async function muat(){
     DATA = res; renderSemua(); return true;
   } catch(e){ alert('Data belum dapat dimuat. ' + (e.message || 'Periksa koneksi, lalu coba lagi.')); return false; }
 }
+function tampilApp(){
+  $('#login').classList.add('hidden'); $('#app').classList.remove('hidden');
+  $('#judul').textContent = 'Bantuan Siswa'; $('#judul-sub').textContent = 'Pendataan PIP, BAZNAS, dan Santunan Yatim Piatu. Data rahasia, jangan dibagikan.';
+}
 function keluar(pesan){
+  $('#judul').textContent = 'Ruang Guru'; $('#judul-sub').textContent = 'Layanan internal guru dan tenaga kependidikan SD N BUGANGIN.';
   SANDI = ''; ss.del('bantuan-sandi'); DATA = null; tutupEditor();
   $('#app').classList.add('hidden'); $('#login').classList.remove('hidden');
   $('#login-msg').className = 'msg' + (pesan ? ' err' : ''); $('#login-msg').textContent = pesan || '';
@@ -349,7 +354,7 @@ $('#masuk').onclick = async () => {
   SANDI = sandi; OLEH = nama;
   try {
     const res = await api({ aksi:'masuk' });
-    if (res.ok) { ss.set('bantuan-sandi', sandi); ls.set('bantuan-oleh', nama); m.textContent='Memuat data…'; if (await muat()) { $('#login').classList.add('hidden'); $('#app').classList.remove('hidden'); m.textContent=''; } }
+    if (res.ok) { ss.set('bantuan-sandi', sandi); ls.set('bantuan-oleh', nama); m.textContent='Memuat data…'; if (await muat()) { tampilApp(); m.textContent=''; } }
     else { m.className='msg err'; m.textContent = res.pesan || 'Kata sandi salah.'; }
   } catch(e){ m.className='msg err'; m.textContent='Tidak dapat terhubung. Periksa sinyal, lalu coba lagi.'; }
   $('#masuk').disabled = false;
@@ -431,7 +436,7 @@ $('#p-simpan').onclick = async () => {
 /* ---------- mulai ---------- */
 $('#oleh').value = OLEH;
 if (!API_URL) $('#cfg-notice').classList.remove('hidden');
-else if (SANDI && OLEH) { $('#login-msg').textContent = 'Memuat data…'; muat().then(ok => { if (ok) { $('#login').classList.add('hidden'); $('#app').classList.remove('hidden'); $('#login-msg').textContent=''; } }); }
+else if (SANDI && OLEH) { $('#login-msg').textContent = 'Memuat data…'; muat().then(ok => { if (ok) { tampilApp(); $('#login-msg').textContent=''; } }); }
 </script>
 </body>
 </html>

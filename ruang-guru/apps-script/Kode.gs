@@ -1,6 +1,6 @@
 /**
  * Sistem Pendataan Bantuan Siswa — SD N BUGANGIN
- * Backend Google Apps Script untuk halaman sdnbugangin.github.io/bantuan/
+ * Backend Google Apps Script untuk halaman sdnbugangin.github.io/ruang-guru/
  *
  * Cara pasang (sekali saja):
  * 1. Buat Google Sheet baru, beri nama "Database Bantuan Siswa".
@@ -8,7 +8,7 @@
  * 3. Pilih fungsi "siapkan" di toolbar, klik Jalankan, lalu izinkan akses.
  * 4. Deploy → Deployment baru → Jenis: Aplikasi web.
  *    Jalankan sebagai: Saya. Yang memiliki akses: Siapa saja. Klik Deploy.
- * 5. Salin URL Aplikasi web (berakhiran /exec), tempel ke API_URL di bantuan/index.html.
+ * 5. Salin URL Aplikasi web (berakhiran /exec), tempel ke API_URL di ruang-guru/index.html.
  *
  * Kata sandi dan ID spreadsheet presensi diatur di sheet "Pengaturan", bukan di kode ini.
  */
