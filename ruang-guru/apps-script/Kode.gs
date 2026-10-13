@@ -11,13 +11,18 @@
  * 5. Salin URL Aplikasi web (berakhiran /exec), tempel ke API_URL di ruang-guru/index.html.
  *
  * Kata sandi dan ID spreadsheet presensi diatur di sheet "Pengaturan", bukan di kode ini.
+ *
+ * Memperbarui kode (misalnya setelah fitur Prestasi ditambahkan):
+ * tempel kode baru, simpan, jalankan "siapkan" sekali (izinkan akses Google Drive untuk foto),
+ * lalu Deploy → Kelola deployment → ikon pensil → Versi: Versi baru → Deploy. URL tetap sama.
  */
 
 var SHEET = {
   profil: 'Data Kelayakan',
   bantuan: 'Riwayat Bantuan',
   atur: 'Pengaturan',
-  log: 'Log Perubahan'
+  log: 'Log Perubahan',
+  prestasi: 'Prestasi'
 };
 
 var KOLOM_PROFIL = ['ID Siswa', 'Kelas', 'Nama Siswa', 'Desil DTSEN', 'Status Aplikasi PIP',
@@ -26,6 +31,10 @@ var KOLOM_PROFIL = ['ID Siswa', 'Kelas', 'Nama Siswa', 'Desil DTSEN', 'Status Ap
 var KOLOM_BANTUAN = ['ID', 'Tahun', 'ID Siswa', 'Kelas', 'Nama Siswa', 'Jenis Bantuan', 'Bulan',
   'Nominal', 'Keterangan', 'Dicatat Oleh', 'Dicatat Pada'];
 var KOLOM_LOG = ['Waktu', 'Oleh', 'Aksi', 'ID Siswa', 'Nama Siswa', 'Rincian'];
+var KOLOM_PRESTASI = ['ID', 'Tanggal', 'Siswa', 'Siswa (data)', 'Cabang Lomba', 'Nama Lomba', 'Penyelenggara',
+  'Tingkat', 'Juara', 'Guru Pembimbing', 'ID Foto', 'Izin Foto Ortu', 'Tampilkan di Beranda', 'Dicatat Oleh', 'Dicatat Pada'];
+var TINGKAT = ['Sekolah', 'Gugus', 'Kecamatan', 'Kabupaten', 'Provinsi', 'Nasional', 'Internasional'];
+var JUARA = ['Juara 1', 'Juara 2', 'Juara 3', 'Harapan 1', 'Harapan 2', 'Harapan 3', 'Juara Umum', 'Finalis'];
 
 var FLAG = ['yatim', 'panti', 'abk', 'phk', 'napi', 'abh', 'asn', 'mampu'];
 var JENIS = ['PIP', 'BAZNAS', 'Santunan Yatim Piatu'];
@@ -38,14 +47,21 @@ function siapkan() {
   buatSheet_(ss, SHEET.profil, KOLOM_PROFIL);
   buatSheet_(ss, SHEET.bantuan, KOLOM_BANTUAN);
   buatSheet_(ss, SHEET.log, KOLOM_LOG);
+  buatSheet_(ss, SHEET.prestasi, KOLOM_PRESTASI);
   var atur = buatSheet_(ss, SHEET.atur, ['Kunci', 'Nilai', 'Keterangan']);
   var bawaan = [
     ['Password Bantuan', 'sdsuper', 'Kata sandi untuk membuka halaman Bantuan Siswa. Ganti di sini kapan saja.'],
     ['ID Spreadsheet Presensi', '1lKVS4dI4afo0__O4UkHQhdWlfB2NwCuL9cYXsS_5Ap8', 'Daftar siswa diambil dari sheet "Master Siswa" di spreadsheet ini.'],
-    ['Tahun Bantuan', '2026', 'Tahun yang dihitung untuk "sudah menerima bantuan".']
+    ['Tahun Bantuan', '2026', 'Tahun yang dihitung untuk "sudah menerima bantuan".'],
+    ['Folder Foto Prestasi', '', 'ID folder Google Drive tempat foto prestasi disimpan. Diisi otomatis oleh "siapkan".']
   ];
   var ada = atur.getDataRange().getValues().map(function (r) { return r[0]; });
   bawaan.forEach(function (b) { if (ada.indexOf(b[0]) < 0) atur.appendRow(b); });
+  if (!pengaturan_().folderFoto) {
+    var folder = DriveApp.createFolder('Foto Prestasi SD N BUGANGIN');
+    var rows = atur.getDataRange().getValues();
+    for (var i = 0; i < rows.length; i++) if (rows[i][0] === 'Folder Foto Prestasi') atur.getRange(i + 1, 2).setValue(folder.getId());
+  }
   var awal = ss.getSheetByName('Sheet1') || ss.getSheetByName('Lembar1');
   if (awal && ss.getSheets().length > 1 && awal.getLastRow() === 0) ss.deleteSheet(awal);
   daftarSiswa_(); // memastikan spreadsheet presensi bisa dibaca (memicu izin)
@@ -68,14 +84,16 @@ function pengaturan_() {
   return {
     sandi: nilai['Password Bantuan'] || 'sdsuper',
     presensiId: nilai['ID Spreadsheet Presensi'] || '1lKVS4dI4afo0__O4UkHQhdWlfB2NwCuL9cYXsS_5Ap8',
-    tahun: Number(nilai['Tahun Bantuan']) || new Date().getFullYear()
+    tahun: Number(nilai['Tahun Bantuan']) || new Date().getFullYear(),
+    folderFoto: nilai['Folder Foto Prestasi'] || ''
   };
 }
 
 /* ---------- web app ---------- */
 
-function doGet() {
-  return json_({ ok: true, pesan: 'Layanan Bantuan Siswa SD N BUGANGIN aktif.' });
+function doGet(e) {
+  if (e && e.parameter && e.parameter.aksi === 'prestasi') return json_(prestasiPublik_());
+  return json_({ ok: true, pesan: 'Layanan Ruang Guru SD N BUGANGIN aktif.' });
 }
 
 function doPost(e) {
@@ -91,6 +109,8 @@ function doPost(e) {
       case 'simpanProfil': return json_(denganKunci_(function () { return simpanProfil_(req.data, oleh); }));
       case 'tambahBantuan': return json_(denganKunci_(function () { return tambahBantuan_(req.data, oleh); }));
       case 'hapusBantuan': return json_(denganKunci_(function () { return hapusBantuan_(req.id, oleh); }));
+      case 'simpanPrestasi': return json_(denganKunci_(function () { return simpanPrestasi_(req.data, oleh); }));
+      case 'hapusPrestasi': return json_(denganKunci_(function () { return hapusPrestasi_(req.id, oleh); }));
       default: return json_({ ok: false, pesan: 'Aksi tidak dikenal.' });
     }
   } catch (err) {
@@ -170,7 +190,8 @@ function ambilData_() {
     s.profil = p;
     return s;
   });
-  return { ok: true, tahun: pengaturan_().tahun, siswa: siswa, bantuan: bacaBantuan_(), diambil: new Date().toISOString() };
+  return { ok: true, tahun: pengaturan_().tahun, siswa: siswa, bantuan: bacaBantuan_(), prestasi: bacaPrestasi_(),
+    pilihan: { tingkat: TINGKAT, juara: JUARA }, diambil: new Date().toISOString() };
 }
 
 /* ---------- tulis data ---------- */
@@ -245,4 +266,118 @@ function hapusBantuan_(id, oleh) {
 
 function catat_(oleh, aksi, s, rincian) {
   SpreadsheetApp.getActive().getSheetByName(SHEET.log).appendRow([new Date(), oleh, aksi, s.id, s.nama, rincian]);
+}
+
+/* ---------- prestasi ---------- */
+
+function sheetPrestasi_() {
+  return buatSheet_(SpreadsheetApp.getActive(), SHEET.prestasi, KOLOM_PRESTASI);
+}
+
+function teksTanggal_(v) {
+  if (v instanceof Date) return Utilities.formatDate(v, 'Asia/Jakarta', 'yyyy-MM-dd');
+  return String(v || '');
+}
+
+function bacaPrestasi_() {
+  return sheetPrestasi_().getDataRange().getValues().slice(1).filter(function (r) { return r[0]; }).map(function (r) {
+    var siswa = [];
+    try { siswa = JSON.parse(r[3] || '[]'); } catch (err) {}
+    return {
+      id: String(r[0]), tanggal: teksTanggal_(r[1]), siswa: siswa, cabang: String(r[4] || ''), lomba: String(r[5] || ''),
+      penyelenggara: String(r[6] || ''), tingkat: String(r[7] || ''), juara: String(r[8] || ''), pembimbing: String(r[9] || ''),
+      foto: String(r[10] || ''), izinFoto: r[11] === true, tampilkan: r[12] === true, oleh: String(r[13] || '')
+    };
+  }).sort(function (a, b) { return a.tanggal < b.tanggal ? 1 : a.tanggal > b.tanggal ? -1 : 0; });
+}
+
+function prestasiPublik_() {
+  var cache = CacheService.getScriptCache();
+  var simpan = cache.get('prestasi-publik');
+  if (simpan) return JSON.parse(simpan);
+  var hasil = {
+    ok: true,
+    prestasi: bacaPrestasi_().filter(function (p) { return p.tampilkan; }).map(function (p) {
+      return {
+        tanggal: p.tanggal, siswa: p.siswa.map(function (s) { return { nama: s.nama, kelas: s.kelas }; }),
+        cabang: p.cabang, lomba: p.lomba, penyelenggara: p.penyelenggara, tingkat: p.tingkat, juara: p.juara,
+        pembimbing: p.pembimbing, foto: p.foto && p.izinFoto ? p.foto : ''
+      };
+    }),
+    diambil: new Date().toISOString()
+  };
+  cache.put('prestasi-publik', JSON.stringify(hasil), 300);
+  return hasil;
+}
+
+function simpanPrestasi_(d, oleh) {
+  if (!oleh) return { ok: false, pesan: 'Isi nama Anda dulu.' };
+  d = d || {};
+  var semua = {};
+  daftarSiswa_().forEach(function (s) { semua[s.id] = s; });
+  var siswa = (d.siswa || []).map(function (id) { return semua[String(id)]; }).filter(Boolean)
+    .map(function (s) { return { id: s.id, nama: s.nama, kelas: s.kelas }; });
+  String(d.namaLain || '').split(/[,;\n]/).map(function (n) { return n.trim().slice(0, 80); }).filter(Boolean)
+    .forEach(function (n) { siswa.push({ id: '', nama: n, kelas: String(d.kelasLain || '').slice(0, 20) }); });
+  if (!siswa.length) return { ok: false, pesan: 'Pilih minimal satu nama siswa.' };
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(d.tanggal || ''))) return { ok: false, pesan: 'Isi tanggal lomba.' };
+  var cabang = String(d.cabang || '').trim().slice(0, 100);
+  if (!cabang) return { ok: false, pesan: 'Isi cabang lomba.' };
+  if (TINGKAT.indexOf(d.tingkat) < 0) return { ok: false, pesan: 'Pilih tingkat lomba.' };
+  if (JUARA.indexOf(d.juara) < 0) return { ok: false, pesan: 'Pilih juara yang diraih.' };
+  var izin = d.izinFoto === true;
+  if (d.foto && !izin) return { ok: false, pesan: 'Centang dulu "Orang tua sudah mengizinkan foto ditampilkan".' };
+
+  var sh = sheetPrestasi_();
+  var rows = sh.getDataRange().getValues();
+  var baris = 0, lama = null;
+  if (d.id) {
+    for (var i = 1; i < rows.length; i++) if (String(rows[i][0]) === String(d.id)) { baris = i + 1; lama = rows[i]; break; }
+    if (!baris) return { ok: false, pesan: 'Data prestasi tidak ditemukan (mungkin sudah dihapus).' };
+  }
+  var fotoId = lama ? String(lama[10] || '') : '';
+  if ((d.hapusFoto || d.foto) && fotoId) { buangFoto_(fotoId); fotoId = ''; }
+  if (d.foto) fotoId = simpanFoto_(d.foto, siswa[0].nama + ' - ' + cabang);
+
+  var nilai = [d.id || Utilities.getUuid(), d.tanggal,
+    siswa.map(function (s) { return s.nama + (s.kelas ? ' (' + s.kelas + ')' : ''); }).join('; '),
+    JSON.stringify(siswa), cabang, String(d.lomba || '').trim().slice(0, 150), String(d.penyelenggara || '').trim().slice(0, 100),
+    d.tingkat, d.juara, String(d.pembimbing || '').trim().slice(0, 100), fotoId, izin, d.tampilkan === true, oleh, new Date()];
+  if (baris) sh.getRange(baris, 1, 1, nilai.length).setValues([nilai]);
+  else sh.appendRow(nilai);
+  CacheService.getScriptCache().remove('prestasi-publik');
+  catat_(oleh, baris ? 'Ubah prestasi' : 'Tambah prestasi', { id: '', nama: nilai[2] }, d.juara + ' ' + cabang + ' tingkat ' + d.tingkat);
+  return { ok: true };
+}
+
+function hapusPrestasi_(id, oleh) {
+  if (!oleh) return { ok: false, pesan: 'Isi nama Anda dulu.' };
+  var sh = sheetPrestasi_();
+  var rows = sh.getDataRange().getValues();
+  for (var i = 1; i < rows.length; i++) {
+    if (String(rows[i][0]) === String(id)) {
+      if (rows[i][10]) buangFoto_(String(rows[i][10]));
+      sh.deleteRow(i + 1);
+      CacheService.getScriptCache().remove('prestasi-publik');
+      catat_(oleh, 'Hapus prestasi', { id: '', nama: rows[i][2] }, rows[i][8] + ' ' + rows[i][4]);
+      return { ok: true };
+    }
+  }
+  return { ok: false, pesan: 'Data prestasi tidak ditemukan (mungkin sudah dihapus).' };
+}
+
+function simpanFoto_(dataUrl, nama) {
+  var m = /^data:(image\/(?:jpeg|png|webp));base64,(.+)$/.exec(String(dataUrl));
+  if (!m) throw new Error('Format foto tidak dikenali. Pilih foto JPG atau PNG.');
+  var bytes = Utilities.base64Decode(m[2]);
+  if (bytes.length > 3 * 1024 * 1024) throw new Error('Foto terlalu besar.');
+  var folderId = pengaturan_().folderFoto;
+  if (!folderId) throw new Error('Folder foto belum dibuat. Jalankan fungsi "siapkan" sekali di Apps Script.');
+  var file = DriveApp.getFolderById(folderId).createFile(Utilities.newBlob(bytes, m[1], nama.slice(0, 80) + '.jpg'));
+  file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  return file.getId();
+}
+
+function buangFoto_(id) {
+  try { DriveApp.getFileById(id).setTrashed(true); } catch (err) {}
 }
