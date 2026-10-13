@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#d71920">
+<meta name="robots" content="noindex">
+<title>Ruang Guru | SD N BUGANGIN</title>
+<link rel="icon" type="image/png" href="../logo.png">
+<style>
+:root{--red:#d71920;--red-dark:#9e1117;--yellow:#ffd21f;--blue:#12314f;--cream:#fffaf0;--ink:#16202a;--muted:#64748b;--line:#eadfc7;--ok:#1d7a37;--warn:#9a6c00;--bad:#b42318}
+*{box-sizing:border-box}body{margin:0;background:var(--cream);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+.topline{height:6px;background:linear-gradient(90deg,var(--red) 0 42%,var(--yellow) 42% 68%,var(--blue) 68%)}
+.wrap{max-width:1080px;margin:auto;padding:22px}.back{color:var(--blue);text-decoration:none;font-weight:800;font-size:14px}.back:hover{color:var(--red)}
+header{margin-top:18px;padding:26px;border-radius:26px;background:linear-gradient(135deg,var(--red),var(--blue));color:#fff;display:flex;align-items:center;gap:20px;box-shadow:0 16px 34px rgba(18,49,79,.13)}
+header img{width:80px;height:80px;object-fit:contain;background:#fff;border-radius:18px;padding:7px;flex:none}h1{margin:0 0 6px;font-size:clamp(1.6rem,4vw,2.6rem);letter-spacing:-.04em}header p{margin:0;color:#ffecef;line-height:1.5;font-size:14px}
+.card{background:#fff;border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 10px 24px rgba(18,49,79,.07)}
+.hidden{display:none!important}
+label{display:block;font-size:13px;font-weight:700;margin:0 0 6px}
+input[type=text],input[type=password],input[type=number],input[type=search],select,textarea{width:100%;font:inherit;font-size:15px;padding:11px 12px;border:1px solid #d9cfb8;border-radius:12px;background:#fff;color:var(--ink)}
+textarea{min-height:64px;resize:vertical}input:focus,select:focus,textarea:focus{outline:2px solid var(--yellow);border-color:var(--yellow)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:0;border-radius:12px;padding:12px 18px;font:inherit;font-weight:800;font-size:14px;cursor:pointer;background:var(--red);color:#fff}.btn:hover{background:var(--red-dark)}.btn:disabled{opacity:.6;cursor:wait}
+.btn.ghost{background:#fff;color:var(--blue);border:1px solid var(--line)}.btn.ghost:hover{border-color:var(--blue)}.btn.small{padding:8px 12px;font-size:13px}
+.msg{font-size:14px;margin-top:10px;min-height:1px}.msg.err{color:var(--bad)}.msg.ok{color:var(--ok)}
+.notice{background:#fff3c0;border:1px solid #f0d77a;color:#5c4400;padding:12px 14px;border-radius:14px;font-size:14px;line-height:1.5;margin-top:16px}
+#login{max-width:440px;margin:22px auto 0}#login h2{margin:0 0 6px}#login p{color:var(--muted);font-size:14px;line-height:1.55;margin:0 0 16px}#login .field{margin-bottom:12px}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:22px 0 12px;flex-wrap:wrap}.who{font-size:13px;color:var(--muted)}.who b{color:var(--ink)}
+.tabs{display:flex;gap:6px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:5px;overflow-x:auto}.tabs button{flex:1;white-space:nowrap;border:0;background:none;font:inherit;font-weight:800;font-size:14px;padding:10px 14px;border-radius:10px;color:var(--muted);cursor:pointer}.tabs button.on{background:var(--blue);color:#fff}
+.tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:14px 0}.tools input[type=search]{flex:1;min-width:180px}
+.pills{display:flex;gap:6px;flex-wrap:wrap}.pill{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 12px;font:inherit;font-size:13px;font-weight:700;cursor:pointer;color:var(--blue)}.pill.on{background:var(--yellow);border-color:var(--yellow);color:var(--ink)}
+.list{display:grid;gap:10px}
+.row{display:flex;gap:14px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:16px;padding:13px 15px;cursor:pointer;text-align:left;width:100%;font:inherit;color:inherit}.row:hover{border-color:var(--blue)}
+.row .no{flex:none;width:34px;height:34px;border-radius:10px;background:#eef3f8;display:grid;place-items:center;font-weight:800;font-size:13px;color:var(--blue)}
+.row .main{flex:1;min-width:0}.row .nm{font-weight:800;font-size:15px}.row .sub{font-size:12px;color:var(--muted);margin-top:2px}
+.tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
+.tag{display:inline-block;font-size:11.5px;font-weight:800;padding:3px 8px;border-radius:999px;background:#eef3f8;color:var(--blue)}
+.tag.desil{background:#ece4ff;color:#4b2a9b}.tag.prio{background:#fff3c0;color:#6b4b00}.tag.ok{background:#e3f4e7;color:var(--ok)}.tag.bad{background:#fde4e1;color:var(--bad)}.tag.warn{background:#fff1d6;color:var(--warn)}.tag.ex{background:#2b3440;color:#fff}.tag.muted{background:#f1f1f1;color:#6b7280}
+.empty{color:var(--muted);text-align:center;padding:30px 10px;font-size:14px}
+table{width:100%;border-collapse:collapse;font-size:13.5px;background:#fff}th,td{padding:10px 9px;border-bottom:1px solid #efe6d2;text-align:left;vertical-align:top}th{background:#12314f;color:#fff;font-size:12.5px;position:sticky;top:0}
+.tbl{border:1px solid var(--line);border-radius:16px;overflow:auto;max-height:70vh}
+tr.kuota td{background:#f3fbf4}tr.luar td{color:#94a3b8}
+.num{text-align:right;white-space:nowrap}
+.legend{font-size:12.5px;color:var(--muted);line-height:1.6;margin:8px 0 0}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:14px}.stat{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px}.stat b{display:block;font-size:22px;color:var(--blue)}.stat span{font-size:12.5px;color:var(--muted)}
+/* editor */
+.sheet-bg{position:fixed;inset:0;background:rgba(8,29,50,.55);z-index:10;display:flex;align-items:flex-start;justify-content:center;padding:24px 12px;overflow-y:auto}
+.sheet{background:var(--cream);width:100%;max-width:680px;border-radius:24px;box-shadow:0 30px 60px rgba(0,0,0,.25)}
+.sheet-h{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:20px 22px;background:var(--blue);color:#fff;border-radius:24px 24px 0 0}.sheet-h h3{margin:0;font-size:19px}.sheet-h p{margin:4px 0 0;color:#cbd8e5;font-size:13px}
+.x{border:0;background:rgba(255,255,255,.15);color:#fff;width:36px;height:36px;border-radius:10px;font-size:20px;cursor:pointer;flex:none}
+.sheet-b{padding:18px 22px 22px;display:grid;gap:14px}
+.box{background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px}.box h4{margin:0 0 4px;font-size:15px;color:var(--blue)}.box .hint{font-size:12.5px;color:var(--muted);margin:0 0 12px;line-height:1.5}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.checks{display:grid;grid-template-columns:1fr 1fr;gap:8px}.check{display:flex;gap:9px;align-items:flex-start;padding:10px 11px;border:1px solid var(--line);border-radius:12px;font-size:13.5px;cursor:pointer;background:#fff;line-height:1.35}.check input{margin-top:2px;width:17px;height:17px;flex:none;accent-color:var(--red)}.check small{display:block;color:var(--muted);font-size:11.5px}
+.check.exc{border-color:#c8ccd2;background:#f7f7f8}
+.months{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}.mon{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 0;font:inherit;font-size:13px;font-weight:800;cursor:pointer;color:var(--blue)}.mon.on{background:var(--red);border-color:var(--red);color:#fff}.mon.done{background:#e3f4e7;border-color:#bfe3c8;color:var(--ok);cursor:not-allowed}
+.given{display:grid;gap:6px;margin-bottom:12px}.gv{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 11px;border-radius:12px;background:#f6f8fb;font-size:13.5px}.gv b{color:var(--blue)}.gv button{border:0;background:none;color:var(--bad);font-weight:800;cursor:pointer;font:inherit;font-size:12.5px}
+.actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+footer{text-align:center;color:var(--muted);font-size:13px;line-height:1.7;padding:28px 20px 8px}
+@media(max-width:640px){.wrap{padding:16px}header{padding:20px;gap:14px}header img{width:60px;height:60px}.grid2,.checks{grid-template-columns:1fr}.months{grid-template-columns:repeat(4,1fr)}.sheet-bg{padding:0}.sheet{border-radius:0;min-height:100%}.sheet-h{border-radius:0}.hide-sm{display:none}}
+@media print{.topline,.back,header,.bar,.tabs,.tools,.no-print,footer{display:none!important}body{background:#fff}.wrap{padding:0;max-width:none}.tbl{max-height:none;overflow:visible;border:0}th{position:static;background:#ddd;color:#000}#print-head{display:block!important}}
+</style>
+</head>
+<body>
+<div class="topline"></div>
+<div class="wrap">
+  <a class="back" href="../">&larr; Kembali ke Beranda</a>
+  <header><img src="../logo.png" alt="Logo SD N BUGANGIN"><div><h1 id="judul">Ruang Guru</h1><p id="judul-sub">Layanan internal guru dan tenaga kependidikan SD N BUGANGIN.</p></div></header>
+
+  <div id="cfg-notice" class="notice hidden">Sistem belum tersambung. Isi <code>API_URL</code> di berkas <code>ruang-guru/index.html</code> dengan URL Aplikasi web dari Apps Script (lihat <code>ruang-guru/apps-script/Kode.gs</code>).</div>
+
+  <section id="login" class="card">
+    <h2>Masuk</h2>
+    <p>Khusus guru dan tenaga kependidikan. Masuk dengan nama Anda dan kata sandi sekolah.</p>
+    <div class="field"><label for="oleh">Nama Anda</label><input type="text" id="oleh" autocomplete="name" placeholder="Contoh: Bu Sumiyati"></div>
+    <div class="field"><label for="sandi">Kata sandi</label><input type="password" id="sandi" autocomplete="current-password" placeholder="Kata sandi"></div>
+    <button class="btn" id="masuk" style="width:100%">Masuk</button>
+    <div class="msg" id="login-msg"></div>
+  </section>
+
+  <section id="app" class="hidden">
+    <div class="bar">
+      <div class="who">Masuk sebagai <b id="who"></b> &middot; <span id="diambil"></span></div>
+      <div style="display:flex;gap:8px"><button class="btn ghost small" id="muat-ulang">&#8635; Muat ulang</button><button class="btn ghost small" id="keluar">Keluar</button></div>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button data-tab="siswa" class="on">Data Siswa</button>
+      <button data-tab="usulan">Daftar Usulan</button>
+      <button data-tab="rekap">Rekap Bantuan</button>
+    </nav>
+
+    <!-- Data Siswa -->
+    <div id="tab-siswa">
+      <div class="tools"><div class="pills" id="kelas-pills"></div><input type="search" id="cari" placeholder="Cari nama siswa&hellip;"></div>
+      <div class="list" id="daftar-siswa"></div>
+    </div>
+
+    <!-- Daftar Usulan -->
+    <div id="tab-usulan" class="hidden">
+      <div class="tools">
+        <div class="pills" id="usulan-pills">
+          <button class="pill on" data-u="PIP">Calon PIP</button>
+          <button class="pill" data-u="BAZNAS">Calon BAZNAS</button>
+          <button class="pill" data-u="Santunan Yatim Piatu">Calon Santunan Yatim Piatu</button>
+        </div>
+        <span style="flex:1"></span>
+        <label for="kuota" style="margin:0;font-weight:700;font-size:13px">Kuota</label><input type="number" id="kuota" min="0" placeholder="-" style="width:80px">
+        <button class="btn ghost small" id="unduh">&#11015; Unduh Excel</button>
+        <button class="btn ghost small" id="cetak">&#128424; Cetak</button>
+      </div>
+      <div id="print-head" style="display:none;margin-bottom:10px"><b>SD N BUGANGIN</b> &middot; <span id="print-title"></span></div>
+      <div id="usulan-info" class="legend" style="margin:0 0 10px"></div>
+      <div class="tbl"><table id="tbl-usulan"></table></div>
+      <p class="legend">Urutan prioritas: 1) Desil 1&ndash;4, 2) Yatim/piatu, 3) Panti asuhan, 4) Berkebutuhan khusus, 5) Orang tua PHK, 6) Orang tua narapidana, 7) ABH/LPKA. Jika prioritas sama, siswa yang memenuhi lebih banyak kriteria berada di atas, lalu desil yang lebih kecil. Siswa bertanda <b>Anak ASN</b> atau <b>Mampu</b> tidak pernah masuk daftar. Isi <b>Kuota</b> dengan Target Sasaran di Aplikasi Pengusulan PIP untuk menandai siswa yang masuk kuota.</p>
+      <div id="dikecualikan" class="legend"></div>
+    </div>
+
+    <!-- Rekap -->
+    <div id="tab-rekap" class="hidden">
+      <div class="stats" id="stats" style="margin-top:14px"></div>
+      <div class="tbl"><table id="tbl-rekap"></table></div>
+      <p class="legend">Angka di tiap bulan = jumlah siswa penerima &middot; total nominal. Data tahun <span class="th"></span>.</p>
+    </div>
+  </section>
+
+  <footer><strong>SD N BUGANGIN</strong><br>Sehat &middot; Unggul &middot; Patriotis &middot; Etis &middot; Religius</footer>
+</div>
+
+<!-- Editor siswa -->
+<div class="sheet-bg hidden" id="editor" role="dialog" aria-modal="true" aria-labelledby="ed-nama">
+  <div class="sheet">
+    <div class="sheet-h"><div><h3 id="ed-nama"></h3><p id="ed-sub"></p></div><button class="x" id="ed-tutup" aria-label="Tutup">&times;</button></div>
+    <div class="sheet-b">
+      <div class="box">
+        <h4>Bantuan yang sudah diterima tahun <span class="th"></span></h4>
+        <p class="hint">Pilih jenis bantuan, ketuk bulan penerimaan, isi nominal per bulan, lalu tekan Tambah.</p>
+        <div class="given" id="ed-given"></div>
+        <div class="grid2">
+          <div><label for="b-jenis">Jenis bantuan</label><select id="b-jenis"><option>PIP</option><option>BAZNAS</option><option>Santunan Yatim Piatu</option></select></div>
+          <div><label for="b-nominal">Nominal per bulan (Rp)</label><input type="number" id="b-nominal" min="0" step="1000" inputmode="numeric" placeholder="Contoh: 450000"></div>
+        </div>
+        <label style="margin-top:12px">Bulan diterima</label>
+        <div class="months" id="b-bulan"></div>
+        <div style="margin-top:12px"><label for="b-ket">Keterangan (opsional)</label><input type="text" id="b-ket" maxlength="200" placeholder="Contoh: Tahap 1, cair lewat BRI"></div>
+        <div class="actions" style="margin-top:12px"><button class="btn small" id="b-tambah">+ Tambah bantuan</button></div>
+        <div class="msg" id="b-msg"></div>
+      </div>
+
+      <div class="box">
+        <h4>Kriteria prioritas</h4>
+        <p class="hint">Desil dan status bisa dilihat di Aplikasi Pengusulan PIP (label <b>DTSEN Desil</b> dan warna baris murid).</p>
+        <div class="grid2" style="margin-bottom:12px">
+          <div><label for="p-desil">Desil DTSEN</label><select id="p-desil"><option value="">Belum diketahui</option></select></div>
+          <div><label for="p-status">Status di Aplikasi PIP</label><select id="p-status">
+            <option value="">Belum dicek</option><option>Dapat diusulkan</option><option>Tidak valid</option><option>Sedang diusulkan</option><option>Sudah SK</option></select></div>
+        </div>
+        <div class="checks" id="p-checks"></div>
+      </div>
+
+      <div class="box">
+        <h4>Pengecualian</h4>
+        <p class="hint">Jika dicentang, siswa <b>tidak masuk</b> daftar usulan bantuan apa pun. Data lain tetap tersimpan.</p>
+        <div class="checks">
+          <label class="check exc"><input type="checkbox" id="p-asn"><span>Anak ASN<small>Orang tua/wali berstatus ASN</small></span></label>
+          <label class="check exc"><input type="checkbox" id="p-mampu"><span>Mampu<small>Keluarga mampu secara ekonomi</small></span></label>
+        </div>
+      </div>
+
+      <div class="box">
+        <label for="p-catatan">Catatan (opsional)</label>
+        <textarea id="p-catatan" maxlength="500" placeholder="Contoh: Ayah meninggal Mei 2026; sedang mengurus surat keterangan"></textarea>
+        <p class="hint" id="p-jejak" style="margin:8px 0 0"></p>
+      </div>
+
+      <div class="actions"><button class="btn ghost" id="ed-batal">Tutup</button><button class="btn" id="p-simpan">Simpan kriteria</button></div>
+      <div class="msg" id="p-msg" style="text-align:right"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* URL Aplikasi web Apps Script (berakhiran /exec). Lihat ruang-guru/apps-script/Kode.gs */
+const API_URL = 'https://script.google.com/macros/s/AKfycbyE3fM1cmCXeMsdoygOAP92MIKSngirrd3pOd2U1t4Nr63wAO3lOfEjUyCPBUA7PTor/exec';
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const BULAN = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+const rp = n => 'Rp' + Number(n||0).toLocaleString('id-ID');
+const KRITERIA = [
+  { k:'desil', label:'Desil 1-4', ket:'Berpotensi putus sekolah / baru kembali bersekolah' },
+  { k:'yatim', label:'Yatim/piatu', ket:'Ayah dan/atau ibu meninggal' },
+  { k:'panti', label:'Panti asuhan', ket:'Tinggal di panti sosial/panti asuhan' },
+  { k:'abk',   label:'Berkebutuhan khusus', ket:'Murid berkebutuhan khusus' },
+  { k:'phk',   label:'Ortu PHK', ket:'Orang tua/wali terkena PHK' },
+  { k:'napi',  label:'Ortu narapidana', ket:'Orang tua/wali berstatus narapidana' },
+  { k:'abh',   label:'ABH/LPKA', ket:'Anak berkonflik dengan hukum / binaan LPKA' }
+];
+const ss = { get:k=>{try{return sessionStorage.getItem(k)||''}catch(e){return ''}}, set:(k,v)=>{try{sessionStorage.setItem(k,v)}catch(e){}}, del:k=>{try{sessionStorage.removeItem(k)}catch(e){}} };
+const ls = { get:k=>{try{return localStorage.getItem(k)||''}catch(e){return ''}}, set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}} };
+
+let SANDI = ss.get('bantuan-sandi'), OLEH = ls.get('bantuan-oleh');
+let DATA = null, KELAS = 'Semua', USULAN = 'PIP', AKTIF = null, PILIH_BULAN = new Set();
+
+async function api(body){
+  const r = await fetch(API_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify({ sandi:SANDI, oleh:OLEH, ...body }) });
+  const res = await r.json();
+  if (res.sandiSalah) { ss.del('bantuan-sandi'); }
+  return res;
+}
+
+/* ---------- logika kelayakan ---------- */
+function nilai(s){
+  const p = s.profil || {};
+  const tahun = DATA.tahun;
+  const terima = DATA.bantuan.filter(b => b.siswa === s.id && b.tahun === tahun);
+  const met = KRITERIA.map(c => c.k === 'desil' ? (p.desil >= 1 && p.desil <= 4) : !!p[c.k]);
+  const idx = met.indexOf(true);
+  return {
+    p, terima, met,
+    prioritas: idx < 0 ? 0 : idx + 1,
+    jumlah: met.filter(Boolean).length,
+    kecuali: !!(p.asn || p.mampu),
+    dapat: j => terima.filter(b => b.jenis === j).sort((a,b) => a.bulan - b.bulan)
+  };
+}
+function bandingkan(a, b){
+  const da = a.v.p.desil || 99, db = b.v.p.desil || 99;
+  return (a.v.prioritas - b.v.prioritas) || (b.v.jumlah - a.v.jumlah) || (da - db) || a.s.kelas.localeCompare(b.s.kelas) || (a.s.urut - b.s.urut);
+}
+function calon(jenis){
+  const semua = DATA.siswa.map(s => ({ s, v: nilai(s) }));
+  let list = semua.filter(x => !x.v.kecuali && x.v.prioritas);
+  if (jenis === 'PIP') list = list.filter(x => !x.v.dapat('PIP').length && x.v.p.statusPip !== 'Sudah SK');
+  if (jenis === 'Santunan Yatim Piatu') list = list.filter(x => x.v.p.yatim);
+  // yang tidak valid di aplikasi PIP tidak bisa diusulkan: taruh paling bawah
+  list.sort((a, b) => (jenis === 'PIP' ? (a.v.p.statusPip === 'Tidak valid') - (b.v.p.statusPip === 'Tidak valid') : 0) || bandingkan(a, b));
+  return { list, kecuali: semua.filter(x => x.v.kecuali) };
+}
+
+/* ---------- tampilan ---------- */
+function tagsSiswa(v){
+  const t = [];
+  if (v.kecuali) t.push(`<span class="tag ex">&#9940; Dikecualikan${v.p.asn ? ' · ASN' : ''}${v.p.mampu ? ' · Mampu' : ''}</span>`);
+  if (v.p.desil) t.push(`<span class="tag desil">Desil ${v.p.desil}</span>`);
+  if (!v.kecuali && v.prioritas) t.push(`<span class="tag prio">&#11088; Prioritas ${v.prioritas}</span>`);
+  KRITERIA.forEach((c, i) => { if (i && v.met[i]) t.push(`<span class="tag">${c.label}</span>`); });
+  if (v.p.statusPip === 'Tidak valid') t.push('<span class="tag bad">Tidak valid di aplikasi</span>');
+  if (v.p.statusPip === 'Sedang diusulkan') t.push('<span class="tag warn">Sedang diusulkan</span>');
+  if (v.p.statusPip === 'Sudah SK') t.push('<span class="tag ok">Sudah SK PIP</span>');
+  ['PIP','BAZNAS','Santunan Yatim Piatu'].forEach(j => { const d = v.dapat(j); if (d.length) t.push(`<span class="tag ok">${j}: ${d.map(b => BULAN[b.bulan-1]).join(', ')}</span>`); });
+  if (!v.p.diubahOleh && !v.terima.length) t.push('<span class="tag muted">Belum didata</span>');
+  return t.join('');
+}
+function renderSiswa(){
+  const kelasList = ['Semua', ...[...new Set(DATA.siswa.map(s => s.kelas))].sort()];
+  $('#kelas-pills').innerHTML = kelasList.map(k => `<button class="pill${k===KELAS?' on':''}" data-k="${esc(k)}">${esc(k)}</button>`).join('');
+  const q = $('#cari').value.trim().toUpperCase();
+  const list = DATA.siswa.filter(s => (KELAS === 'Semua' || s.kelas === KELAS) && (!q || s.nama.includes(q)))
+    .sort((a,b) => a.kelas.localeCompare(b.kelas) || a.urut - b.urut);
+  $('#daftar-siswa').innerHTML = list.length ? list.map(s => {
+    const v = nilai(s);
+    return `<button class="row" data-id="${esc(s.id)}"><span class="no">${s.urut||''}</span><span class="main"><span class="nm">${esc(s.nama)}</span><span class="sub"> &middot; ${esc(s.kelas)}</span><span class="tags">${tagsSiswa(v)}</span></span><span aria-hidden="true" style="color:var(--muted)">&rsaquo;</span></button>`;
+  }).join('') : '<div class="empty">Tidak ada siswa yang cocok.</div>';
+}
+function renderUsulan(){
+  const { list, kecuali } = calon(USULAN);
+  const kuota = parseInt($('#kuota').value, 10) || 0;
+  let urutValid = 0;
+  const rows = list.map((x, i) => {
+    const bisa = !(USULAN === 'PIP' && x.v.p.statusPip === 'Tidak valid');
+    if (bisa) urutValid++;
+    const cls = kuota ? (bisa && urutValid <= kuota ? 'kuota' : 'luar') : '';
+    const krit = KRITERIA.filter((c, j) => x.v.met[j]).map(c => c.label).join(', ');
+    const sudah = ['PIP','BAZNAS','Santunan Yatim Piatu'].map(j => { const d = x.v.dapat(j); return d.length ? `${j} (${d.map(b => BULAN[b.bulan-1]).join(', ')})` : ''; }).filter(Boolean).join('; ');
+    const status = x.v.p.statusPip || 'Belum dicek';
+    return { cls, data:[i+1, x.s.nama, x.s.kelas, x.v.p.desil || '-', x.v.prioritas, krit, USULAN === 'PIP' ? status : sudah || '-', x.v.p.catatan || ''], bisa };
+  });
+  const kolom = ['No','Nama Siswa','Kelas','Desil','Prioritas','Kriteria', USULAN === 'PIP' ? 'Status Aplikasi PIP' : 'Bantuan 2026 diterima','Catatan'];
+  $('#tbl-usulan').innerHTML = `<thead><tr>${kolom.map((k,i) => `<th class="${[0,3,4].includes(i)?'num':''}${i===7?' hide-sm':''}">${k}</th>`).join('')}</tr></thead><tbody>` +
+    (rows.length ? rows.map(r => `<tr class="${r.cls}">${r.data.map((d,i) => `<td class="${[0,3,4].includes(i)?'num':''}${i===7?' hide-sm':''}">${i===1?'<b>'+esc(d)+'</b>':esc(d)}${i===6 && !r.bisa ? ' <span class="tag bad">perbaiki data</span>' : ''}</td>`).join('')}</tr>`).join('')
+      : `<tr><td colspan="8" class="empty">Belum ada siswa yang memenuhi kriteria. Isi kriteria di tab Data Siswa.</td></tr>`) + '</tbody>';
+  const judul = { 'PIP':'Calon Penerima PIP (belum menerima PIP tahun ' + DATA.tahun + ')', 'BAZNAS':'Calon Penerima BAZNAS', 'Santunan Yatim Piatu':'Calon Penerima Santunan Yatim Piatu' }[USULAN];
+  $('#print-title').textContent = judul + ' · dicetak ' + new Date().toLocaleDateString('id-ID',{dateStyle:'long'});
+  $('#usulan-info').innerHTML = `<b>${list.length}</b> siswa &middot; ${esc(judul)}${kuota ? ` &middot; <b>${Math.min(kuota, rows.filter(r=>r.bisa).length)}</b> masuk kuota (baris hijau)` : ''}`;
+  $('#dikecualikan').innerHTML = kecuali.length ? `<b>Dikecualikan (${kecuali.length}):</b> ` + kecuali.map(x => `${esc(x.s.nama)} (${esc(x.s.kelas)}, ${[x.v.p.asn?'ASN':'', x.v.p.mampu?'Mampu':''].filter(Boolean).join('/')})`).join(', ') : '';
+  return { kolom, rows, judul };
+}
+function renderRekap(){
+  const th = DATA.tahun, data = DATA.bantuan.filter(b => b.tahun === th);
+  document.querySelectorAll('.th').forEach(e => e.textContent = th);
+  const jenis = ['PIP','BAZNAS','Santunan Yatim Piatu'];
+  $('#stats').innerHTML = jenis.map(j => {
+    const d = data.filter(b => b.jenis === j);
+    return `<div class="stat"><b>${new Set(d.map(b => b.siswa)).size} siswa</b><span>${j} &middot; ${rp(d.reduce((a,b) => a + b.nominal, 0))}</span></div>`;
+  }).join('') + `<div class="stat"><b>${DATA.siswa.filter(s => s.profil && s.profil.diubahOleh).length}/${DATA.siswa.length}</b><span>Siswa sudah didata kriterianya</span></div>`;
+  $('#tbl-rekap').innerHTML = `<thead><tr><th>Bulan</th>${jenis.map(j => `<th class="num">${j}</th>`).join('')}</tr></thead><tbody>` +
+    BULAN.map((b, i) => `<tr><td><b>${b}</b></td>${jenis.map(j => { const d = data.filter(x => x.jenis === j && x.bulan === i+1); return `<td class="num">${d.length ? `${d.length} &middot; ${rp(d.reduce((a,x) => a + x.nominal, 0))}` : '<span style="color:#cbd5e1">-</span>'}</td>`; }).join('')}</tr>`).join('') + '</tbody>';
+}
+function renderSemua(){
+  $('#who').textContent = OLEH;
+  $('#diambil').textContent = 'data ' + new Date(DATA.diambil).toLocaleString('id-ID',{dateStyle:'medium',timeStyle:'short'});
+  document.querySelectorAll('.th').forEach(e => e.textContent = DATA.tahun);
+  renderSiswa(); renderUsulan(); renderRekap();
+}
+
+/* ---------- editor ---------- */
+function bukaEditor(id){
+  AKTIF = DATA.siswa.find(s => s.id === id); if (!AKTIF) return;
+  const v = nilai(AKTIF), p = v.p;
+  $('#ed-nama').textContent = AKTIF.nama;
+  $('#ed-sub').textContent = `${AKTIF.kelas} · No. ${AKTIF.urut} · ${AKTIF.id}`;
+  $('#p-desil').value = p.desil || '';
+  $('#p-status').value = p.statusPip || '';
+  KRITERIA.slice(1).forEach(c => { $('#p-' + c.k).checked = !!p[c.k]; });
+  $('#p-asn').checked = !!p.asn; $('#p-mampu').checked = !!p.mampu;
+  $('#p-catatan').value = p.catatan || '';
+  $('#p-jejak').textContent = p.diubahOleh ? `Terakhir diubah oleh ${p.diubahOleh}, ${new Date(p.diubahPada).toLocaleString('id-ID',{dateStyle:'medium',timeStyle:'short'})}` : 'Kriteria siswa ini belum pernah disimpan.';
+  $('#p-msg').textContent = ''; $('#b-msg').textContent = ''; $('#b-ket').value = '';
+  PILIH_BULAN.clear(); renderBantuanEditor();
+  $('#editor').classList.remove('hidden'); document.body.style.overflow = 'hidden';
+}
+function tutupEditor(){ $('#editor').classList.add('hidden'); document.body.style.overflow = ''; AKTIF = null; }
+function renderBantuanEditor(){
+  const v = nilai(AKTIF), jenis = $('#b-jenis').value;
+  const done = new Set(v.dapat(jenis).map(b => b.bulan));
+  [...PILIH_BULAN].forEach(b => { if (done.has(b)) PILIH_BULAN.delete(b); });
+  $('#b-bulan').innerHTML = BULAN.map((b, i) => `<button type="button" class="mon${done.has(i+1)?' done':PILIH_BULAN.has(i+1)?' on':''}" data-b="${i+1}" ${done.has(i+1)?'disabled title="Sudah tercatat"':''}>${b}</button>`).join('');
+  const t = v.terima.slice().sort((a,b) => a.jenis.localeCompare(b.jenis) || a.bulan - b.bulan);
+  $('#ed-given').innerHTML = t.length ? t.map(b => `<div class="gv"><span><b>${esc(b.jenis)}</b> &middot; ${BULAN[b.bulan-1]} &middot; ${rp(b.nominal)}${b.ket ? ' &middot; ' + esc(b.ket) : ''}</span><button data-hapus="${esc(b.id)}">Hapus</button></div>`).join('') : '<div class="hint" style="margin:0">Belum ada bantuan tercatat tahun ini.</div>';
+}
+
+/* ---------- aksi ---------- */
+async function muat(){
+  try {
+    const res = await api({ aksi:'data' });
+    if (!res.ok) { if (res.sandiSalah) return keluar(res.pesan); throw new Error(res.pesan); }
+    DATA = res; renderSemua(); return true;
+  } catch(e){ alert('Data belum dapat dimuat. ' + (e.message || 'Periksa koneksi, lalu coba lagi.')); return false; }
+}
+function tampilApp(){
+  $('#login').classList.add('hidden'); $('#app').classList.remove('hidden');
+  $('#judul').textContent = 'Bantuan Siswa'; $('#judul-sub').textContent = 'Pendataan PIP, BAZNAS, dan Santunan Yatim Piatu. Data rahasia, jangan dibagikan.';
+}
+function keluar(pesan){
+  $('#judul').textContent = 'Ruang Guru'; $('#judul-sub').textContent = 'Layanan internal guru dan tenaga kependidikan SD N BUGANGIN.';
+  SANDI = ''; ss.del('bantuan-sandi'); DATA = null; tutupEditor();
+  $('#app').classList.add('hidden'); $('#login').classList.remove('hidden');
+  $('#login-msg').className = 'msg' + (pesan ? ' err' : ''); $('#login-msg').textContent = pesan || '';
+}
+$('#masuk').onclick = async () => {
+  const m = $('#login-msg'), nama = $('#oleh').value.trim(), sandi = $('#sandi').value;
+  if (!API_URL) { m.className='msg err'; m.textContent='Sistem belum tersambung ke Apps Script.'; return; }
+  if (!nama) { m.className='msg err'; m.textContent='Isi nama Anda dulu, agar perubahan data tercatat atas nama Anda.'; return; }
+  m.className='msg'; m.textContent='Memeriksa…'; $('#masuk').disabled = true;
+  SANDI = sandi; OLEH = nama;
+  try {
+    const res = await api({ aksi:'masuk' });
+    if (res.ok) { ss.set('bantuan-sandi', sandi); ls.set('bantuan-oleh', nama); m.textContent='Memuat data…'; if (await muat()) { tampilApp(); m.textContent=''; } }
+    else { m.className='msg err'; m.textContent = res.pesan || 'Kata sandi salah.'; }
+  } catch(e){ m.className='msg err'; m.textContent='Tidak dapat terhubung. Periksa sinyal, lalu coba lagi.'; }
+  $('#masuk').disabled = false;
+};
+['#oleh','#sandi'].forEach(s => $(s).addEventListener('keydown', e => { if (e.key === 'Enter') $('#masuk').click(); }));
+$('#keluar').onclick = () => keluar();
+$('#muat-ulang').onclick = async () => { $('#muat-ulang').disabled = true; await muat(); $('#muat-ulang').disabled = false; };
+
+document.querySelector('.tabs').addEventListener('click', e => {
+  const b = e.target.closest('button[data-tab]'); if (!b) return;
+  document.querySelectorAll('.tabs button').forEach(x => x.classList.toggle('on', x === b));
+  ['siswa','usulan','rekap'].forEach(t => $('#tab-' + t).classList.toggle('hidden', t !== b.dataset.tab));
+});
+$('#kelas-pills').addEventListener('click', e => { const b = e.target.closest('[data-k]'); if (b) { KELAS = b.dataset.k; renderSiswa(); } });
+$('#cari').addEventListener('input', renderSiswa);
+$('#daftar-siswa').addEventListener('click', e => { const b = e.target.closest('[data-id]'); if (b) bukaEditor(b.dataset.id); });
+$('#usulan-pills').addEventListener('click', e => {
+  const b = e.target.closest('[data-u]'); if (!b) return;
+  USULAN = b.dataset.u; document.querySelectorAll('#usulan-pills .pill').forEach(x => x.classList.toggle('on', x === b)); renderUsulan();
+});
+$('#kuota').addEventListener('input', renderUsulan);
+$('#cetak').onclick = () => { renderUsulan(); window.print(); };
+$('#unduh').onclick = () => {
+  const { kolom, rows, judul } = renderUsulan();
+  const sel = v => { const s = String(v ?? ''); return /[;"\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+  const isi = ['sep=;', [judul].map(sel).join(';'), kolom.map(sel).join(';'), ...rows.map(r => r.data.map(sel).join(';'))].join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([isi], { type:'text/csv;charset=utf-8' }));
+  a.download = `${judul.split(' (')[0].replace(/\s+/g,'_')}_SDN_Bugangin_${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+};
+
+// editor
+$('#p-desil').innerHTML += Array.from({length:10}, (_, i) => `<option value="${i+1}">Desil ${i+1}${i < 4 ? ' (prioritas)' : ''}</option>`).join('');
+$('#p-checks').innerHTML = KRITERIA.slice(1).map(c => `<label class="check"><input type="checkbox" id="p-${c.k}"><span>${esc(c.label)}<small>${esc(c.ket)}</small></span></label>`).join('');
+$('#ed-tutup').onclick = tutupEditor; $('#ed-batal').onclick = tutupEditor;
+$('#editor').addEventListener('click', e => { if (e.target.id === 'editor') tutupEditor(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && AKTIF) tutupEditor(); });
+$('#b-jenis').addEventListener('change', () => { PILIH_BULAN.clear(); renderBantuanEditor(); });
+$('#b-bulan').addEventListener('click', e => {
+  const b = e.target.closest('[data-b]'); if (!b || b.disabled) return;
+  const n = Number(b.dataset.b); PILIH_BULAN.has(n) ? PILIH_BULAN.delete(n) : PILIH_BULAN.add(n); b.classList.toggle('on');
+});
+$('#b-tambah').onclick = async () => {
+  const m = $('#b-msg'), nominal = Number($('#b-nominal').value);
+  if (!PILIH_BULAN.size) { m.className='msg err'; m.textContent='Ketuk minimal satu bulan.'; return; }
+  if (!(nominal > 0)) { m.className='msg err'; m.textContent='Isi nominal per bulan.'; return; }
+  const id = AKTIF.id; m.className='msg'; m.textContent='Menyimpan…'; $('#b-tambah').disabled = true;
+  try {
+    const res = await api({ aksi:'tambahBantuan', data:{ siswa:id, jenis:$('#b-jenis').value, bulan:[...PILIH_BULAN], nominal, ket:$('#b-ket').value.trim() } });
+    if (res.ok) { PILIH_BULAN.clear(); $('#b-ket').value=''; await muat(); if (AKTIF && AKTIF.id === id) { AKTIF = DATA.siswa.find(s => s.id === id); renderBantuanEditor(); } m.className='msg ok'; m.textContent='Bantuan tersimpan.'; }
+    else { m.className='msg err'; m.textContent = res.pesan || 'Gagal menyimpan.'; if (res.sandiSalah) keluar(res.pesan); }
+  } catch(e){ m.className='msg err'; m.textContent='Tidak dapat terhubung. Coba lagi.'; }
+  $('#b-tambah').disabled = false;
+};
+$('#ed-given').addEventListener('click', async e => {
+  const b = e.target.closest('[data-hapus]'); if (!b) return;
+  if (!confirm('Hapus catatan bantuan ini?')) return;
+  const id = AKTIF.id, m = $('#b-msg'); b.disabled = true; m.className='msg'; m.textContent='Menghapus…';
+  try {
+    const res = await api({ aksi:'hapusBantuan', id:b.dataset.hapus });
+    if (res.ok) { await muat(); if (AKTIF && AKTIF.id === id) { AKTIF = DATA.siswa.find(s => s.id === id); renderBantuanEditor(); } m.className='msg ok'; m.textContent='Catatan dihapus.'; }
+    else { m.className='msg err'; m.textContent = res.pesan || 'Gagal menghapus.'; b.disabled = false; }
+  } catch(e){ m.className='msg err'; m.textContent='Tidak dapat terhubung. Coba lagi.'; b.disabled = false; }
+});
+$('#p-simpan').onclick = async () => {
+  const m = $('#p-msg'), id = AKTIF.id;
+  const data = { id, desil: $('#p-desil').value, statusPip: $('#p-status').value, asn: $('#p-asn').checked, mampu: $('#p-mampu').checked, catatan: $('#p-catatan').value.trim() };
+  KRITERIA.slice(1).forEach(c => { data[c.k] = $('#p-' + c.k).checked; });
+  m.className='msg'; m.textContent='Menyimpan…'; $('#p-simpan').disabled = true;
+  try {
+    const res = await api({ aksi:'simpanProfil', data });
+    if (res.ok) { await muat(); m.className='msg ok'; m.textContent='Kriteria tersimpan.'; setTimeout(() => { if (AKTIF && AKTIF.id === id) tutupEditor(); }, 700); }
+    else { m.className='msg err'; m.textContent = res.pesan || 'Gagal menyimpan.'; if (res.sandiSalah) keluar(res.pesan); }
+  } catch(e){ m.className='msg err'; m.textContent='Tidak dapat terhubung. Coba lagi.'; }
+  $('#p-simpan').disabled = false;
+};
+
+/* ---------- mulai ---------- */
+$('#oleh').value = OLEH;
+if (!API_URL) $('#cfg-notice').classList.remove('hidden');
+else if (SANDI && OLEH) { $('#login-msg').textContent = 'Memuat data…'; muat().then(ok => { if (ok) { tampilApp(); $('#login-msg').textContent=''; } }); }
+</script>
+</body>
+</html>
