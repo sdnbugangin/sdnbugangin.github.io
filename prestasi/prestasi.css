@@ -1,0 +1,15 @@
+/* Kartu prestasi siswa — beranda dan halaman prestasi/ */
+.prestasi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px}
+.prestasi{background:#fff;border:1px solid var(--line);border-radius:22px;overflow:hidden;box-shadow:0 10px 24px rgba(18,49,79,.07);display:flex;flex-direction:column}
+.prestasi-media{position:relative;height:170px;background:linear-gradient(135deg,#fff3c0,#ffe08a)}
+.prestasi-media img{width:100%;height:100%;object-fit:cover;display:block;position:relative;z-index:1}
+.prestasi-piala{position:absolute;inset:0;display:grid;place-items:center;font-size:58px}
+.prestasi.tanpa .prestasi-media{height:96px}.prestasi.tanpa .prestasi-piala{font-size:44px}
+.prestasi-isi{padding:16px 18px 18px;display:grid;gap:6px}
+.prestasi-lencana{justify-self:start;font-size:12px;font-weight:800;padding:5px 10px;border-radius:999px;background:#e5eff8;color:var(--blue)}
+.prestasi-lencana.tinggi{background:var(--yellow);color:#4a3200}
+.prestasi h3{margin:4px 0 0;font-size:17px;line-height:1.3;color:var(--ink)}.prestasi h3 small{font-size:12.5px;color:var(--muted);font-weight:700;white-space:nowrap}
+.prestasi-cabang{margin:0;font-weight:700;font-size:14px;color:var(--red-dark)}
+.prestasi-meta{margin:0;font-size:12.5px;color:var(--muted);line-height:1.55}
+.prestasi-ringkas{margin:0;color:var(--muted);font-size:14px}.prestasi-ringkas b{color:var(--blue)}
+.prestasi-semua{display:inline-flex;align-items:center;gap:6px;font-weight:800;font-size:14px;color:var(--red);text-decoration:none;white-space:nowrap}.prestasi-semua:hover{text-decoration:underline}
