@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#d71920">
+<meta name="description" content="Kabar kegiatan SD N BUGANGIN, Kecamatan Kendal, Kabupaten Kendal.">
+<title>Kabar Sekolah | SD N BUGANGIN</title>
+<link rel="icon" type="image/png" href="../logo.png">
+<link rel="stylesheet" href="kabar.css">
+<style>
+:root{--red:#d71920;--red-dark:#9e1117;--yellow:#ffd21f;--blue:#12314f;--cream:#fffaf0;--ink:#16202a;--muted:#64748b;--line:#e9dfc8}
+*{box-sizing:border-box}body{margin:0;background:var(--cream);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+.topline{height:6px;background:linear-gradient(90deg,var(--red) 0 42%,var(--yellow) 42% 68%,var(--blue) 68%)}
+.wrap{max-width:1080px;margin:auto;padding:22px}.back{color:var(--blue);text-decoration:none;font-weight:800;font-size:14px}.back:hover{color:var(--red)}
+header{margin:18px 0 22px;padding:28px;border-radius:26px;background:linear-gradient(135deg,var(--red),var(--blue));color:#fff;display:flex;align-items:center;gap:20px;box-shadow:0 16px 34px rgba(18,49,79,.13)}
+header img{width:84px;height:84px;object-fit:contain;background:#fff;border-radius:18px;padding:7px;flex:none}header h1{margin:0 0 6px;font-size:clamp(1.7rem,4vw,2.8rem);letter-spacing:-.04em}header p{margin:0;color:#ffecef;line-height:1.5}
+.status{color:var(--muted);text-align:center;padding:40px 10px;font-size:15px}
+.aksi{max-width:780px;margin:16px auto 0;display:flex;gap:10px;flex-wrap:wrap;justify-content:space-between}
+.aksi a{display:inline-flex;align-items:center;gap:6px;padding:11px 16px;border-radius:12px;font-weight:800;font-size:14px;text-decoration:none;background:#fff;border:1px solid var(--line);color:var(--blue)}
+.aksi a.wa{background:#1f9d55;border-color:#1f9d55;color:#fff}
+footer{text-align:center;color:var(--muted);font-size:13px;line-height:1.7;padding:30px 20px 8px}
+@media(max-width:600px){.wrap{padding:16px}header{padding:20px;gap:14px}header img{width:60px;height:60px}}
+</style>
+</head>
+<body>
+<div class="topline"></div>
+<div class="wrap">
+  <a class="back" href="../">&larr; Kembali ke Beranda</a>
+  <header id="kepala"><img src="../logo.png" alt="Logo SD N BUGANGIN"><div><h1>Kabar Sekolah</h1><p>Cerita kegiatan siswa dan guru SD N BUGANGIN.</p></div></header>
+  <div id="isi"></div>
+  <div class="status" id="status">Memuat kabar&hellip;</div>
+  <footer><strong>SD N BUGANGIN</strong><br>Sehat &middot; Unggul &middot; Patriotis &middot; Etis &middot; Religius</footer>
+</div>
+<script src="kabar.js"></script>
+<script>
+var id = new URLSearchParams(location.search).get('id');
+var $ = function (s) { return document.querySelector(s); };
+Kabar.ambil(function (list) {
+  if (id) {
+    var k = list.filter(function (x) { return x.id === id; })[0];
+    if (!k) { $('#status').textContent = list.length ? 'Kabar tidak ditemukan. Mungkin sudah dihapus.' : 'Memuat kabar…'; $('#isi').innerHTML = ''; return; }
+    document.title = k.judul + ' | SD N BUGANGIN';
+    $('#kepala').style.display = 'none';
+    var lain = list.filter(function (x) { return x.id !== id; }).slice(0, 3);
+    var wa = 'https://wa.me/?text=' + encodeURIComponent(k.judul + '\n' + location.href);
+    $('#isi').innerHTML = Kabar.artikel(k) +
+      '<div class="aksi"><a href="./">&larr; Semua kabar</a><a class="wa" href="' + wa + '" target="_blank" rel="noopener">Bagikan ke WhatsApp</a></div>' +
+      (lain.length ? '<h2 style="max-width:780px;margin:34px auto 14px;color:var(--blue);font-size:21px">Kabar lainnya</h2><div class="kabar-grid" style="max-width:780px;margin:0 auto">' + lain.map(function (x) { return Kabar.kartu(x, './'); }).join('') + '</div>' : '');
+    $('#status').textContent = '';
+    return;
+  }
+  $('#isi').innerHTML = '<div class="kabar-grid">' + list.map(function (x) { return Kabar.kartu(x, './'); }).join('') + '</div>';
+  $('#status').textContent = list.length ? '' : 'Belum ada kabar yang diterbitkan.';
+});
+setTimeout(function () { if (/Memuat/.test($('#status').textContent)) $('#status').textContent = 'Kabar belum dapat dimuat. Periksa koneksi, lalu muat ulang halaman.'; }, 12000);
+</script>
+</body>
+</html>

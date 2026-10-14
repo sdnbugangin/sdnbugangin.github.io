@@ -38,7 +38,7 @@ textarea{min-height:64px;resize:vertical}input:focus,select:focus,textarea:focus
 .empty{color:var(--muted);text-align:center;padding:30px 10px;font-size:14px}
 table{width:100%;border-collapse:collapse;font-size:13.5px;background:#fff}th,td{padding:10px 9px;border-bottom:1px solid #efe6d2;text-align:left;vertical-align:top}th{background:#12314f;color:#fff;font-size:12.5px;position:sticky;top:0}
 .tbl{border:1px solid var(--line);border-radius:16px;overflow:auto;max-height:70vh}
-tr.kuota td{background:#f3fbf4}tr.luar td{color:#94a3b8}
+tr.kuota td{background:#f3fbf4}tr.luar td{color:#94a3b8}td.pick{text-align:center;width:64px}td.pick input,th.pick input{width:20px;height:20px;accent-color:var(--red);cursor:pointer}th.pick{text-align:center}
 .num{text-align:right;white-space:nowrap}
 .legend{font-size:12.5px;color:var(--muted);line-height:1.6;margin:8px 0 0}
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:14px}.stat{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px}.stat b{display:block;font-size:22px;color:var(--blue)}.stat span{font-size:12.5px;color:var(--muted)}
@@ -77,6 +77,9 @@ footer{text-align:center;color:var(--muted);font-size:13px;line-height:1.7;paddi
 .choose.names button{background:#fff9df;border-color:#f0dfa0;border-radius:999px;font-weight:600;color:var(--ink)}.choose.names button::before{content:'\1F467  '}.choose.names button.on{background:var(--ok);border-color:var(--ok);color:#fff}.choose.names button.on::before{content:''}
 .picked{font-size:14px;margin:10px 0 0;padding:10px 12px;border-radius:12px;background:#fff9df;line-height:1.5}
 .foto-prev{margin-top:10px;display:flex;gap:12px;align-items:center}.foto-prev img{width:120px;height:90px;object-fit:cover;border-radius:12px;border:1px solid var(--line)}
+.kf-fotos{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}.kf-fotos div{position:relative}.kf-fotos img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:10px;border:1px solid var(--line);display:block}
+.kf-fotos button{position:absolute;top:4px;right:4px;width:28px;height:28px;border-radius:50%;border:0;background:rgba(0,0,0,.65);color:#fff;font-size:16px;cursor:pointer}
+.kb-ringkas{font-size:13.5px;color:var(--muted);line-height:1.5;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 input[type=date],input[type=file]{width:100%;font:inherit;font-size:15px;padding:10px 12px;border:1px solid #d9cfb8;border-radius:12px;background:#fff}
 @media(max-width:640px){.wrap{padding:16px}header{padding:20px;gap:14px}header img{width:60px;height:60px}.grid2,.checks{grid-template-columns:1fr}.months{grid-template-columns:repeat(4,1fr)}.sheet-bg{padding:0}.sheet{border-radius:0;min-height:100%}.sheet-h{border-radius:0}.hide-sm{display:none}}
 @media print{.topline,.back,header,.bar,.tabs,.tools,.no-print,footer{display:none!important}body{background:#fff}.wrap{padding:0;max-width:none}.tbl{max-height:none;overflow:visible;border:0}th{position:static;background:#ddd;color:#000}#print-head{display:block!important}}
@@ -111,6 +114,7 @@ input[type=date],input[type=file]{width:100%;font:inherit;font-size:15px;padding
     </div>
     <nav class="tabs" role="tablist">
       <button data-tab="prestasi" class="on">&#127942; Prestasi</button>
+      <button data-tab="kabar">&#128240; Kabar Sekolah</button>
       <button data-tab="siswa">&#128103; Data Siswa</button>
       <button data-tab="usulan">&#128203; Daftar Usulan</button>
       <button data-tab="rekap">&#128202; Rekap Bantuan</button>
@@ -130,6 +134,20 @@ input[type=date],input[type=file]{width:100%;font:inherit;font-size:15px;padding
       <div class="pr-list" id="pr-list"></div>
     </div>
 
+    <!-- Kabar Sekolah -->
+    <div id="tab-kabar" class="hidden">
+      <details class="guide" data-g="kabar" open><summary>&#128214; Petunjuk: cara menulis kabar kegiatan (tidak perlu pandai mengarang)</summary><ol>
+        <li>Tekan tombol merah <b>+ Tulis Kabar</b>.</li>
+        <li><b>Jawab pertanyaan</b> tentang kegiatan dengan kalimat pendek saja. Contoh: <i>Apa saja yang dilakukan?</i> &rarr; <i>upacara, pembacaan ikrar, lomba adzan</i>.</li>
+        <li>Pilih <b>foto</b> kegiatan (paling banyak 4). Boleh dilewati.</li>
+        <li>Tekan tombol <b>&#10024; Susun Artikel Otomatis</b>. Judul dan isi artikel langsung jadi.</li>
+        <li><b>Baca hasilnya.</b> Kalau ada kata yang kurang pas, ubah langsung di kotak isi artikel.</li>
+        <li>Tekan <b>Simpan &amp; Terbitkan</b>. Artikel tampil di beranda paling lama 5 menit kemudian.</li></ol>
+        <p class="tip">Ada yang salah setelah terbit? Tekan <b>Ubah</b> pada artikel. Semua guru bisa memperbaiki, dan nama yang mengubah tercatat.</p></details>
+      <div class="pr-head"><div class="legend" id="kb-info" style="margin:0"></div><button class="btn big" id="kb-tambah">+ Tulis Kabar</button></div>
+      <div class="pr-list" id="kb-list"></div>
+    </div>
+
     <!-- Data Siswa -->
     <div id="tab-siswa" class="hidden">
       <details class="guide" data-g="siswa" open><summary>&#128214; Petunjuk: cara mendata bantuan siswa</summary><ol>
@@ -146,24 +164,29 @@ input[type=date],input[type=file]{width:100%;font:inherit;font-size:15px;padding
     <!-- Daftar Usulan -->
     <div id="tab-usulan" class="hidden">
       <details class="guide" data-g="usulan" open><summary>&#128214; Petunjuk: membaca daftar usulan</summary><ol>
-        <li>Pilih daftar: <b>Calon PIP</b>, <b>Calon BAZNAS</b>, atau <b>Calon Santunan Yatim Piatu</b>.</li>
-        <li>Daftar tersusun otomatis: <b>paling atas = paling diprioritaskan</b>.</li>
-        <li>Isi kotak <b>Kuota</b> dengan jumlah <i>Target Sasaran</i> dari Aplikasi PIP. Siswa yang masuk kuota berwarna hijau.</li>
-        <li>Tekan <b>Unduh Excel</b> atau <b>Cetak</b> untuk lampiran pengusulan.</li></ol>
+        <li>Pilih daftar: <b>Calon PIP</b>, <b>Calon BAZNAS</b>, atau <b>Calon Santunan Yatim Piatu</b>. Daftar tersusun otomatis: <b>paling atas = paling diprioritaskan</b>.</li>
+        <li>Isi kotak <b>Kuota</b> dengan jumlah <i>Target Sasaran</i> dari aplikasi SiPINTAR. Siswa yang masuk kuota berwarna hijau.</li>
+        <li><b>Membuat nominasi PIP:</b> di <b>Calon PIP</b>, centang kotak <b>Usulkan</b> pada siswa yang akan diusulkan. Lebih cepat: tekan <b>Centang sesuai kuota</b>.</li>
+        <li>Buka <b>&#128204; Nominasi PIP</b>, lalu tekan <b>&#128196; Unduh PDF</b>. PDF berisi kop sekolah dan tempat tanda tangan Kepala Sekolah.</li>
+        <li>Saat mengisi SiPINTAR, cari siswa memakai <b>NISN</b> di daftar itu. Setelah berhasil diusulkan, centang <b>Sudah input SiPINTAR</b> supaya tidak terlewat atau dobel.</li></ol>
         <p class="tip">Daftar ini <b>rahasia</b>. Jangan dikirim ke grup WA orang tua.</p></details>
       <div class="tools">
         <div class="pills" id="usulan-pills">
           <button class="pill on" data-u="PIP">Calon PIP</button>
           <button class="pill" data-u="BAZNAS">Calon BAZNAS</button>
           <button class="pill" data-u="Santunan Yatim Piatu">Calon Santunan Yatim Piatu</button>
+          <button class="pill" data-u="NOMINASI">&#128204; Nominasi PIP <span id="jml-nom"></span></button>
         </div>
         <span style="flex:1"></span>
-        <label for="kuota" style="margin:0;font-weight:700;font-size:13px">Kuota</label><input type="number" id="kuota" min="0" placeholder="-" style="width:80px">
+        <span id="kuota-box" style="display:flex;gap:8px;align-items:center"><label for="kuota" style="margin:0;font-weight:700;font-size:13px">Kuota</label><input type="number" id="kuota" min="0" placeholder="-" style="width:80px"></span>
+        <button class="btn ghost small" id="centang-kuota">&#10003; Centang sesuai kuota</button>
+        <button class="btn small" id="unduh-pdf">&#128196; Unduh PDF</button>
         <button class="btn ghost small" id="unduh">&#11015; Unduh Excel</button>
         <button class="btn ghost small" id="cetak">&#128424; Cetak</button>
       </div>
       <div id="print-head" style="display:none;margin-bottom:10px"><b>SD N BUGANGIN</b> &middot; <span id="print-title"></span></div>
       <div id="usulan-info" class="legend" style="margin:0 0 10px"></div>
+      <div class="msg" id="usulan-msg" style="margin:0 0 8px"></div>
       <div class="tbl"><table id="tbl-usulan"></table></div>
       <p class="legend">Urutan prioritas: 1) Desil 1&ndash;4, 2) Yatim/piatu, 3) Panti asuhan, 4) Berkebutuhan khusus, 5) Orang tua PHK, 6) Orang tua narapidana, 7) ABH/LPKA. Jika prioritas sama, siswa yang memenuhi lebih banyak kriteria berada di atas, lalu desil yang lebih kecil. Siswa bertanda <b>Anak ASN</b> atau <b>Mampu</b> tidak pernah masuk daftar. Isi <b>Kuota</b> dengan Target Sasaran di Aplikasi Pengusulan PIP untuk menandai siswa yang masuk kuota.</p>
       <div id="dikecualikan" class="legend"></div>
@@ -206,6 +229,7 @@ input[type=date],input[type=file]{width:100%;font:inherit;font-size:15px;padding
       <div class="box">
         <h4>Kriteria prioritas</h4>
         <p class="hint">Desil dan status bisa dilihat di Aplikasi Pengusulan PIP (label <b>DTSEN Desil</b> dan warna baris murid).</p>
+        <div style="margin-bottom:12px"><label for="p-nisn">NISN (10 angka, untuk mencari siswa di SiPINTAR)</label><input type="text" id="p-nisn" inputmode="numeric" maxlength="10" placeholder="Contoh: 0151234567"></div>
         <div class="grid2" style="margin-bottom:12px">
           <div><label for="p-desil">Desil DTSEN</label><select id="p-desil"><option value="">Belum diketahui</option></select></div>
           <div><label for="p-status">Status di Aplikasi PIP</label><select id="p-status">
@@ -231,6 +255,52 @@ input[type=date],input[type=file]{width:100%;font:inherit;font-size:15px;padding
 
       <div class="actions"><button class="btn ghost" id="ed-batal">Tutup</button><button class="btn" id="p-simpan">Simpan kriteria</button></div>
       <div class="msg" id="p-msg" style="text-align:right"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Form kabar -->
+<div class="sheet-bg hidden" id="kform" role="dialog" aria-modal="true" aria-labelledby="kf-judul-form">
+  <div class="sheet">
+    <div class="sheet-h"><div><h3 id="kf-judul-form">Tulis Kabar Kegiatan</h3><p>Jawab pertanyaan, pilih foto, lalu tekan Susun Artikel Otomatis.</p></div><button class="x" id="kf-tutup" aria-label="Tutup">&times;</button></div>
+    <div class="sheet-b">
+      <div class="box">
+        <div class="step"><span>1</span><h4>Ceritakan kegiatannya</h4></div>
+        <p class="hint">Cukup kalimat pendek. Yang bertanda <span style="color:var(--bad)">*</span> wajib diisi.</p>
+        <div style="display:grid;gap:12px">
+          <div><label for="kf-kegiatan">Kegiatan apa? <span style="color:var(--bad)">*</span></label><input type="text" id="kf-kegiatan" list="dl-kegiatan" maxlength="150" placeholder="Contoh: Peringatan Hari Santri"><datalist id="dl-kegiatan"></datalist></div>
+          <div class="grid2">
+            <div><label for="kf-tanggal">Kapan? <span style="color:var(--bad)">*</span></label><input type="date" id="kf-tanggal"></div>
+            <div><label for="kf-tempat">Di mana?</label><input type="text" id="kf-tempat" maxlength="150" placeholder="Contoh: halaman sekolah"></div>
+          </div>
+          <div><label for="kf-peserta">Siapa yang ikut?</label><input type="text" id="kf-peserta" maxlength="300" placeholder="Contoh: seluruh siswa dan guru"></div>
+          <div><label for="kf-rincian">Apa saja yang dilakukan? <span style="color:var(--bad)">*</span></label><textarea id="kf-rincian" maxlength="2000" placeholder="Contoh: upacara, pembacaan ikrar santri, lomba adzan"></textarea></div>
+          <div><label for="kf-kesan">Bagaimana suasananya / apa manfaatnya?</label><textarea id="kf-kesan" maxlength="2000" placeholder="Contoh: siswa antusias dan belajar meneladani semangat para santri"></textarea></div>
+        </div>
+      </div>
+      <div class="box">
+        <div class="step"><span>2</span><h4>Foto kegiatan (paling banyak 4, boleh dilewati)</h4></div>
+        <p class="hint">Foto otomatis diperkecil. Pastikan tidak ada foto yang memalukan atau menyinggung siswa.</p>
+        <input type="file" id="kf-foto" accept="image/*" multiple>
+        <div class="kf-fotos" id="kf-fotos"></div>
+      </div>
+      <div class="box">
+        <div class="step"><span>3</span><h4>Susun artikel</h4></div>
+        <p class="hint">Tekan tombol di bawah. Judul dan isi artikel akan terisi otomatis dari jawaban langkah 1.</p>
+        <button type="button" class="btn big" id="kf-susun" style="width:100%;background:var(--blue)">&#10024; Susun Artikel Otomatis</button>
+        <div class="msg" id="kf-susun-msg"></div>
+      </div>
+      <div class="box">
+        <div class="step"><span>4</span><h4>Periksa &amp; perbaiki</h4></div>
+        <p class="hint">Baca dulu. Ubah kata yang kurang pas langsung di kotak ini. Pisahkan paragraf dengan baris kosong.</p>
+        <label for="kf-judul">Judul artikel</label><input type="text" id="kf-judul" maxlength="150" placeholder="Judul muncul di sini setelah menekan Susun Artikel Otomatis">
+        <label for="kf-isi" style="margin-top:12px">Isi artikel</label><textarea id="kf-isi" maxlength="20000" style="min-height:260px;line-height:1.6" placeholder="Isi artikel muncul di sini setelah menekan Susun Artikel Otomatis"></textarea>
+      </div>
+      <div class="box">
+        <label class="check" style="border:0;padding:0"><input type="checkbox" id="kf-tampil" checked><span><b>Terbitkan di beranda website</b><small>Hilangkan centang untuk menyimpan sebagai draf dulu</small></span></label>
+      </div>
+      <div class="actions"><button class="btn ghost" id="kf-batal">Batal</button><button class="btn big" id="kf-simpan">Simpan &amp; Terbitkan</button></div>
+      <div class="msg" id="kf-msg" style="text-align:right"></div>
     </div>
   </div>
 </div>
@@ -371,28 +441,58 @@ function renderSiswa(){
     return `<button class="row" data-id="${esc(s.id)}"><span class="no">${s.urut||''}</span><span class="main"><span class="nm">${esc(s.nama)}</span><span class="sub"> &middot; ${esc(s.kelas)}</span><span class="tags">${tagsSiswa(v)}</span></span><span aria-hidden="true" style="color:var(--muted)">&rsaquo;</span></button>`;
   }).join('') : '<div class="empty">Tidak ada siswa yang cocok.</div>';
 }
+const JUDUL_USULAN = () => ({
+  'PIP':'Calon Penerima PIP (belum menerima PIP tahun ' + DATA.tahun + ')', 'BAZNAS':'Calon Penerima BAZNAS',
+  'Santunan Yatim Piatu':'Calon Penerima Santunan Yatim Piatu', 'NOMINASI':'Daftar Nominasi Usulan PIP Tahun ' + DATA.tahun
+}[USULAN]);
 function renderUsulan(){
-  const { list, kecuali } = calon(USULAN);
-  const kuota = parseInt($('#kuota').value, 10) || 0;
+  const nom = USULAN === 'NOMINASI';
+  const semua = DATA.siswa.map(s => ({ s, v: nilai(s) }));
+  const nominasi = semua.filter(x => x.v.p.nominasi).sort(bandingkan);
+  $('#jml-nom').textContent = nominasi.length ? '(' + nominasi.length + ')' : '';
+  $('#kuota-box').style.display = nom ? 'none' : 'flex';
+  $('#centang-kuota').style.display = USULAN === 'PIP' ? '' : 'none';
+  const { list, kecuali } = nom ? { list: nominasi, kecuali: [] } : calon(USULAN);
+  const kuota = nom ? 0 : (parseInt($('#kuota').value, 10) || 0);
   let urutValid = 0;
   const rows = list.map((x, i) => {
+    const krit = KRITERIA.filter((c, j) => x.v.met[j]).map(c => c.label).join(', ');
+    if (nom) {
+      const warn = [x.v.kecuali ? 'Dikecualikan (ASN/Mampu)' : '', x.v.dapat('PIP').length ? 'Sudah menerima PIP ' + DATA.tahun : '',
+        x.v.p.statusPip === 'Sudah SK' ? 'Sudah SK' : '', x.v.p.statusPip === 'Tidak valid' ? 'Tidak valid di SiPINTAR' : '', !x.v.p.nisn ? 'NISN belum diisi' : ''].filter(Boolean).join(', ');
+      const sudah = x.v.p.statusPip === 'Sedang diusulkan';
+      return { id:x.s.id, cls: sudah ? 'kuota' : '', sudah, warn,
+        data:[i+1, x.s.nama, x.v.p.nisn || '-', x.s.kelas, x.v.p.desil || '-', krit, sudah ? 'Sudah' : 'Belum', [warn, x.v.p.catatan].filter(Boolean).join('; ')] };
+    }
     const bisa = !(USULAN === 'PIP' && x.v.p.statusPip === 'Tidak valid');
     if (bisa) urutValid++;
-    const cls = kuota ? (bisa && urutValid <= kuota ? 'kuota' : 'luar') : '';
-    const krit = KRITERIA.filter((c, j) => x.v.met[j]).map(c => c.label).join(', ');
+    const masuk = bisa && kuota && urutValid <= kuota;
     const sudah = ['PIP','BAZNAS','Santunan Yatim Piatu'].map(j => { const d = x.v.dapat(j); return d.length ? `${j} (${d.map(b => BULAN[b.bulan-1]).join(', ')})` : ''; }).filter(Boolean).join('; ');
-    const status = x.v.p.statusPip || 'Belum dicek';
-    return { cls, data:[i+1, x.s.nama, x.s.kelas, x.v.p.desil || '-', x.v.prioritas, krit, USULAN === 'PIP' ? status : sudah || '-', x.v.p.catatan || ''], bisa };
+    return { id:x.s.id, bisa, masuk, nominasi: !!x.v.p.nominasi, cls: kuota ? (masuk ? 'kuota' : 'luar') : '',
+      data:[i+1, x.s.nama, x.s.kelas, x.v.p.desil || '-', x.v.prioritas, krit, USULAN === 'PIP' ? (x.v.p.statusPip || 'Belum dicek') : sudah || '-', x.v.p.catatan || ''] };
   });
-  const kolom = ['No','Nama Siswa','Kelas','Desil','Prioritas','Kriteria', USULAN === 'PIP' ? 'Status Aplikasi PIP' : 'Bantuan 2026 diterima','Catatan'];
-  $('#tbl-usulan').innerHTML = `<thead><tr>${kolom.map((k,i) => `<th class="${[0,3,4].includes(i)?'num':''}${i===7?' hide-sm':''}">${k}</th>`).join('')}</tr></thead><tbody>` +
-    (rows.length ? rows.map(r => `<tr class="${r.cls}">${r.data.map((d,i) => `<td class="${[0,3,4].includes(i)?'num':''}${i===7?' hide-sm':''}">${i===1?'<b>'+esc(d)+'</b>':esc(d)}${i===6 && !r.bisa ? ' <span class="tag bad">perbaiki data</span>' : ''}</td>`).join('')}</tr>`).join('')
-      : `<tr><td colspan="8" class="empty">Belum ada siswa yang memenuhi kriteria. Isi kriteria di tab Data Siswa.</td></tr>`) + '</tbody>';
-  const judul = { 'PIP':'Calon Penerima PIP (belum menerima PIP tahun ' + DATA.tahun + ')', 'BAZNAS':'Calon Penerima BAZNAS', 'Santunan Yatim Piatu':'Calon Penerima Santunan Yatim Piatu' }[USULAN];
+  const kolom = nom ? ['No','Nama Siswa','NISN','Kelas','Desil','Alasan Diusulkan','Sudah Input SiPINTAR','Keterangan']
+    : ['No','Nama Siswa','Kelas','Desil','Prioritas','Kriteria', USULAN === 'PIP' ? 'Status di SiPINTAR' : 'Bantuan ' + DATA.tahun + ' diterima','Catatan'];
+  const angka = nom ? [0,4] : [0,3,4], kolStatus = 6;
+  const pilihKolom = USULAN === 'PIP';
+  const td = (r, d, i) => {
+    let isi = i === 1 ? '<b>' + esc(d) + '</b>' : esc(d);
+    if (nom && i === kolStatus) isi = `<label style="display:flex;gap:6px;align-items:center;cursor:pointer"><input type="checkbox" data-sipintar="${esc(r.id)}" ${r.sudah ? 'checked' : ''} style="width:20px;height:20px;accent-color:var(--ok)"> ${r.sudah ? 'Sudah' : 'Belum'}</label>`;
+    if (nom && i === 7 && r.warn) isi = `<span class="tag warn">${esc(r.warn)}</span>`;
+    if (!nom && i === kolStatus && !r.bisa) isi += ' <span class="tag bad">perbaiki data</span>';
+    return `<td class="${angka.includes(i) ? 'num' : ''}${i === 7 ? ' hide-sm' : ''}">${isi}</td>`;
+  };
+  $('#tbl-usulan').innerHTML = `<thead><tr>${pilihKolom ? '<th class="pick no-print">Usulkan</th>' : ''}${kolom.map((k,i) => `<th class="${angka.includes(i)?'num':''}${i===7?' hide-sm':''}">${k}</th>`).join('')}</tr></thead><tbody>` +
+    (rows.length ? rows.map(r => `<tr class="${r.cls}">${pilihKolom ? `<td class="pick no-print"><input type="checkbox" data-nom="${esc(r.id)}" ${r.nominasi ? 'checked' : ''} ${r.bisa ? '' : 'disabled title="Tidak valid di SiPINTAR"'} aria-label="Usulkan ${esc(r.data[1])}"></td>` : ''}${r.data.map((d,i) => td(r, d, i)).join('')}</tr>`).join('')
+      : `<tr><td colspan="9" class="empty">${nom ? 'Belum ada siswa di daftar nominasi. Buka <b>Calon PIP</b>, lalu centang kotak <b>Usulkan</b>.' : 'Belum ada siswa yang memenuhi kriteria. Isi kriteria di tab Data Siswa.'}</td></tr>`) + '</tbody>';
+  const judul = JUDUL_USULAN();
   $('#print-title').textContent = judul + ' · dicetak ' + new Date().toLocaleDateString('id-ID',{dateStyle:'long'});
-  $('#usulan-info').innerHTML = `<b>${list.length}</b> siswa &middot; ${esc(judul)}${kuota ? ` &middot; <b>${Math.min(kuota, rows.filter(r=>r.bisa).length)}</b> masuk kuota (baris hijau)` : ''}`;
+  const nNom = rows.filter(r => r.nominasi).length;
+  $('#usulan-info').innerHTML = nom
+    ? `<b>${rows.length}</b> siswa dinominasikan &middot; <b>${rows.filter(r => r.sudah).length}</b> sudah diinput di SiPINTAR`
+    : `<b>${list.length}</b> siswa &middot; ${esc(judul)}${kuota ? ` &middot; <b>${rows.filter(r => r.masuk).length}</b> masuk kuota (baris hijau)` : ''}${pilihKolom ? ` &middot; <b>${nNom}</b> dicentang untuk nominasi` : ''}`;
   $('#dikecualikan').innerHTML = kecuali.length ? `<b>Dikecualikan (${kecuali.length}):</b> ` + kecuali.map(x => `${esc(x.s.nama)} (${esc(x.s.kelas)}, ${[x.v.p.asn?'ASN':'', x.v.p.mampu?'Mampu':''].filter(Boolean).join('/')})`).join(', ') : '';
-  return { kolom, rows, judul };
+  return { kolom, rows, judul, kuota };
 }
 function renderRekap(){
   const th = DATA.tahun, data = DATA.bantuan.filter(b => b.tahun === th);
@@ -409,7 +509,7 @@ function renderSemua(){
   $('#who').textContent = OLEH;
   $('#diambil').textContent = 'data ' + new Date(DATA.diambil).toLocaleString('id-ID',{dateStyle:'medium',timeStyle:'short'});
   document.querySelectorAll('.th').forEach(e => e.textContent = DATA.tahun);
-  renderSiswa(); renderUsulan(); renderRekap(); renderPrestasi();
+  renderSiswa(); renderUsulan(); renderRekap(); renderPrestasi(); renderKabar();
 }
 
 /* ---------- editor ---------- */
@@ -419,6 +519,7 @@ function bukaEditor(id){
   $('#ed-nama').textContent = AKTIF.nama;
   $('#ed-sub').textContent = `${AKTIF.kelas} · No. ${AKTIF.urut} · ${AKTIF.id}`;
   $('#p-desil').value = p.desil || '';
+  $('#p-nisn').value = p.nisn || '';
   $('#p-status').value = p.statusPip || '';
   KRITERIA.slice(1).forEach(c => { $('#p-' + c.k).checked = !!p[c.k]; });
   $('#p-asn').checked = !!p.asn; $('#p-mampu').checked = !!p.mampu;
@@ -476,7 +577,7 @@ $('#muat-ulang').onclick = async () => { $('#muat-ulang').disabled = true; await
 document.querySelector('.tabs').addEventListener('click', e => {
   const b = e.target.closest('button[data-tab]'); if (!b) return;
   document.querySelectorAll('.tabs button').forEach(x => x.classList.toggle('on', x === b));
-  ['prestasi','siswa','usulan','rekap'].forEach(t => $('#tab-' + t).classList.toggle('hidden', t !== b.dataset.tab));
+  ['prestasi','kabar','siswa','usulan','rekap'].forEach(t => $('#tab-' + t).classList.toggle('hidden', t !== b.dataset.tab));
 });
 $('#kelas-pills').addEventListener('click', e => { const b = e.target.closest('[data-k]'); if (b) { KELAS = b.dataset.k; renderSiswa(); } });
 $('#cari').addEventListener('input', renderSiswa);
@@ -487,9 +588,89 @@ $('#usulan-pills').addEventListener('click', e => {
 });
 $('#kuota').addEventListener('input', renderUsulan);
 $('#cetak').onclick = () => { renderUsulan(); window.print(); };
+let PESAN_T = 0;
+function pesanUsulan(t, cls, hilang){ clearTimeout(PESAN_T); const m = $('#usulan-msg'); m.className = 'msg' + (cls ? ' ' + cls : ''); m.textContent = t || ''; if (hilang) PESAN_T = setTimeout(() => pesanUsulan(''), hilang); }
+async function tandai(ids, kolom, nilaiBaru){
+  pesanUsulan('Menyimpan…');
+  try {
+    const res = await api({ aksi:'tandai', ids, kolom, nilai:nilaiBaru });
+    if (!res.ok) { pesanUsulan(res.pesan || 'Gagal menyimpan.', 'err'); if (res.sandiSalah) keluar(res.pesan); renderUsulan(); return false; }
+    ids.forEach(id => { const s = DATA.siswa.find(x => x.id === id); if (s) { s.profil = s.profil || {}; s.profil[kolom] = nilaiBaru; s.profil.diubahOleh = OLEH; } });
+    renderUsulan(); renderSiswa(); pesanUsulan('Tersimpan.', 'ok', 1500); return true;
+  } catch(e){ pesanUsulan('Tidak dapat terhubung. Coba lagi.', 'err'); renderUsulan(); return false; }
+}
+$('#tbl-usulan').addEventListener('change', e => {
+  const n = e.target.closest('[data-nom]'), k = e.target.closest('[data-sipintar]');
+  if (n) tandai([n.dataset.nom], 'nominasi', n.checked);
+  if (k) tandai([k.dataset.sipintar], 'statusPip', k.checked ? 'Sedang diusulkan' : 'Dapat diusulkan');
+});
+$('#centang-kuota').onclick = () => {
+  const { rows, kuota } = renderUsulan();
+  if (!kuota) { pesanUsulan('Isi dulu kotak Kuota dengan jumlah Target Sasaran dari SiPINTAR.', 'err'); $('#kuota').focus(); return; }
+  const ids = rows.filter(r => r.masuk && !r.nominasi).map(r => r.id);
+  if (!ids.length) { pesanUsulan('Semua siswa yang masuk kuota sudah dicentang.', 'ok'); return; }
+  if (confirm(`Centang ${ids.length} siswa yang masuk kuota untuk nominasi PIP?`)) tandai(ids, 'nominasi', true);
+};
+
+/* ---------- PDF ---------- */
+let LOGO = null;
+function muatLogo(){
+  if (LOGO !== null) return Promise.resolve(LOGO);
+  return new Promise(ok => {
+    const img = new Image();
+    img.onload = () => { try { const c = document.createElement('canvas'); c.width = 160; c.height = Math.round(160 * img.height / img.width); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); LOGO = c.toDataURL('image/png'); } catch(e){ LOGO = ''; } ok(LOGO); };
+    img.onerror = () => { LOGO = ''; ok(''); };
+    img.src = '../logo.png';
+  });
+}
+function dokumenHtml(info, logo){
+  const sk = DATA.sekolah || {}, tgl = new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+  const nom = USULAN === 'NOMINASI';
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${esc(info.judul)}</title><style>
+    @page{size:A4 landscape;margin:14mm}body{font-family:Arial,Helvetica,sans-serif;font-size:10.5pt;color:#000;margin:0}
+    .kop{width:100%;border-bottom:3px double #000;margin-bottom:12px}.kop td{border:0;vertical-align:middle;padding:0 0 8px}
+    .kop .s{font-size:16pt;font-weight:bold}.kop .a{font-size:10pt}h1{font-size:13pt;text-align:center;margin:6px 0 2px;text-transform:uppercase}
+    .sub{text-align:center;font-size:10pt;margin:0 0 12px}table.d{width:100%;border-collapse:collapse}table.d th,table.d td{border:1px solid #000;padding:5px 6px;text-align:left;vertical-align:top}
+    table.d th{background:#e6e6e6;font-size:10pt}td.n{text-align:center}.ttd{width:100%;margin-top:26px}.ttd td{border:0;width:50%;text-align:center;vertical-align:top;padding:0}
+    .rahasia{font-size:8.5pt;color:#555;margin-top:18px}</style></head><body>
+    <table class="kop"><tr>${logo ? `<td style="width:80px"><img src="${logo}" style="width:68px"></td>` : ''}<td><div class="s">${esc(sk.nama || 'SD NEGERI BUGANGIN')}</div><div class="a">${esc(sk.alamat || '')}</div></td></tr></table>
+    <h1>${esc(info.judul)}</h1><p class="sub">Disusun ${esc(tgl)}${info.kuota ? ' &middot; sesuai kuota ' + info.kuota + ' siswa' : ''} &middot; ${info.rows.length} siswa</p>
+    <table class="d"><thead><tr>${info.kolom.map(k => `<th>${esc(k)}</th>`).join('')}</tr></thead><tbody>
+    ${info.rows.map((r, i) => `<tr>${r.data.map((d, j) => `<td class="${j === 0 ? 'n' : ''}">${j === 0 ? i + 1 : esc(d)}</td>`).join('')}</tr>`).join('')}</tbody></table>
+    <table class="ttd"><tr><td>${nom ? 'Petugas Pengusulan PIP' : 'Disusun oleh'},<br><br><br><br><br><b>${esc(OLEH)}</b></td>
+      <td>Kendal, ${esc(tgl)}<br>Kepala Sekolah,<br><br><br><br><b><u>${esc(sk.kepsek || '')}</u></b><br>NIP. ${esc(sk.nip || '..............................')}</td></tr></table>
+    <p class="rahasia">Dokumen internal sekolah. Memuat data pribadi siswa, tidak untuk disebarluaskan.</p></body></html>`;
+}
+function cetakLewatBrowser(html){
+  const f = document.createElement('iframe'); f.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0';
+  document.body.appendChild(f); f.srcdoc = html;
+  f.onload = () => { f.contentWindow.focus(); f.contentWindow.print(); setTimeout(() => f.remove(), 60000); };
+}
+$('#unduh-pdf').onclick = async () => {
+  const info = renderUsulan();
+  if (info.kuota) info.rows = info.rows.filter(r => r.masuk);
+  if (!info.rows.length) { pesanUsulan(USULAN === 'NOMINASI' ? 'Daftar nominasi masih kosong.' : 'Tidak ada siswa di daftar ini.', 'err'); return; }
+  const btn = $('#unduh-pdf'); btn.disabled = true; pesanUsulan('Membuat PDF… mohon tunggu sebentar.');
+  const html = dokumenHtml(info, await muatLogo());
+  const nama = info.judul.split(' (')[0] + ' SD N Bugangin ' + new Date().toISOString().slice(0,10);
+  try {
+    const res = await api({ aksi:'pdf', html, nama });
+    if (!res.ok) throw new Error(res.pesan);
+    const bin = atob(res.base64), buf = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([buf], { type:'application/pdf' })); a.download = res.nama;
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    pesanUsulan('PDF terunduh: ' + res.nama + '. Cek folder Unduhan/Download.', 'ok');
+  } catch(e){
+    pesanUsulan('PDF tidak bisa dibuat otomatis. Jendela cetak dibuka: pilih "Simpan sebagai PDF".', 'err');
+    cetakLewatBrowser(html);
+  }
+  btn.disabled = false;
+};
 $('#unduh').onclick = () => {
   const { kolom, rows, judul } = renderUsulan();
-  const sel = v => { const s = String(v ?? ''); return /[;"\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+  // NISN diawali 0: tulis sebagai teks agar Excel tidak membuang angka 0 di depan
+  const sel = v => { const s = String(v ?? ''); if (/^\d{10}$/.test(s)) return '="' + s + '"'; return /[;"\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
   const isi = ['sep=;', [judul].map(sel).join(';'), kolom.map(sel).join(';'), ...rows.map(r => r.data.map(sel).join(';'))].join('\r\n');
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([isi], { type:'text/csv;charset=utf-8' }));
@@ -532,7 +713,7 @@ $('#ed-given').addEventListener('click', async e => {
 });
 $('#p-simpan').onclick = async () => {
   const m = $('#p-msg'), id = AKTIF.id;
-  const data = { id, desil: $('#p-desil').value, statusPip: $('#p-status').value, asn: $('#p-asn').checked, mampu: $('#p-mampu').checked, catatan: $('#p-catatan').value.trim() };
+  const data = { id, nisn: $('#p-nisn').value.trim(), desil: $('#p-desil').value, statusPip: $('#p-status').value, asn: $('#p-asn').checked, mampu: $('#p-mampu').checked, catatan: $('#p-catatan').value.trim() };
   KRITERIA.slice(1).forEach(c => { data[c.k] = $('#p-' + c.k).checked; });
   m.className='msg'; m.textContent='Menyimpan…'; $('#p-simpan').disabled = true;
   try {
@@ -669,6 +850,122 @@ $('#pr-list').addEventListener('click', async e => {
     if (!p || !confirm(`Hapus prestasi "${p.juara} ${p.cabang}"? Prestasi ini juga hilang dari beranda.`)) return;
     h.disabled = true;
     try { const res = await api({ aksi:'hapusPrestasi', id:p.id }); if (res.ok) await muat(); else { alert(res.pesan || 'Gagal menghapus.'); h.disabled = false; } }
+    catch(err){ alert('Tidak dapat terhubung. Coba lagi.'); h.disabled = false; }
+  }
+});
+
+/* ---------- kabar sekolah ---------- */
+const KEGIATAN = ['Upacara Bendera','Peringatan Hari Santri','Peringatan Hari Kemerdekaan','Peringatan Maulid Nabi','Peringatan Isra Mikraj','Pesantren Kilat Ramadan','Halal Bihalal','Peringatan Hari Kartini','Peringatan Hari Pendidikan Nasional','Peringatan Hari Guru','Peringatan Hari Anak Nasional','Masa Pengenalan Lingkungan Sekolah (MPLS)','Kegiatan Pramuka','Jumat Bersih','Senam Pagi Bersama','Manasik Haji','Kunjungan Edukasi','Pentas Seni','Pembagian Rapor','Pertemuan Orang Tua Siswa','Pemeriksaan Kesehatan Siswa','Imunisasi','Gelar Karya Projek P5','Lomba Antarkelas'];
+let KF = null;
+const kalimat = t => { t = String(t || '').trim().replace(/\s+/g, ' ').replace(/[.,;:!\s]+$/, ''); return t ? t.charAt(0).toUpperCase() + t.slice(1) + '.' : ''; };
+const kecilAwal = t => t && !/^[A-Z]{2}/.test(t) ? t.charAt(0).toLowerCase() + t.slice(1) : t;
+const daftarKata = t => {
+  const bag = String(t || '').split(/\s*(?:[,;\n]|\s-\s|\bdan\b)\s*/i).map(x => x.trim().replace(/^[-•*\d.)\s]+/, '')).filter(Boolean);
+  if (bag.length <= 1) return bag[0] || '';
+  return bag.slice(0, -1).join(', ') + ', dan ' + bag[bag.length - 1];
+};
+const angkaHash = t => [...String(t)].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
+function susunArtikel(d){
+  const h = angkaHash(d.kegiatan + d.tanggal), keg = d.kegiatan.trim().replace(/[.\s]+$/, '');
+  const tgl = tglId(d.tanggal);
+  const kerja = ['menggelar','mengadakan','melaksanakan'][h % 3];
+  const judulPilihan = [`SD N Bugangin Gelar ${keg}`, `${keg} di SD N Bugangin`, `SD N Bugangin Laksanakan ${keg}`];
+  const p = [];
+  p.push(`Kendal, ${tgl} — SD Negeri Bugangin ${kerja} ${keg}${d.tempat ? ' di ' + kecilAwal(d.tempat.trim().replace(/^di\s+/i, '').replace(/[.\s]+$/, '')) : ''}.` +
+    (d.peserta ? ` Kegiatan ini diikuti oleh ${kecilAwal(d.peserta.trim().replace(/[.\s]+$/, ''))}.` : ''));
+  const rinci = d.rincian.trim();
+  if (rinci) {
+    const panjang = /[.!?]\s/.test(rinci) || rinci.split(/\s+/).length > 25;
+    p.push(panjang ? kalimat(rinci) : `Rangkaian kegiatan meliputi ${kecilAwal(daftarKata(rinci))}.`);
+  }
+  if (d.kesan.trim()) p.push(['Kegiatan berlangsung lancar dan penuh semangat.', 'Suasana kegiatan berlangsung hangat dan meriah.', 'Kegiatan berjalan dengan tertib dan lancar.'][h % 3] + ' ' + kalimat(d.kesan));
+  p.push(['Melalui kegiatan ini, SD Negeri Bugangin berharap para siswa semakin bersemangat belajar dan tumbuh menjadi pribadi yang SUPER: Sehat, Unggul, Patriotis, Etis, dan Religius.',
+          'Kegiatan seperti ini menjadi bagian dari upaya SD Negeri Bugangin membentuk siswa yang Sehat, Unggul, Patriotis, Etis, dan Religius (SUPER).',
+          'SD Negeri Bugangin berterima kasih kepada seluruh pihak yang telah mendukung terlaksananya kegiatan ini. Semoga kegiatan ini membawa manfaat bagi seluruh warga sekolah.'][(h >>> 3) % 3]);
+  return { judul: judulPilihan[(h >>> 1) % 3], isi: p.join('\n\n') };
+}
+function renderKabar(){
+  const list = DATA.kabar || [];
+  $('#kb-info').innerHTML = list.length ? `<b>${list.length}</b> kabar tertulis &middot; <b>${list.filter(k => k.tampilkan).length}</b> terbit di beranda` : '';
+  $('#kb-list').innerHTML = list.length ? list.map(k => `<div class="pr">
+    ${k.foto[0] ? `<img src="${fotoUrl(k.foto[0])}" alt="" loading="lazy" onerror="if(!this.dataset.c){this.dataset.c=1;this.src='${fotoCadangan(k.foto[0])}'}else{this.remove()}">` : ''}
+    <div class="pr-b"><div class="meta">${esc(tglId(k.tanggal))} &middot; ${k.foto.length} foto</div><div class="nm">${esc(k.judul)}</div>
+      <div class="kb-ringkas">${esc(k.isi.replace(/\s+/g, ' ').slice(0, 220))}</div>
+      <div class="meta">Ditulis: ${esc(k.penulis)}${k.diubahOleh && k.diubahOleh !== k.penulis ? ' &middot; diubah: ' + esc(k.diubahOleh) : ''}</div></div>
+    <div class="pr-f"><span>${k.tampilkan ? '&#128065; Terbit di beranda' : '&#128221; Draf (belum terbit)'}</span><span class="acts"><button data-ubah-kb="${esc(k.id)}">Ubah</button><button class="del" data-hapus-kb="${esc(k.id)}">Hapus</button></span></div>
+  </div>`).join('') : '<div class="empty" style="grid-column:1/-1">Belum ada kabar. Tekan <b>+ Tulis Kabar</b> untuk menulis yang pertama.</div>';
+}
+function bukaKabar(k){
+  KF = { id: k ? k.id : '', lama: k ? k.foto.slice() : [], hapus: [], baru: [], disusun: !!k };
+  $('#kf-judul-form').textContent = k ? 'Ubah Kabar Kegiatan' : 'Tulis Kabar Kegiatan';
+  $('#kf-kegiatan').value = k ? k.kegiatan : ''; $('#kf-tempat').value = k ? k.tempat : ''; $('#kf-peserta').value = k ? k.peserta : '';
+  $('#kf-rincian').value = k ? k.rincian : ''; $('#kf-kesan').value = k ? k.kesan : '';
+  $('#kf-tanggal').value = k ? k.tanggal : new Date(Date.now() - new Date().getTimezoneOffset()*60000).toISOString().slice(0,10);
+  $('#kf-judul').value = k ? k.judul : ''; $('#kf-isi').value = k ? k.isi : '';
+  $('#kf-tampil').checked = k ? k.tampilkan : true;
+  $('#kf-foto').value = ''; $('#kf-msg').textContent = ''; $('#kf-susun-msg').textContent = '';
+  renderFotoKabar();
+  $('#kform').classList.remove('hidden'); document.body.style.overflow = 'hidden'; $('#kform').scrollTop = 0;
+}
+function tutupKabar(){ $('#kform').classList.add('hidden'); document.body.style.overflow = ''; KF = null; }
+function renderFotoKabar(){
+  const lama = KF.lama.filter(id => !KF.hapus.includes(id));
+  $('#kf-fotos').innerHTML = lama.map(id => `<div><img src="${fotoUrl(id)}" alt="" onerror="this.src='${fotoCadangan(id)}'"><button type="button" data-hapus-lama="${esc(id)}" aria-label="Hapus foto">&times;</button></div>`).join('') +
+    KF.baru.map((src, i) => `<div><img src="${src}" alt=""><button type="button" data-hapus-baru="${i}" aria-label="Hapus foto">&times;</button></div>`).join('');
+  $('#kf-foto').disabled = lama.length + KF.baru.length >= 4;
+}
+$('#dl-kegiatan').innerHTML = KEGIATAN.map(c => `<option value="${esc(c)}">`).join('');
+$('#kb-tambah').onclick = () => bukaKabar(null);
+$('#kf-tutup').onclick = tutupKabar; $('#kf-batal').onclick = tutupKabar;
+$('#kform').addEventListener('click', e => { if (e.target.id === 'kform') tutupKabar(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && KF) tutupKabar(); });
+$('#kf-foto').addEventListener('change', async e => {
+  const sisa = 4 - KF.lama.filter(id => !KF.hapus.includes(id)).length - KF.baru.length;
+  const pilih = [...e.target.files].slice(0, Math.max(0, sisa));
+  if (e.target.files.length > pilih.length) { $('#kf-msg').className = 'msg err'; $('#kf-msg').textContent = 'Paling banyak 4 foto. Sebagian foto tidak dipakai.'; }
+  for (const f of pilih) { try { KF.baru.push(await kecilkanFoto(f)); } catch(err){ $('#kf-msg').className = 'msg err'; $('#kf-msg').textContent = err.message; } }
+  e.target.value = ''; renderFotoKabar();
+});
+$('#kf-fotos').addEventListener('click', e => {
+  const l = e.target.closest('[data-hapus-lama]'), b = e.target.closest('[data-hapus-baru]');
+  if (l) KF.hapus.push(l.dataset.hapusLama);
+  if (b) KF.baru.splice(Number(b.dataset.hapusBaru), 1);
+  if (l || b) renderFotoKabar();
+});
+$('#kf-susun').onclick = () => {
+  const m = $('#kf-susun-msg'), d = { kegiatan:$('#kf-kegiatan').value, tanggal:$('#kf-tanggal').value, tempat:$('#kf-tempat').value, peserta:$('#kf-peserta').value, rincian:$('#kf-rincian').value, kesan:$('#kf-kesan').value };
+  const kurang = [];
+  if (!d.kegiatan.trim()) kurang.push('Kegiatan apa?'); if (!d.tanggal) kurang.push('Kapan?'); if (!d.rincian.trim()) kurang.push('Apa saja yang dilakukan?');
+  if (kurang.length) { m.className = 'msg err'; m.textContent = 'Isi dulu pertanyaan: ' + kurang.join(', '); return; }
+  if (($('#kf-judul').value.trim() || $('#kf-isi').value.trim()) && !confirm('Judul dan isi artikel yang sudah ada akan diganti dengan susunan baru. Lanjutkan?')) return;
+  const a = susunArtikel(d);
+  $('#kf-judul').value = a.judul; $('#kf-isi').value = a.isi; KF.disusun = true;
+  m.className = 'msg ok'; m.textContent = 'Artikel sudah tersusun. Silakan baca dan perbaiki di langkah 4.';
+  $('#kf-judul').scrollIntoView({ behavior:'smooth', block:'center' });
+};
+$('#kf-simpan').onclick = async () => {
+  const m = $('#kf-msg');
+  if (!$('#kf-tanggal').value) { m.className = 'msg err'; m.textContent = 'Isi tanggal kegiatan di langkah 1.'; return; }
+  if (!$('#kf-judul').value.trim() || $('#kf-isi').value.trim().length < 40) { m.className = 'msg err'; m.textContent = 'Artikel belum ada. Tekan tombol "Susun Artikel Otomatis" di langkah 3.'; return; }
+  const data = { id:KF.id, kegiatan:$('#kf-kegiatan').value, tanggal:$('#kf-tanggal').value, tempat:$('#kf-tempat').value, peserta:$('#kf-peserta').value,
+    rincian:$('#kf-rincian').value, kesan:$('#kf-kesan').value, judul:$('#kf-judul').value, isi:$('#kf-isi').value,
+    tampilkan:$('#kf-tampil').checked, fotoBaru:KF.baru, hapusFoto:KF.hapus };
+  m.className = 'msg'; m.textContent = KF.baru.length ? 'Menyimpan dan mengunggah foto… mohon tunggu, jangan tutup halaman.' : 'Menyimpan…'; $('#kf-simpan').disabled = true;
+  try {
+    const res = await api({ aksi:'simpanKabar', data });
+    if (res.ok) { await muat(); m.className = 'msg ok'; m.textContent = data.tampilkan ? 'Kabar tersimpan dan terbit. Terima kasih!' : 'Tersimpan sebagai draf.'; setTimeout(tutupKabar, 1000); }
+    else { m.className = 'msg err'; m.textContent = res.pesan || 'Gagal menyimpan.'; if (res.sandiSalah) keluar(res.pesan); }
+  } catch(err){ m.className = 'msg err'; m.textContent = 'Tidak dapat terhubung. Periksa sinyal, lalu tekan Simpan lagi.'; }
+  $('#kf-simpan').disabled = false;
+};
+$('#kb-list').addEventListener('click', async e => {
+  const u = e.target.closest('[data-ubah-kb]'), h = e.target.closest('[data-hapus-kb]');
+  if (u) bukaKabar((DATA.kabar || []).find(k => k.id === u.dataset.ubahKb));
+  if (h) {
+    const k = (DATA.kabar || []).find(x => x.id === h.dataset.hapusKb);
+    if (!k || !confirm(`Hapus kabar "${k.judul}"? Artikel dan fotonya hilang dari website.`)) return;
+    h.disabled = true;
+    try { const res = await api({ aksi:'hapusKabar', id:k.id }); if (res.ok) await muat(); else { alert(res.pesan || 'Gagal menghapus.'); h.disabled = false; } }
     catch(err){ alert('Tidak dapat terhubung. Coba lagi.'); h.disabled = false; }
   }
 });
