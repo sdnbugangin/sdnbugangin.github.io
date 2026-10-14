@@ -1,5 +1,5 @@
 /* Kabar Sekolah SD N BUGANGIN — dipakai di beranda dan halaman kabar/.
-   Data diambil dari Apps Script Ruang Guru; hanya artikel bertanda "Terbitkan". */
+   Data diambil dari Apps Script Ruang Super Admin; hanya artikel bertanda "Terbitkan". */
 (function () {
   var API = 'https://script.google.com/macros/s/AKfycbyE3fM1cmCXeMsdoygOAP92MIKSngirrd3pOd2U1t4Nr63wAO3lOfEjUyCPBUA7PTor/exec';
   var SIMPAN = 'kabar-cache';
