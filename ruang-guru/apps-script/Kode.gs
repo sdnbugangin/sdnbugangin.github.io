@@ -22,7 +22,8 @@ var SHEET = {
   bantuan: 'Riwayat Bantuan',
   atur: 'Pengaturan',
   log: 'Log Perubahan',
-  prestasi: 'Prestasi'
+  prestasi: 'Prestasi',
+  kabar: 'Kabar Sekolah'
 };
 
 var KOLOM_PROFIL = ['ID Siswa', 'Kelas', 'Nama Siswa', 'Desil DTSEN', 'Status Aplikasi PIP',
@@ -33,6 +34,8 @@ var KOLOM_BANTUAN = ['ID', 'Tahun', 'ID Siswa', 'Kelas', 'Nama Siswa', 'Jenis Ba
 var KOLOM_LOG = ['Waktu', 'Oleh', 'Aksi', 'ID Siswa', 'Nama Siswa', 'Rincian'];
 var KOLOM_PRESTASI = ['ID', 'Tanggal', 'Siswa', 'Siswa (data)', 'Cabang Lomba', 'Nama Lomba', 'Penyelenggara',
   'Tingkat', 'Juara', 'Guru Pembimbing', 'ID Foto', 'Izin Foto Ortu', 'Tampilkan di Beranda', 'Dicatat Oleh', 'Dicatat Pada'];
+var KOLOM_KABAR = ['ID', 'Tanggal', 'Judul', 'Isi Artikel', 'Kegiatan', 'Tempat', 'Peserta', 'Rincian', 'Kesan', 'ID Foto',
+  'Tampilkan di Beranda', 'Ditulis Oleh', 'Dibuat Pada', 'Diubah Oleh', 'Diubah Pada'];
 var TINGKAT = ['Sekolah', 'Gugus', 'Kecamatan', 'Kabupaten', 'Provinsi', 'Nasional', 'Internasional'];
 var JUARA = ['Juara 1', 'Juara 2', 'Juara 3', 'Harapan 1', 'Harapan 2', 'Harapan 3', 'Juara Umum', 'Finalis'];
 
@@ -48,6 +51,7 @@ function siapkan() {
   buatSheet_(ss, SHEET.bantuan, KOLOM_BANTUAN);
   buatSheet_(ss, SHEET.log, KOLOM_LOG);
   buatSheet_(ss, SHEET.prestasi, KOLOM_PRESTASI);
+  buatSheet_(ss, SHEET.kabar, KOLOM_KABAR);
   var atur = buatSheet_(ss, SHEET.atur, ['Kunci', 'Nilai', 'Keterangan']);
   var bawaan = [
     ['Password Bantuan', 'sdsuper', 'Kata sandi untuk membuka halaman Bantuan Siswa. Ganti di sini kapan saja.'],
@@ -108,6 +112,7 @@ function pengaturan_() {
 
 function doGet(e) {
   if (e && e.parameter && e.parameter.aksi === 'prestasi') return json_(prestasiPublik_());
+  if (e && e.parameter && e.parameter.aksi === 'kabar') return json_(kabarPublik_());
   return json_({ ok: true, pesan: 'Layanan Ruang Guru SD N BUGANGIN aktif.' });
 }
 
@@ -126,6 +131,8 @@ function doPost(e) {
       case 'hapusBantuan': return json_(denganKunci_(function () { return hapusBantuan_(req.id, oleh); }));
       case 'tandai': return json_(denganKunci_(function () { return tandai_(req, oleh); }));
       case 'pdf': return json_(buatPdf_(req));
+      case 'simpanKabar': return json_(denganKunci_(function () { return simpanKabar_(req.data, oleh); }));
+      case 'hapusKabar': return json_(denganKunci_(function () { return hapusKabar_(req.id, oleh); }));
       case 'simpanPrestasi': return json_(denganKunci_(function () { return simpanPrestasi_(req.data, oleh); }));
       case 'hapusPrestasi': return json_(denganKunci_(function () { return hapusPrestasi_(req.id, oleh); }));
       default: return json_({ ok: false, pesan: 'Aksi tidak dikenal.' });
@@ -209,7 +216,7 @@ function ambilData_() {
     s.profil = p;
     return s;
   });
-  return { ok: true, tahun: pengaturan_().tahun, siswa: siswa, bantuan: bacaBantuan_(), prestasi: bacaPrestasi_(),
+  return { ok: true, tahun: pengaturan_().tahun, siswa: siswa, bantuan: bacaBantuan_(), prestasi: bacaPrestasi_(), kabar: bacaKabar_(),
     pilihan: { tingkat: TINGKAT, juara: JUARA }, sekolah: pengaturan_().sekolah, diambil: new Date().toISOString() };
 }
 
@@ -450,4 +457,90 @@ function buatPdf_(req) {
   var nama = String(req.nama || 'Dokumen').replace(/[^\w\- ]+/g, '').slice(0, 80) || 'Dokumen';
   var pdf = Utilities.newBlob(html, 'text/html', nama + '.html').getAs('application/pdf');
   return { ok: true, nama: nama + '.pdf', base64: Utilities.base64Encode(pdf.getBytes()) };
+}
+
+/* ---------- kabar sekolah (artikel kegiatan) ---------- */
+
+function sheetKabar_() {
+  return buatSheet_(SpreadsheetApp.getActive(), SHEET.kabar, KOLOM_KABAR);
+}
+
+function bacaKabar_() {
+  return sheetKabar_().getDataRange().getValues().slice(1).filter(function (r) { return r[0]; }).map(function (r) {
+    var foto = [];
+    try { foto = JSON.parse(r[9] || '[]'); } catch (err) {}
+    return {
+      id: String(r[0]), tanggal: teksTanggal_(r[1]), judul: String(r[2] || ''), isi: String(r[3] || ''),
+      kegiatan: String(r[4] || ''), tempat: String(r[5] || ''), peserta: String(r[6] || ''), rincian: String(r[7] || ''),
+      kesan: String(r[8] || ''), foto: foto, tampilkan: r[10] === true, penulis: String(r[11] || ''),
+      diubahOleh: String(r[13] || '')
+    };
+  }).sort(function (a, b) { return a.tanggal < b.tanggal ? 1 : a.tanggal > b.tanggal ? -1 : 0; });
+}
+
+function kabarPublik_() {
+  var cache = CacheService.getScriptCache();
+  var simpan = cache.get('kabar-publik');
+  if (simpan) return JSON.parse(simpan);
+  var hasil = {
+    ok: true,
+    kabar: bacaKabar_().filter(function (k) { return k.tampilkan; }).map(function (k) {
+      return { id: k.id, tanggal: k.tanggal, judul: k.judul, isi: k.isi, foto: k.foto, penulis: k.penulis };
+    }),
+    diambil: new Date().toISOString()
+  };
+  var teks = JSON.stringify(hasil);
+  if (teks.length < 90000) cache.put('kabar-publik', teks, 300);
+  return hasil;
+}
+
+function simpanKabar_(d, oleh) {
+  if (!oleh) return { ok: false, pesan: 'Isi nama Anda dulu.' };
+  d = d || {};
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(d.tanggal || ''))) return { ok: false, pesan: 'Isi tanggal kegiatan.' };
+  var judul = String(d.judul || '').trim().slice(0, 150);
+  var isi = String(d.isi || '').trim().slice(0, 20000);
+  if (!judul) return { ok: false, pesan: 'Judul artikel masih kosong. Tekan "Susun Artikel Otomatis" atau tulis judulnya.' };
+  if (isi.length < 40) return { ok: false, pesan: 'Isi artikel terlalu pendek. Tekan "Susun Artikel Otomatis" atau tulis isinya.' };
+
+  var sh = sheetKabar_();
+  var rows = sh.getDataRange().getValues();
+  var baris = 0, lama = null;
+  if (d.id) {
+    for (var i = 1; i < rows.length; i++) if (String(rows[i][0]) === String(d.id)) { baris = i + 1; lama = rows[i]; break; }
+    if (!baris) return { ok: false, pesan: 'Artikel tidak ditemukan (mungkin sudah dihapus).' };
+  }
+  var foto = [];
+  if (lama) { try { foto = JSON.parse(lama[9] || '[]'); } catch (err) {} }
+  var buang = (d.hapusFoto || []).map(String);
+  foto = foto.filter(function (id) { if (buang.indexOf(id) >= 0) { buangFoto_(id); return false; } return true; });
+  var baru = (d.fotoBaru || []).slice(0, Math.max(0, 4 - foto.length));
+  baru.forEach(function (f, n) { foto.push(simpanFoto_(f, 'Kabar - ' + judul.slice(0, 50) + ' ' + (foto.length + 1))); });
+
+  var waktu = new Date();
+  var nilai = [d.id || Utilities.getUuid(), d.tanggal, judul, isi,
+    String(d.kegiatan || '').slice(0, 150), String(d.tempat || '').slice(0, 150), String(d.peserta || '').slice(0, 300),
+    String(d.rincian || '').slice(0, 2000), String(d.kesan || '').slice(0, 2000), JSON.stringify(foto), d.tampilkan === true,
+    lama ? lama[11] : oleh, lama ? lama[12] : waktu, oleh, waktu];
+  if (baris) sh.getRange(baris, 1, 1, nilai.length).setValues([nilai]);
+  else sh.appendRow(nilai);
+  CacheService.getScriptCache().remove('kabar-publik');
+  catat_(oleh, baris ? 'Ubah kabar' : 'Tulis kabar', { id: '', nama: '' }, judul);
+  return { ok: true, id: nilai[0] };
+}
+
+function hapusKabar_(id, oleh) {
+  if (!oleh) return { ok: false, pesan: 'Isi nama Anda dulu.' };
+  var sh = sheetKabar_();
+  var rows = sh.getDataRange().getValues();
+  for (var i = 1; i < rows.length; i++) {
+    if (String(rows[i][0]) === String(id)) {
+      try { JSON.parse(rows[i][9] || '[]').forEach(buangFoto_); } catch (err) {}
+      sh.deleteRow(i + 1);
+      CacheService.getScriptCache().remove('kabar-publik');
+      catat_(oleh, 'Hapus kabar', { id: '', nama: '' }, rows[i][2]);
+      return { ok: true };
+    }
+  }
+  return { ok: false, pesan: 'Artikel tidak ditemukan (mungkin sudah dihapus).' };
 }

@@ -77,6 +77,9 @@ footer{text-align:center;color:var(--muted);font-size:13px;line-height:1.7;paddi
 .choose.names button{background:#fff9df;border-color:#f0dfa0;border-radius:999px;font-weight:600;color:var(--ink)}.choose.names button::before{content:'\1F467  '}.choose.names button.on{background:var(--ok);border-color:var(--ok);color:#fff}.choose.names button.on::before{content:''}
 .picked{font-size:14px;margin:10px 0 0;padding:10px 12px;border-radius:12px;background:#fff9df;line-height:1.5}
 .foto-prev{margin-top:10px;display:flex;gap:12px;align-items:center}.foto-prev img{width:120px;height:90px;object-fit:cover;border-radius:12px;border:1px solid var(--line)}
+.kf-fotos{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}.kf-fotos div{position:relative}.kf-fotos img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:10px;border:1px solid var(--line);display:block}
+.kf-fotos button{position:absolute;top:4px;right:4px;width:28px;height:28px;border-radius:50%;border:0;background:rgba(0,0,0,.65);color:#fff;font-size:16px;cursor:pointer}
+.kb-ringkas{font-size:13.5px;color:var(--muted);line-height:1.5;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 input[type=date],input[type=file]{width:100%;font:inherit;font-size:15px;padding:10px 12px;border:1px solid #d9cfb8;border-radius:12px;background:#fff}
 @media(max-width:640px){.wrap{padding:16px}header{padding:20px;gap:14px}header img{width:60px;height:60px}.grid2,.checks{grid-template-columns:1fr}.months{grid-template-columns:repeat(4,1fr)}.sheet-bg{padding:0}.sheet{border-radius:0;min-height:100%}.sheet-h{border-radius:0}.hide-sm{display:none}}
 @media print{.topline,.back,header,.bar,.tabs,.tools,.no-print,footer{display:none!important}body{background:#fff}.wrap{padding:0;max-width:none}.tbl{max-height:none;overflow:visible;border:0}th{position:static;background:#ddd;color:#000}#print-head{display:block!important}}
@@ -111,6 +114,7 @@ input[type=date],input[type=file]{width:100%;font:inherit;font-size:15px;padding
     </div>
     <nav class="tabs" role="tablist">
       <button data-tab="prestasi" class="on">&#127942; Prestasi</button>
+      <button data-tab="kabar">&#128240; Kabar Sekolah</button>
       <button data-tab="siswa">&#128103; Data Siswa</button>
       <button data-tab="usulan">&#128203; Daftar Usulan</button>
       <button data-tab="rekap">&#128202; Rekap Bantuan</button>
@@ -128,6 +132,20 @@ input[type=date],input[type=file]{width:100%;font:inherit;font-size:15px;padding
         <p class="tip">Salah ketik? Tekan <b>Ubah</b> pada kartu prestasi. Tidak ingin tampil di beranda? Hilangkan centang <b>Tampilkan di beranda</b>.</p></details>
       <div class="pr-head"><div class="legend" id="pr-info" style="margin:0"></div><button class="btn big" id="pr-tambah">+ Tambah Prestasi</button></div>
       <div class="pr-list" id="pr-list"></div>
+    </div>
+
+    <!-- Kabar Sekolah -->
+    <div id="tab-kabar" class="hidden">
+      <details class="guide" data-g="kabar" open><summary>&#128214; Petunjuk: cara menulis kabar kegiatan (tidak perlu pandai mengarang)</summary><ol>
+        <li>Tekan tombol merah <b>+ Tulis Kabar</b>.</li>
+        <li><b>Jawab pertanyaan</b> tentang kegiatan dengan kalimat pendek saja. Contoh: <i>Apa saja yang dilakukan?</i> &rarr; <i>upacara, pembacaan ikrar, lomba adzan</i>.</li>
+        <li>Pilih <b>foto</b> kegiatan (paling banyak 4). Boleh dilewati.</li>
+        <li>Tekan tombol <b>&#10024; Susun Artikel Otomatis</b>. Judul dan isi artikel langsung jadi.</li>
+        <li><b>Baca hasilnya.</b> Kalau ada kata yang kurang pas, ubah langsung di kotak isi artikel.</li>
+        <li>Tekan <b>Simpan &amp; Terbitkan</b>. Artikel tampil di beranda paling lama 5 menit kemudian.</li></ol>
+        <p class="tip">Ada yang salah setelah terbit? Tekan <b>Ubah</b> pada artikel. Semua guru bisa memperbaiki, dan nama yang mengubah tercatat.</p></details>
+      <div class="pr-head"><div class="legend" id="kb-info" style="margin:0"></div><button class="btn big" id="kb-tambah">+ Tulis Kabar</button></div>
+      <div class="pr-list" id="kb-list"></div>
     </div>
 
     <!-- Data Siswa -->
@@ -237,6 +255,52 @@ input[type=date],input[type=file]{width:100%;font:inherit;font-size:15px;padding
 
       <div class="actions"><button class="btn ghost" id="ed-batal">Tutup</button><button class="btn" id="p-simpan">Simpan kriteria</button></div>
       <div class="msg" id="p-msg" style="text-align:right"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Form kabar -->
+<div class="sheet-bg hidden" id="kform" role="dialog" aria-modal="true" aria-labelledby="kf-judul-form">
+  <div class="sheet">
+    <div class="sheet-h"><div><h3 id="kf-judul-form">Tulis Kabar Kegiatan</h3><p>Jawab pertanyaan, pilih foto, lalu tekan Susun Artikel Otomatis.</p></div><button class="x" id="kf-tutup" aria-label="Tutup">&times;</button></div>
+    <div class="sheet-b">
+      <div class="box">
+        <div class="step"><span>1</span><h4>Ceritakan kegiatannya</h4></div>
+        <p class="hint">Cukup kalimat pendek. Yang bertanda <span style="color:var(--bad)">*</span> wajib diisi.</p>
+        <div style="display:grid;gap:12px">
+          <div><label for="kf-kegiatan">Kegiatan apa? <span style="color:var(--bad)">*</span></label><input type="text" id="kf-kegiatan" list="dl-kegiatan" maxlength="150" placeholder="Contoh: Peringatan Hari Santri"><datalist id="dl-kegiatan"></datalist></div>
+          <div class="grid2">
+            <div><label for="kf-tanggal">Kapan? <span style="color:var(--bad)">*</span></label><input type="date" id="kf-tanggal"></div>
+            <div><label for="kf-tempat">Di mana?</label><input type="text" id="kf-tempat" maxlength="150" placeholder="Contoh: halaman sekolah"></div>
+          </div>
+          <div><label for="kf-peserta">Siapa yang ikut?</label><input type="text" id="kf-peserta" maxlength="300" placeholder="Contoh: seluruh siswa dan guru"></div>
+          <div><label for="kf-rincian">Apa saja yang dilakukan? <span style="color:var(--bad)">*</span></label><textarea id="kf-rincian" maxlength="2000" placeholder="Contoh: upacara, pembacaan ikrar santri, lomba adzan"></textarea></div>
+          <div><label for="kf-kesan">Bagaimana suasananya / apa manfaatnya?</label><textarea id="kf-kesan" maxlength="2000" placeholder="Contoh: siswa antusias dan belajar meneladani semangat para santri"></textarea></div>
+        </div>
+      </div>
+      <div class="box">
+        <div class="step"><span>2</span><h4>Foto kegiatan (paling banyak 4, boleh dilewati)</h4></div>
+        <p class="hint">Foto otomatis diperkecil. Pastikan tidak ada foto yang memalukan atau menyinggung siswa.</p>
+        <input type="file" id="kf-foto" accept="image/*" multiple>
+        <div class="kf-fotos" id="kf-fotos"></div>
+      </div>
+      <div class="box">
+        <div class="step"><span>3</span><h4>Susun artikel</h4></div>
+        <p class="hint">Tekan tombol di bawah. Judul dan isi artikel akan terisi otomatis dari jawaban langkah 1.</p>
+        <button type="button" class="btn big" id="kf-susun" style="width:100%;background:var(--blue)">&#10024; Susun Artikel Otomatis</button>
+        <div class="msg" id="kf-susun-msg"></div>
+      </div>
+      <div class="box">
+        <div class="step"><span>4</span><h4>Periksa &amp; perbaiki</h4></div>
+        <p class="hint">Baca dulu. Ubah kata yang kurang pas langsung di kotak ini. Pisahkan paragraf dengan baris kosong.</p>
+        <label for="kf-judul">Judul artikel</label><input type="text" id="kf-judul" maxlength="150" placeholder="Judul muncul di sini setelah menekan Susun Artikel Otomatis">
+        <label for="kf-isi" style="margin-top:12px">Isi artikel</label><textarea id="kf-isi" maxlength="20000" style="min-height:260px;line-height:1.6" placeholder="Isi artikel muncul di sini setelah menekan Susun Artikel Otomatis"></textarea>
+      </div>
+      <div class="box">
+        <label class="check" style="border:0;padding:0"><input type="checkbox" id="kf-tampil" checked><span><b>Terbitkan di beranda website</b><small>Hilangkan centang untuk menyimpan sebagai draf dulu</small></span></label>
+      </div>
+      <div class="actions"><button class="btn ghost" id="kf-batal">Batal</button><button class="btn big" id="kf-simpan">Simpan &amp; Terbitkan</button></div>
+      <div class="msg" id="kf-msg" style="text-align:right"></div>
     </div>
   </div>
 </div>
@@ -445,7 +509,7 @@ function renderSemua(){
   $('#who').textContent = OLEH;
   $('#diambil').textContent = 'data ' + new Date(DATA.diambil).toLocaleString('id-ID',{dateStyle:'medium',timeStyle:'short'});
   document.querySelectorAll('.th').forEach(e => e.textContent = DATA.tahun);
-  renderSiswa(); renderUsulan(); renderRekap(); renderPrestasi();
+  renderSiswa(); renderUsulan(); renderRekap(); renderPrestasi(); renderKabar();
 }
 
 /* ---------- editor ---------- */
@@ -513,7 +577,7 @@ $('#muat-ulang').onclick = async () => { $('#muat-ulang').disabled = true; await
 document.querySelector('.tabs').addEventListener('click', e => {
   const b = e.target.closest('button[data-tab]'); if (!b) return;
   document.querySelectorAll('.tabs button').forEach(x => x.classList.toggle('on', x === b));
-  ['prestasi','siswa','usulan','rekap'].forEach(t => $('#tab-' + t).classList.toggle('hidden', t !== b.dataset.tab));
+  ['prestasi','kabar','siswa','usulan','rekap'].forEach(t => $('#tab-' + t).classList.toggle('hidden', t !== b.dataset.tab));
 });
 $('#kelas-pills').addEventListener('click', e => { const b = e.target.closest('[data-k]'); if (b) { KELAS = b.dataset.k; renderSiswa(); } });
 $('#cari').addEventListener('input', renderSiswa);
@@ -786,6 +850,122 @@ $('#pr-list').addEventListener('click', async e => {
     if (!p || !confirm(`Hapus prestasi "${p.juara} ${p.cabang}"? Prestasi ini juga hilang dari beranda.`)) return;
     h.disabled = true;
     try { const res = await api({ aksi:'hapusPrestasi', id:p.id }); if (res.ok) await muat(); else { alert(res.pesan || 'Gagal menghapus.'); h.disabled = false; } }
+    catch(err){ alert('Tidak dapat terhubung. Coba lagi.'); h.disabled = false; }
+  }
+});
+
+/* ---------- kabar sekolah ---------- */
+const KEGIATAN = ['Upacara Bendera','Peringatan Hari Santri','Peringatan Hari Kemerdekaan','Peringatan Maulid Nabi','Peringatan Isra Mikraj','Pesantren Kilat Ramadan','Halal Bihalal','Peringatan Hari Kartini','Peringatan Hari Pendidikan Nasional','Peringatan Hari Guru','Peringatan Hari Anak Nasional','Masa Pengenalan Lingkungan Sekolah (MPLS)','Kegiatan Pramuka','Jumat Bersih','Senam Pagi Bersama','Manasik Haji','Kunjungan Edukasi','Pentas Seni','Pembagian Rapor','Pertemuan Orang Tua Siswa','Pemeriksaan Kesehatan Siswa','Imunisasi','Gelar Karya Projek P5','Lomba Antarkelas'];
+let KF = null;
+const kalimat = t => { t = String(t || '').trim().replace(/\s+/g, ' ').replace(/[.,;:!\s]+$/, ''); return t ? t.charAt(0).toUpperCase() + t.slice(1) + '.' : ''; };
+const kecilAwal = t => t && !/^[A-Z]{2}/.test(t) ? t.charAt(0).toLowerCase() + t.slice(1) : t;
+const daftarKata = t => {
+  const bag = String(t || '').split(/\s*(?:[,;\n]|\s-\s|\bdan\b)\s*/i).map(x => x.trim().replace(/^[-•*\d.)\s]+/, '')).filter(Boolean);
+  if (bag.length <= 1) return bag[0] || '';
+  return bag.slice(0, -1).join(', ') + ', dan ' + bag[bag.length - 1];
+};
+const angkaHash = t => [...String(t)].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
+function susunArtikel(d){
+  const h = angkaHash(d.kegiatan + d.tanggal), keg = d.kegiatan.trim().replace(/[.\s]+$/, '');
+  const tgl = tglId(d.tanggal);
+  const kerja = ['menggelar','mengadakan','melaksanakan'][h % 3];
+  const judulPilihan = [`SD N Bugangin Gelar ${keg}`, `${keg} di SD N Bugangin`, `SD N Bugangin Laksanakan ${keg}`];
+  const p = [];
+  p.push(`Kendal, ${tgl} — SD Negeri Bugangin ${kerja} ${keg}${d.tempat ? ' di ' + kecilAwal(d.tempat.trim().replace(/^di\s+/i, '').replace(/[.\s]+$/, '')) : ''}.` +
+    (d.peserta ? ` Kegiatan ini diikuti oleh ${kecilAwal(d.peserta.trim().replace(/[.\s]+$/, ''))}.` : ''));
+  const rinci = d.rincian.trim();
+  if (rinci) {
+    const panjang = /[.!?]\s/.test(rinci) || rinci.split(/\s+/).length > 25;
+    p.push(panjang ? kalimat(rinci) : `Rangkaian kegiatan meliputi ${kecilAwal(daftarKata(rinci))}.`);
+  }
+  if (d.kesan.trim()) p.push(['Kegiatan berlangsung lancar dan penuh semangat.', 'Suasana kegiatan berlangsung hangat dan meriah.', 'Kegiatan berjalan dengan tertib dan lancar.'][h % 3] + ' ' + kalimat(d.kesan));
+  p.push(['Melalui kegiatan ini, SD Negeri Bugangin berharap para siswa semakin bersemangat belajar dan tumbuh menjadi pribadi yang SUPER: Sehat, Unggul, Patriotis, Etis, dan Religius.',
+          'Kegiatan seperti ini menjadi bagian dari upaya SD Negeri Bugangin membentuk siswa yang Sehat, Unggul, Patriotis, Etis, dan Religius (SUPER).',
+          'SD Negeri Bugangin berterima kasih kepada seluruh pihak yang telah mendukung terlaksananya kegiatan ini. Semoga kegiatan ini membawa manfaat bagi seluruh warga sekolah.'][(h >>> 3) % 3]);
+  return { judul: judulPilihan[(h >>> 1) % 3], isi: p.join('\n\n') };
+}
+function renderKabar(){
+  const list = DATA.kabar || [];
+  $('#kb-info').innerHTML = list.length ? `<b>${list.length}</b> kabar tertulis &middot; <b>${list.filter(k => k.tampilkan).length}</b> terbit di beranda` : '';
+  $('#kb-list').innerHTML = list.length ? list.map(k => `<div class="pr">
+    ${k.foto[0] ? `<img src="${fotoUrl(k.foto[0])}" alt="" loading="lazy" onerror="if(!this.dataset.c){this.dataset.c=1;this.src='${fotoCadangan(k.foto[0])}'}else{this.remove()}">` : ''}
+    <div class="pr-b"><div class="meta">${esc(tglId(k.tanggal))} &middot; ${k.foto.length} foto</div><div class="nm">${esc(k.judul)}</div>
+      <div class="kb-ringkas">${esc(k.isi.replace(/\s+/g, ' ').slice(0, 220))}</div>
+      <div class="meta">Ditulis: ${esc(k.penulis)}${k.diubahOleh && k.diubahOleh !== k.penulis ? ' &middot; diubah: ' + esc(k.diubahOleh) : ''}</div></div>
+    <div class="pr-f"><span>${k.tampilkan ? '&#128065; Terbit di beranda' : '&#128221; Draf (belum terbit)'}</span><span class="acts"><button data-ubah-kb="${esc(k.id)}">Ubah</button><button class="del" data-hapus-kb="${esc(k.id)}">Hapus</button></span></div>
+  </div>`).join('') : '<div class="empty" style="grid-column:1/-1">Belum ada kabar. Tekan <b>+ Tulis Kabar</b> untuk menulis yang pertama.</div>';
+}
+function bukaKabar(k){
+  KF = { id: k ? k.id : '', lama: k ? k.foto.slice() : [], hapus: [], baru: [], disusun: !!k };
+  $('#kf-judul-form').textContent = k ? 'Ubah Kabar Kegiatan' : 'Tulis Kabar Kegiatan';
+  $('#kf-kegiatan').value = k ? k.kegiatan : ''; $('#kf-tempat').value = k ? k.tempat : ''; $('#kf-peserta').value = k ? k.peserta : '';
+  $('#kf-rincian').value = k ? k.rincian : ''; $('#kf-kesan').value = k ? k.kesan : '';
+  $('#kf-tanggal').value = k ? k.tanggal : new Date(Date.now() - new Date().getTimezoneOffset()*60000).toISOString().slice(0,10);
+  $('#kf-judul').value = k ? k.judul : ''; $('#kf-isi').value = k ? k.isi : '';
+  $('#kf-tampil').checked = k ? k.tampilkan : true;
+  $('#kf-foto').value = ''; $('#kf-msg').textContent = ''; $('#kf-susun-msg').textContent = '';
+  renderFotoKabar();
+  $('#kform').classList.remove('hidden'); document.body.style.overflow = 'hidden'; $('#kform').scrollTop = 0;
+}
+function tutupKabar(){ $('#kform').classList.add('hidden'); document.body.style.overflow = ''; KF = null; }
+function renderFotoKabar(){
+  const lama = KF.lama.filter(id => !KF.hapus.includes(id));
+  $('#kf-fotos').innerHTML = lama.map(id => `<div><img src="${fotoUrl(id)}" alt="" onerror="this.src='${fotoCadangan(id)}'"><button type="button" data-hapus-lama="${esc(id)}" aria-label="Hapus foto">&times;</button></div>`).join('') +
+    KF.baru.map((src, i) => `<div><img src="${src}" alt=""><button type="button" data-hapus-baru="${i}" aria-label="Hapus foto">&times;</button></div>`).join('');
+  $('#kf-foto').disabled = lama.length + KF.baru.length >= 4;
+}
+$('#dl-kegiatan').innerHTML = KEGIATAN.map(c => `<option value="${esc(c)}">`).join('');
+$('#kb-tambah').onclick = () => bukaKabar(null);
+$('#kf-tutup').onclick = tutupKabar; $('#kf-batal').onclick = tutupKabar;
+$('#kform').addEventListener('click', e => { if (e.target.id === 'kform') tutupKabar(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && KF) tutupKabar(); });
+$('#kf-foto').addEventListener('change', async e => {
+  const sisa = 4 - KF.lama.filter(id => !KF.hapus.includes(id)).length - KF.baru.length;
+  const pilih = [...e.target.files].slice(0, Math.max(0, sisa));
+  if (e.target.files.length > pilih.length) { $('#kf-msg').className = 'msg err'; $('#kf-msg').textContent = 'Paling banyak 4 foto. Sebagian foto tidak dipakai.'; }
+  for (const f of pilih) { try { KF.baru.push(await kecilkanFoto(f)); } catch(err){ $('#kf-msg').className = 'msg err'; $('#kf-msg').textContent = err.message; } }
+  e.target.value = ''; renderFotoKabar();
+});
+$('#kf-fotos').addEventListener('click', e => {
+  const l = e.target.closest('[data-hapus-lama]'), b = e.target.closest('[data-hapus-baru]');
+  if (l) KF.hapus.push(l.dataset.hapusLama);
+  if (b) KF.baru.splice(Number(b.dataset.hapusBaru), 1);
+  if (l || b) renderFotoKabar();
+});
+$('#kf-susun').onclick = () => {
+  const m = $('#kf-susun-msg'), d = { kegiatan:$('#kf-kegiatan').value, tanggal:$('#kf-tanggal').value, tempat:$('#kf-tempat').value, peserta:$('#kf-peserta').value, rincian:$('#kf-rincian').value, kesan:$('#kf-kesan').value };
+  const kurang = [];
+  if (!d.kegiatan.trim()) kurang.push('Kegiatan apa?'); if (!d.tanggal) kurang.push('Kapan?'); if (!d.rincian.trim()) kurang.push('Apa saja yang dilakukan?');
+  if (kurang.length) { m.className = 'msg err'; m.textContent = 'Isi dulu pertanyaan: ' + kurang.join(', '); return; }
+  if (($('#kf-judul').value.trim() || $('#kf-isi').value.trim()) && !confirm('Judul dan isi artikel yang sudah ada akan diganti dengan susunan baru. Lanjutkan?')) return;
+  const a = susunArtikel(d);
+  $('#kf-judul').value = a.judul; $('#kf-isi').value = a.isi; KF.disusun = true;
+  m.className = 'msg ok'; m.textContent = 'Artikel sudah tersusun. Silakan baca dan perbaiki di langkah 4.';
+  $('#kf-judul').scrollIntoView({ behavior:'smooth', block:'center' });
+};
+$('#kf-simpan').onclick = async () => {
+  const m = $('#kf-msg');
+  if (!$('#kf-tanggal').value) { m.className = 'msg err'; m.textContent = 'Isi tanggal kegiatan di langkah 1.'; return; }
+  if (!$('#kf-judul').value.trim() || $('#kf-isi').value.trim().length < 40) { m.className = 'msg err'; m.textContent = 'Artikel belum ada. Tekan tombol "Susun Artikel Otomatis" di langkah 3.'; return; }
+  const data = { id:KF.id, kegiatan:$('#kf-kegiatan').value, tanggal:$('#kf-tanggal').value, tempat:$('#kf-tempat').value, peserta:$('#kf-peserta').value,
+    rincian:$('#kf-rincian').value, kesan:$('#kf-kesan').value, judul:$('#kf-judul').value, isi:$('#kf-isi').value,
+    tampilkan:$('#kf-tampil').checked, fotoBaru:KF.baru, hapusFoto:KF.hapus };
+  m.className = 'msg'; m.textContent = KF.baru.length ? 'Menyimpan dan mengunggah foto… mohon tunggu, jangan tutup halaman.' : 'Menyimpan…'; $('#kf-simpan').disabled = true;
+  try {
+    const res = await api({ aksi:'simpanKabar', data });
+    if (res.ok) { await muat(); m.className = 'msg ok'; m.textContent = data.tampilkan ? 'Kabar tersimpan dan terbit. Terima kasih!' : 'Tersimpan sebagai draf.'; setTimeout(tutupKabar, 1000); }
+    else { m.className = 'msg err'; m.textContent = res.pesan || 'Gagal menyimpan.'; if (res.sandiSalah) keluar(res.pesan); }
+  } catch(err){ m.className = 'msg err'; m.textContent = 'Tidak dapat terhubung. Periksa sinyal, lalu tekan Simpan lagi.'; }
+  $('#kf-simpan').disabled = false;
+};
+$('#kb-list').addEventListener('click', async e => {
+  const u = e.target.closest('[data-ubah-kb]'), h = e.target.closest('[data-hapus-kb]');
+  if (u) bukaKabar((DATA.kabar || []).find(k => k.id === u.dataset.ubahKb));
+  if (h) {
+    const k = (DATA.kabar || []).find(x => x.id === h.dataset.hapusKb);
+    if (!k || !confirm(`Hapus kabar "${k.judul}"? Artikel dan fotonya hilang dari website.`)) return;
+    h.disabled = true;
+    try { const res = await api({ aksi:'hapusKabar', id:k.id }); if (res.ok) await muat(); else { alert(res.pesan || 'Gagal menghapus.'); h.disabled = false; } }
     catch(err){ alert('Tidak dapat terhubung. Coba lagi.'); h.disabled = false; }
   }
 });
