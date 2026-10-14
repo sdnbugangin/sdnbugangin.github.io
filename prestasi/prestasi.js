@@ -1,5 +1,5 @@
 /* Prestasi siswa SD N BUGANGIN — dipakai di beranda dan halaman prestasi/.
-   Data diambil dari Apps Script Ruang Guru; hanya prestasi bertanda "Tampilkan di beranda". */
+   Data diambil dari Apps Script Ruang Super Admin; hanya prestasi bertanda "Tampilkan di beranda". */
 (function () {
   var API = 'https://script.google.com/macros/s/AKfycbyE3fM1cmCXeMsdoygOAP92MIKSngirrd3pOd2U1t4Nr63wAO3lOfEjUyCPBUA7PTor/exec';
   var SIMPAN = 'prestasi-cache';

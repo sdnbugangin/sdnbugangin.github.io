@@ -1,6 +1,6 @@
 /**
  * Sistem Pendataan Bantuan Siswa — SD N BUGANGIN
- * Backend Google Apps Script untuk halaman sdnbugangin.github.io/ruang-guru/
+ * Backend Google Apps Script untuk halaman sdnbugangin.github.io/super-admin/ (Ruang Super Admin)
  *
  * Cara pasang (sekali saja):
  * 1. Buat Google Sheet baru, beri nama "Database Bantuan Siswa".
@@ -8,7 +8,7 @@
  * 3. Pilih fungsi "siapkan" di toolbar, klik Jalankan, lalu izinkan akses.
  * 4. Deploy → Deployment baru → Jenis: Aplikasi web.
  *    Jalankan sebagai: Saya. Yang memiliki akses: Siapa saja. Klik Deploy.
- * 5. Salin URL Aplikasi web (berakhiran /exec), tempel ke API_URL di ruang-guru/index.html.
+ * 5. Salin URL Aplikasi web (berakhiran /exec), tempel ke API_URL di super-admin/index.html.
  *
  * Kata sandi dan ID spreadsheet presensi diatur di sheet "Pengaturan", bukan di kode ini.
  *
@@ -113,7 +113,7 @@ function pengaturan_() {
 function doGet(e) {
   if (e && e.parameter && e.parameter.aksi === 'prestasi') return json_(prestasiPublik_());
   if (e && e.parameter && e.parameter.aksi === 'kabar') return json_(kabarPublik_());
-  return json_({ ok: true, pesan: 'Layanan Ruang Guru SD N BUGANGIN aktif.' });
+  return json_({ ok: true, pesan: 'Layanan Ruang Super Admin SD N BUGANGIN aktif.' });
 }
 
 function doPost(e) {
@@ -450,7 +450,7 @@ function tandai_(req, oleh) {
   return { ok: true, jumlah: nama.length };
 }
 
-/* Ubah dokumen HTML (dibuat di halaman Ruang Guru) menjadi PDF. */
+/* Ubah dokumen HTML (dibuat di halaman Ruang Super Admin) menjadi PDF. */
 function buatPdf_(req) {
   var html = String(req.html || '');
   if (!html || html.length > 1500000) return { ok: false, pesan: 'Dokumen kosong atau terlalu besar.' };
