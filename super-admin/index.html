@@ -56,6 +56,17 @@ tr.kuota td{background:#f3fbf4}tr.luar td{color:#94a3b8}td.pick{text-align:cente
 .given{display:grid;gap:6px;margin-bottom:12px}.gv{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 11px;border-radius:12px;background:#f6f8fb;font-size:13.5px}.gv b{color:var(--blue)}.gv button{border:0;background:none;color:var(--bad);font-weight:800;cursor:pointer;font:inherit;font-size:12.5px}
 .actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
 footer{text-align:center;color:var(--muted);font-size:13px;line-height:1.7;padding:28px 20px 8px}
+/* menu utama */
+header.ringkas{padding:16px 20px;border-radius:20px;margin-top:12px}header.ringkas img{width:48px;height:48px;border-radius:12px;padding:4px}header.ringkas h1{font-size:1.5rem;margin:0 0 2px}header.ringkas p{font-size:13px}
+.menu-judul{margin:22px 0 14px;font-size:20px;color:var(--blue)}
+.menu-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.menu-item{display:flex;align-items:center;gap:16px;text-align:left;background:#fff;border:1px solid var(--line);border-radius:22px;padding:20px;font:inherit;color:inherit;cursor:pointer;box-shadow:0 10px 24px rgba(18,49,79,.07);transition:.2s ease}
+.menu-item:hover,.menu-item:focus-visible{transform:translateY(-3px);border-color:var(--blue);box-shadow:0 16px 32px rgba(18,49,79,.14)}
+.mi-ikon{flex:none;width:58px;height:58px;border-radius:18px;display:grid;place-items:center;font-size:30px}
+.mi-teks{flex:1;display:grid;gap:3px}.mi-teks b{font-size:17px;color:var(--blue)}.mi-teks small{font-size:13.5px;color:var(--muted);line-height:1.45}.mi-teks em{font-style:normal;font-size:12.5px;font-weight:800;color:var(--ok)}
+.mi-panah{font-size:30px;color:var(--muted)}
+#alat-bar{display:flex;align-items:center;gap:14px;margin:18px 0 6px;flex-wrap:wrap}#alat-bar h2{margin:0;font-size:22px;color:var(--blue)}#alat-bar .btn{padding:10px 16px}
+#alat-bantuan .tabs{margin-top:10px}
 /* petunjuk */
 .guide{background:#eef6fc;border:1px solid #cfe3f3;border-radius:16px;margin:14px 0;font-size:15px;line-height:1.6}
 .guide summary{cursor:pointer;padding:13px 16px;font-weight:800;color:var(--blue);list-style:none;display:flex;align-items:center;gap:8px}.guide summary::-webkit-details-marker{display:none}
@@ -112,16 +123,21 @@ input[type=date],input[type=file]{width:100%;font:inherit;font-size:15px;padding
       <div class="who">Masuk sebagai <b id="who"></b> &middot; <span id="diambil"></span></div>
       <div style="display:flex;gap:8px"><button class="btn ghost small" id="muat-ulang">&#8635; Muat ulang</button><button class="btn ghost small" id="keluar">Keluar</button></div>
     </div>
-    <nav class="tabs" role="tablist">
-      <button data-tab="prestasi" class="on">&#127942; Prestasi</button>
-      <button data-tab="kabar">&#128240; Kabar Sekolah</button>
-      <button data-tab="siswa">&#128103; Data Siswa</button>
-      <button data-tab="usulan">&#128203; Daftar Usulan</button>
-      <button data-tab="rekap">&#128202; Rekap Bantuan</button>
-    </nav>
+    <!-- Menu utama -->
+    <div id="menu">
+      <h2 class="menu-judul">Mau mengerjakan apa hari ini?</h2>
+      <div class="menu-grid">
+        <button class="menu-item" data-buka="prestasi"><span class="mi-ikon" style="background:#fff3c0">&#127942;</span><span class="mi-teks"><b>Prestasi Siswa</b><small>Catat juara lomba. Tampil di beranda website.</small><em id="mi-prestasi"></em></span><span class="mi-panah" aria-hidden="true">&rsaquo;</span></button>
+        <button class="menu-item" data-buka="kabar"><span class="mi-ikon" style="background:#e5eff8">&#128240;</span><span class="mi-teks"><b>Kabar Sekolah</b><small>Tulis artikel kegiatan, tersusun otomatis.</small><em id="mi-kabar"></em></span><span class="mi-panah" aria-hidden="true">&rsaquo;</span></button>
+        <button class="menu-item" data-buka="bantuan"><span class="mi-ikon" style="background:#ffe4e1">&#127891;</span><span class="mi-teks"><b>Bantuan Siswa</b><small>PIP, BAZNAS, santunan yatim piatu, nominasi SiPINTAR. &#128274; Rahasia</small><em id="mi-bantuan"></em></span><span class="mi-panah" aria-hidden="true">&rsaquo;</span></button>
+      </div>
+    </div>
+
+    <!-- Bilah alat yang sedang dibuka -->
+    <div id="alat-bar" class="hidden"><button class="btn ghost" id="ke-menu">&larr; Menu</button><h2 id="alat-judul"></h2></div>
 
     <!-- Prestasi -->
-    <div id="tab-prestasi">
+    <div id="tab-prestasi" class="hidden">
       <details class="guide" data-g="prestasi" open><summary>&#128214; Petunjuk: cara mencatat prestasi siswa</summary><ol>
         <li>Tekan tombol merah <b>+ Tambah Prestasi</b>.</li>
         <li>Ketuk <b>kelas</b>, lalu ketuk <b>nama siswa</b> yang juara. Lomba beregu? Ketuk beberapa nama.</li>
@@ -148,8 +164,16 @@ input[type=date],input[type=file]{width:100%;font:inherit;font-size:15px;padding
       <div class="pr-list" id="kb-list"></div>
     </div>
 
+    <!-- Bantuan Siswa: tiga bagian -->
+    <div id="alat-bantuan" class="hidden">
+    <nav class="tabs" role="tablist">
+      <button data-tab="siswa" class="on">&#128103; Data Siswa</button>
+      <button data-tab="usulan">&#128203; Daftar Usulan &amp; Nominasi</button>
+      <button data-tab="rekap">&#128202; Rekap</button>
+    </nav>
+
     <!-- Data Siswa -->
-    <div id="tab-siswa" class="hidden">
+    <div id="tab-siswa">
       <details class="guide" data-g="siswa" open><summary>&#128214; Petunjuk: cara mendata bantuan siswa</summary><ol>
         <li>Ketuk <b>kelas</b> Anda (misalnya <i>Kelas 3</i>), lalu ketuk <b>nama siswa</b>. Akan muncul lembar isian.</li>
         <li><b>Siswa sudah menerima bantuan?</b> Pilih jenis bantuan, ketuk <b>bulan</b> penerimaan, isi <b>nominal</b>, lalu tekan <b>+ Tambah bantuan</b>.</li>
@@ -201,6 +225,7 @@ input[type=date],input[type=file]{width:100%;font:inherit;font-size:15px;padding
       <div class="tbl"><table id="tbl-rekap"></table></div>
       <p class="legend">Angka di tiap bulan = jumlah siswa penerima &middot; total nominal. Data tahun <span class="th"></span>.</p>
     </div>
+    </div><!-- /alat-bantuan -->
   </section>
 
   <footer><strong>SD N BUGANGIN</strong><br>Sehat &middot; Unggul &middot; Patriotis &middot; Etis &middot; Religius</footer>
@@ -509,7 +534,7 @@ function renderSemua(){
   $('#who').textContent = OLEH;
   $('#diambil').textContent = 'data ' + new Date(DATA.diambil).toLocaleString('id-ID',{dateStyle:'medium',timeStyle:'short'});
   document.querySelectorAll('.th').forEach(e => e.textContent = DATA.tahun);
-  renderSiswa(); renderUsulan(); renderRekap(); renderPrestasi(); renderKabar();
+  renderSiswa(); renderUsulan(); renderRekap(); renderPrestasi(); renderKabar(); renderMenu();
 }
 
 /* ---------- editor ---------- */
@@ -549,9 +574,13 @@ async function muat(){
 }
 function tampilApp(){
   $('#login').classList.add('hidden'); $('#app').classList.remove('hidden');
-  $('#judul-sub').textContent = 'Prestasi siswa dan pendataan bantuan. Data bantuan bersifat rahasia.';
+  document.querySelector('header').classList.add('ringkas');
+  $('#judul-sub').textContent = 'Halo, ' + OLEH + '. Layanan internal SD N BUGANGIN.';
+  arahkan();
 }
 function keluar(pesan){
+  document.querySelector('header').classList.remove('ringkas');
+  if (location.hash) history.replaceState(null, '', location.pathname + location.search);
   $('#judul').textContent = 'Ruang Super Admin'; $('#judul-sub').textContent = 'Layanan internal guru dan tenaga kependidikan SD N BUGANGIN.';
   SANDI = ''; ss.del('bantuan-sandi'); DATA = null; tutupEditor();
   $('#app').classList.add('hidden'); $('#login').classList.remove('hidden');
@@ -574,11 +603,42 @@ $('#masuk').onclick = async () => {
 $('#keluar').onclick = () => keluar();
 $('#muat-ulang').onclick = async () => { $('#muat-ulang').disabled = true; await muat(); $('#muat-ulang').disabled = false; };
 
-document.querySelector('.tabs').addEventListener('click', e => {
-  const b = e.target.closest('button[data-tab]'); if (!b) return;
-  document.querySelectorAll('.tabs button').forEach(x => x.classList.toggle('on', x === b));
-  ['prestasi','kabar','siswa','usulan','rekap'].forEach(t => $('#tab-' + t).classList.toggle('hidden', t !== b.dataset.tab));
+/* ---------- menu & navigasi (alamat #prestasi, #kabar, #bantuan/usulan) ---------- */
+const ALAT = { prestasi:'&#127942; Prestasi Siswa', kabar:'&#128240; Kabar Sekolah', bantuan:'&#127891; Bantuan Siswa' };
+const SUB_BANTUAN = ['siswa','usulan','rekap'];
+function tampilkan(alat, sub){
+  const ada = !!ALAT[alat];
+  $('#menu').classList.toggle('hidden', ada);
+  $('#alat-bar').classList.toggle('hidden', !ada);
+  $('#tab-prestasi').classList.toggle('hidden', alat !== 'prestasi');
+  $('#tab-kabar').classList.toggle('hidden', alat !== 'kabar');
+  $('#alat-bantuan').classList.toggle('hidden', alat !== 'bantuan');
+  if (ada) $('#alat-judul').innerHTML = ALAT[alat];
+  if (alat === 'bantuan') {
+    const t = SUB_BANTUAN.includes(sub) ? sub : 'siswa';
+    document.querySelectorAll('#alat-bantuan .tabs button').forEach(x => x.classList.toggle('on', x.dataset.tab === t));
+    SUB_BANTUAN.forEach(x => $('#tab-' + x).classList.toggle('hidden', x !== t));
+  }
+}
+function arahkan(){
+  if (!DATA) return;
+  const [alat, sub] = location.hash.replace(/^#/, '').split('/');
+  tampilkan(alat, sub);
+}
+function pergi(hash){ if (location.hash !== hash) location.hash = hash; arahkan(); window.scrollTo(0, 0); }
+window.addEventListener('hashchange', arahkan);
+document.querySelector('.menu-grid').addEventListener('click', e => { const b = e.target.closest('[data-buka]'); if (b) pergi('#' + b.dataset.buka); });
+$('#ke-menu').onclick = () => pergi('#');
+document.querySelector('#alat-bantuan .tabs').addEventListener('click', e => {
+  const b = e.target.closest('button[data-tab]'); if (b) pergi('#bantuan/' + b.dataset.tab);
 });
+function renderMenu(){
+  const pr = DATA.prestasi || [], kb = DATA.kabar || [];
+  const didata = DATA.siswa.filter(s => s.profil && s.profil.diubahOleh).length, nom = DATA.siswa.filter(s => s.profil && s.profil.nominasi).length;
+  $('#mi-prestasi').textContent = pr.length ? `${pr.length} prestasi · ${pr.filter(p => p.tampilkan).length} tampil di beranda` : 'Belum ada prestasi';
+  $('#mi-kabar').textContent = kb.length ? `${kb.length} kabar · ${kb.filter(k => k.tampilkan).length} terbit` : 'Belum ada kabar';
+  $('#mi-bantuan').textContent = `${didata}/${DATA.siswa.length} siswa terdata${nom ? ' · nominasi PIP: ' + nom : ''}`;
+}
 $('#kelas-pills').addEventListener('click', e => { const b = e.target.closest('[data-k]'); if (b) { KELAS = b.dataset.k; renderSiswa(); } });
 $('#cari').addEventListener('input', renderSiswa);
 $('#daftar-siswa').addEventListener('click', e => { const b = e.target.closest('[data-id]'); if (b) bukaEditor(b.dataset.id); });
