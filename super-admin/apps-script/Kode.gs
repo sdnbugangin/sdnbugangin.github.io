@@ -62,6 +62,8 @@ function siapkan() {
     ['Nama Kepala Sekolah', 'YOS PUTRA KURNIAWAN, S.Pd.', 'Untuk tanda tangan di PDF daftar nominasi.'],
     ['NIP Kepala Sekolah', '', 'Untuk tanda tangan di PDF daftar nominasi.'],
     ['Alamat Sekolah', 'Kecamatan Kota Kendal, Kabupaten Kendal, Jawa Tengah', 'Untuk kop PDF.'],
+    ['Tampilkan Grafik Bantuan', 'Ya', 'Ya = grafik bantuan tersalurkan (jumlah siswa dan total dana, tanpa nama) tampil di beranda. Tidak = disembunyikan.'],
+    ['Batas Samaran Grafik', '3', 'Jumlah penerima di bawah angka ini ditulis "kurang dari 3" di grafik beranda agar siswa tidak bisa ditebak.'],
     ['Batas Tanggungan Banyak', '5', 'Siswa dengan jumlah tanggungan keluarga sebanyak ini atau lebih dihitung "tanggungan banyak" (kriteria pendukung).']
   ];
   var ada = atur.getDataRange().getValues().map(function (r) { return r[0]; });
@@ -102,6 +104,8 @@ function pengaturan_() {
     tahun: Number(nilai['Tahun Bantuan']) || new Date().getFullYear(),
     folderFoto: nilai['Folder Foto Prestasi'] || '',
     batasTanggungan: Number(nilai['Batas Tanggungan Banyak']) || 5,
+    grafikTampil: String(nilai['Tampilkan Grafik Bantuan'] || 'Ya').toLowerCase() !== 'tidak',
+    batasSamaran: Number(nilai['Batas Samaran Grafik']) || 3,
     sekolah: {
       nama: 'SD NEGERI BUGANGIN',
       alamat: nilai['Alamat Sekolah'] || 'Kecamatan Kota Kendal, Kabupaten Kendal, Jawa Tengah',
@@ -116,6 +120,7 @@ function pengaturan_() {
 function doGet(e) {
   if (e && e.parameter && e.parameter.aksi === 'prestasi') return json_(prestasiPublik_());
   if (e && e.parameter && e.parameter.aksi === 'kabar') return json_(kabarPublik_());
+  if (e && e.parameter && e.parameter.aksi === 'grafikBantuan') return json_(grafikBantuanPublik_());
   return json_({ ok: true, pesan: 'Layanan Ruang Super Admin SD N BUGANGIN aktif.' });
 }
 
@@ -283,6 +288,7 @@ function tambahBantuan_(d, oleh) {
     return [Utilities.getUuid(), tahun, s.id, s.kelas, s.nama, d.jenis, b, nominal, ket, oleh, new Date()];
   });
   sh.getRange(sh.getLastRow() + 1, 1, rows.length, rows[0].length).setValues(rows);
+  CacheService.getScriptCache().remove('grafik-bantuan');
   catat_(oleh, 'Tambah bantuan', s, d.jenis + ' bulan ' + baru.join(',') + ' @Rp' + nominal);
   return { ok: true, dilewati: bulan.length - baru.length };
 }
@@ -295,6 +301,7 @@ function hapusBantuan_(id, oleh) {
     if (String(rows[i][0]) === String(id)) {
       var r = rows[i];
       sh.deleteRow(i + 1);
+      CacheService.getScriptCache().remove('grafik-bantuan');
       catat_(oleh, 'Hapus bantuan', { id: r[2], nama: r[4] }, r[5] + ' bulan ' + r[6] + ' @Rp' + r[7]);
       return { ok: true };
     }
@@ -553,4 +560,33 @@ function hapusKabar_(id, oleh) {
     }
   }
   return { ok: false, pesan: 'Artikel tidak ditemukan (mungkin sudah dihapus).' };
+}
+
+/* ---------- grafik bantuan untuk beranda (publik, tanpa nama) ---------- */
+
+/* Per tahun per jenis: jumlah siswa penerima (unik) dan total dana. Jumlah siswa di bawah
+   batas samaran tidak dikirim, hanya ditandai "kecil", agar penerima tidak bisa ditebak. */
+function grafikBantuanPublik_() {
+  var atur = pengaturan_();
+  if (!atur.grafikTampil) return { ok: true, tampil: false };
+  var cache = CacheService.getScriptCache();
+  var simpan = cache.get('grafik-bantuan');
+  if (simpan) return JSON.parse(simpan);
+  var peta = {};
+  bacaBantuan_().forEach(function (b) {
+    if (!b.tahun || JENIS.indexOf(b.jenis) < 0) return;
+    var k = b.tahun + '|' + b.jenis;
+    if (!peta[k]) peta[k] = { tahun: b.tahun, jenis: b.jenis, siswa: {}, dana: 0 };
+    peta[k].siswa[b.siswa] = true;
+    peta[k].dana += b.nominal;
+  });
+  var data = Object.keys(peta).map(function (k) {
+    var x = peta[k], n = Object.keys(x.siswa).length;
+    return n < atur.batasSamaran
+      ? { tahun: x.tahun, jenis: x.jenis, siswa: null, kecil: true, dana: x.dana }
+      : { tahun: x.tahun, jenis: x.jenis, siswa: n, kecil: false, dana: x.dana };
+  }).sort(function (a, b) { return a.tahun - b.tahun || JENIS.indexOf(a.jenis) - JENIS.indexOf(b.jenis); });
+  var hasil = { ok: true, tampil: true, jenis: JENIS, batasSamaran: atur.batasSamaran, data: data, diambil: new Date().toISOString() };
+  cache.put('grafik-bantuan', JSON.stringify(hasil), 600);
+  return hasil;
 }

@@ -1,0 +1,25 @@
+/* Grafik bantuan pendidikan tersalurkan — beranda */
+.gb{--gb-1:#2a78d6;--gb-2:#eb6834;--gb-3:#1baf7a;--gb-ink:#16202a;--gb-ink2:#52514e;--gb-muted:#64748b;--gb-grid:#ece6d8}
+.gb-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:14px}
+.gb-tile{background:#fff;border:1px solid var(--line);border-radius:20px;padding:18px 18px 16px;box-shadow:0 10px 24px rgba(18,49,79,.07);display:grid;gap:4px}
+.gb-tile-h{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:800;color:var(--gb-ink2)}
+.gb-dot{width:10px;height:10px;border-radius:3px;flex:none}
+.gb-num{font-size:30px;font-weight:800;letter-spacing:-.03em;color:var(--gb-ink);line-height:1.1}.gb-num small{font-size:15px;font-weight:700;color:var(--gb-ink2);letter-spacing:0}
+.gb-dana{font-size:13.5px;color:var(--gb-muted)}.gb-dana b{color:var(--gb-ink);font-weight:800}
+.gb-card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:18px;box-shadow:0 10px 24px rgba(18,49,79,.07)}
+.gb-card-h{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.gb-card-h h3{margin:0;font-size:15.5px;color:var(--blue)}
+.gb-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--gb-ink2);font-weight:600}.gb-legend span{display:inline-flex;align-items:center;gap:6px}
+.gb-chart{position:relative}
+.gb-chart svg{display:block;width:100%;height:auto;overflow:visible}
+.gb-chart text{font-family:inherit}
+.gb-hit{fill:transparent;cursor:pointer;outline:none}
+.gb-hit:focus-visible{fill:rgba(18,49,79,.06)}
+.gb-tip{position:absolute;pointer-events:none;background:#16202a;color:#fff;font-size:12.5px;line-height:1.45;padding:8px 10px;border-radius:10px;white-space:nowrap;transform:translate(-50%,-100%);margin-top:-8px;box-shadow:0 8px 20px rgba(0,0,0,.18);z-index:2}
+.gb-tip b{display:block;font-size:13px}
+.gb-foot{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:12px;font-size:12.5px;color:var(--gb-muted);line-height:1.5}
+.gb-foot button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:7px 12px;font:inherit;font-size:13px;font-weight:800;color:var(--blue);cursor:pointer}
+.gb-table{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:12px}.gb-table th,.gb-table td{padding:8px 10px;border-bottom:1px solid #efe6d2;text-align:left}.gb-table th{color:var(--gb-ink2);font-size:12.5px}.gb-table td.n,.gb-table th.n{text-align:right}
+.gb-years{display:flex;gap:6px;flex-wrap:wrap}.gb-years button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 12px;font:inherit;font-size:13px;font-weight:700;cursor:pointer;color:var(--blue)}.gb-years button.on{background:var(--yellow);border-color:var(--yellow);color:var(--gb-ink)}
+@media(max-width:720px){.gb-tiles{grid-template-columns:1fr}.gb-num{font-size:26px}}
+#grafik-bantuan .section-head{flex-wrap:wrap}
