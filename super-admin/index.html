@@ -56,6 +56,9 @@ tr.kuota td{background:#f3fbf4}tr.luar td{color:#94a3b8}td.pick{text-align:cente
 .given{display:grid;gap:6px;margin-bottom:12px}.gv{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 11px;border-radius:12px;background:#f6f8fb;font-size:13.5px}.gv b{color:var(--blue)}.gv button{border:0;background:none;color:var(--bad);font-weight:800;cursor:pointer;font:inherit;font-size:12.5px}
 .actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
 footer{text-align:center;color:var(--muted);font-size:13px;line-height:1.7;padding:28px 20px 8px}
+/* lembar siswa */
+.exc-box{border-color:#c8ccd2;background:#f7f7f8}.skip-note{margin-top:12px;padding:12px 14px;border-radius:12px;background:#2b3440;color:#fff;font-size:14px;line-height:1.5}
+.sheet-actions{position:sticky;bottom:0;z-index:2;background:var(--cream);padding:12px 0 4px;border-top:1px solid var(--line);margin-top:4px}.sheet-actions .msg{margin:0 0 8px;text-align:right}.sheet-actions .msg:empty{display:none}
 /* menu utama */
 header.ringkas{padding:16px 20px;border-radius:20px;margin-top:12px}header.ringkas img{width:48px;height:48px;border-radius:12px;padding:4px}header.ringkas h1{font-size:1.5rem;margin:0 0 2px}header.ringkas p{font-size:13px}
 .menu-judul{margin:22px 0 14px;font-size:20px;color:var(--blue)}
@@ -83,7 +86,7 @@ header.ringkas{padding:16px 20px;border-radius:20px;margin-top:12px}header.ringk
 .pr-f{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:10px 15px;border-top:1px solid #f1e9d6;font-size:12.5px}
 .pr-f .acts{display:flex;gap:6px}.pr-f button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:7px 12px;font:inherit;font-weight:800;font-size:13px;cursor:pointer;color:var(--blue)}.pr-f button.del{color:var(--bad)}
 .medal{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:800;padding:4px 9px;border-radius:999px;background:#fff3c0;color:#6b4b00}.medal.t-hi{background:#ffe08a;color:#5a3c00}.medal.t-lo{background:#eef3f8;color:var(--blue)}
-.step{display:flex;gap:10px;align-items:center;margin:0 0 4px}.step span{flex:none;width:28px;height:28px;border-radius:50%;background:var(--red);color:#fff;display:grid;place-items:center;font-weight:800;font-size:14px}.step h4{margin:0}
+.step{display:flex;gap:10px;align-items:center;margin:0 0 4px}.step > span{flex:none;width:28px;height:28px;border-radius:50%;background:var(--red);color:#fff;display:grid;place-items:center;font-weight:800;font-size:14px}.step h4{margin:0}
 .choose{display:flex;gap:7px;flex-wrap:wrap}.choose button{border:1px solid var(--line);background:#fff;border-radius:12px;padding:10px 14px;font:inherit;font-size:14px;font-weight:700;cursor:pointer;color:var(--blue)}.choose button.on{background:var(--red);border-color:var(--red);color:#fff}
 .choose.names button{background:#fff9df;border-color:#f0dfa0;border-radius:999px;font-weight:600;color:var(--ink)}.choose.names button::before{content:'\1F467  '}.choose.names button.on{background:var(--ok);border-color:var(--ok);color:#fff}.choose.names button.on::before{content:''}
 .picked{font-size:14px;margin:10px 0 0;padding:10px 12px;border-radius:12px;background:#fff9df;line-height:1.5}
@@ -176,10 +179,10 @@ input[type=date],input[type=file]{width:100%;font:inherit;font-size:15px;padding
     <div id="tab-siswa">
       <details class="guide" data-g="siswa" open><summary>&#128214; Petunjuk: cara mendata bantuan siswa</summary><ol>
         <li>Ketuk <b>kelas</b> Anda (misalnya <i>Kelas 3</i>), lalu ketuk <b>nama siswa</b>. Akan muncul lembar isian.</li>
-        <li><b>Siswa sudah menerima bantuan?</b> Pilih jenis bantuan, ketuk <b>bulan</b> penerimaan, isi <b>nominal</b>, lalu tekan <b>+ Tambah bantuan</b>.</li>
+        <li><b>Langkah 1:</b> orang tua <b>PNS/ASN</b> atau keluarga <b>mampu</b>? Centang, lalu langsung <b>Simpan</b>. Isian lain dilewati.</li>
         <li><b>Kriteria prioritas:</b> pilih <b>Desil</b> (lihat label <i>DTSEN Desil</i> di Aplikasi Pengusulan PIP), isi <b>jumlah tanggungan keluarga</b>, lalu centang kotak yang sesuai, misalnya <b>Berpotensi putus sekolah</b>. Tidak tahu? Biarkan kosong.</li>
-        <li>Orang tua <b>ASN</b> atau keluarga <b>mampu</b>? Centang di bagian <b>Pengecualian</b>.</li>
-        <li>Tekan tombol merah <b>Simpan kriteria</b>.</li></ol>
+        <li><b>Siswa sudah menerima bantuan?</b> Pilih jenis bantuan, ketuk <b>bulan</b> penerimaan, isi <b>nominal</b>, lalu tekan <b>+ Tambah bantuan</b>.</li>
+        <li>Tekan tombol merah <b>Simpan &amp; siswa berikutnya</b>. Lembar siswa selanjutnya di kelas yang sama langsung terbuka.</li></ol>
         <p class="tip">Tidak perlu takut salah, semua isian bisa diubah lagi kapan saja. Data ini <b>rahasia</b>, jangan diceritakan ke orang tua siswa.</p></details>
       <div class="tools"><div class="pills" id="kelas-pills"></div><input type="search" id="cari" placeholder="Cari nama siswa&hellip;"></div>
       <div class="list" id="daftar-siswa"></div>
@@ -212,7 +215,7 @@ input[type=date],input[type=file]{width:100%;font:inherit;font-size:15px;padding
       <div id="usulan-info" class="legend" style="margin:0 0 10px"></div>
       <div class="msg" id="usulan-msg" style="margin:0 0 8px"></div>
       <div class="tbl"><table id="tbl-usulan"></table></div>
-      <p class="legend">Urutan prioritas: 1) Desil 1&ndash;4 atau berpotensi putus sekolah / baru kembali bersekolah, 2) Yatim/piatu, 3) Panti asuhan, 4) Berkebutuhan khusus, 5) Orang tua PHK, 6) Orang tua narapidana, 7) ABH/LPKA, 8) tanggungan keluarga banyak (kriteria pendukung, di luar 7 prioritas resmi). Jika prioritas sama, siswa yang memenuhi lebih banyak kriteria berada di atas, lalu desil yang lebih kecil, lalu tanggungan yang lebih banyak. Siswa bertanda <b>Anak ASN</b> atau <b>Mampu</b> tidak pernah masuk daftar. Isi <b>Kuota</b> dengan Target Sasaran di Aplikasi Pengusulan PIP untuk menandai siswa yang masuk kuota.</p>
+      <p class="legend">Urutan prioritas: 1) Desil 1&ndash;4 atau berpotensi putus sekolah / baru kembali bersekolah, 2) Yatim/piatu, 3) Panti asuhan, 4) Berkebutuhan khusus, 5) Orang tua PHK, 6) Orang tua narapidana, 7) ABH/LPKA, 8) tanggungan keluarga banyak (kriteria pendukung, di luar 7 prioritas resmi). Jika prioritas sama, siswa yang memenuhi lebih banyak kriteria berada di atas, lalu desil yang lebih kecil, lalu tanggungan yang lebih banyak. Siswa bertanda <b>Anak PNS/ASN</b> atau <b>Keluarga mampu</b> tidak pernah masuk daftar. Isi <b>Kuota</b> dengan Target Sasaran di Aplikasi Pengusulan PIP untuk menandai siswa yang masuk kuota.</p>
       <div id="dikecualikan" class="legend"></div>
     </div>
 
@@ -236,9 +239,32 @@ input[type=date],input[type=file]{width:100%;font:inherit;font-size:15px;padding
   <div class="sheet">
     <div class="sheet-h"><div><h3 id="ed-nama"></h3><p id="ed-sub"></p></div><button class="x" id="ed-tutup" aria-label="Tutup">&times;</button></div>
     <div class="sheet-b">
+      <div class="box exc-box">
+        <div class="step"><span>1</span><h4>Anak PNS/ASN atau keluarga mampu?</h4></div>
+        <p class="hint">Kalau <b>ya</b>, centang lalu langsung tekan <b>Simpan</b>. Langkah 2 tidak perlu diisi karena siswa tidak akan masuk daftar usulan bantuan apa pun.</p>
+        <div class="checks">
+          <label class="check exc"><input type="checkbox" id="p-asn"><span>Anak PNS/ASN<small>Orang tua/wali berstatus PNS/ASN</small></span></label>
+          <label class="check exc"><input type="checkbox" id="p-mampu"><span>Keluarga mampu<small>Keluarga mampu secara ekonomi</small></span></label>
+        </div>
+        <div class="skip-note hidden" id="ed-skip">&#9940; Siswa ini <b>dikecualikan</b> dari semua daftar usulan. Langkah 2 dilewati, isian sebelumnya tetap tersimpan.</div>
+      </div>
+
+      <div class="box" id="ed-kriteria">
+        <div class="step"><span>2</span><h4>Kriteria prioritas</h4></div>
+        <p class="hint">Desil dan status bisa dilihat di Aplikasi Pengusulan PIP (label <b>DTSEN Desil</b> dan warna baris murid). Tidak tahu? Biarkan kosong.</p>
+        <div style="margin-bottom:12px"><label for="p-nisn">NISN (10 angka, untuk mencari siswa di SiPINTAR)</label><input type="text" id="p-nisn" inputmode="numeric" maxlength="10" placeholder="Contoh: 0151234567"></div>
+        <div class="grid2" style="margin-bottom:12px">
+          <div><label for="p-tanggungan">Jumlah tanggungan keluarga (orang)</label><input type="number" id="p-tanggungan" min="1" max="30" inputmode="numeric" placeholder="Contoh: 6"><small class="hint" id="p-tanggungan-ket" style="display:block;margin-top:4px"></small></div>
+          <div><label for="p-desil">Desil DTSEN</label><select id="p-desil"><option value="">Belum diketahui</option></select></div>
+          <div><label for="p-status">Status di Aplikasi PIP</label><select id="p-status">
+            <option value="">Belum dicek</option><option>Dapat diusulkan</option><option>Tidak valid</option><option>Sedang diusulkan</option><option>Sudah SK</option></select></div>
+        </div>
+        <div class="checks" id="p-checks"></div>
+      </div>
+
       <div class="box">
-        <h4>Bantuan yang sudah diterima tahun <span class="th"></span></h4>
-        <p class="hint">Pilih jenis bantuan, ketuk bulan penerimaan, isi nominal per bulan, lalu tekan Tambah.</p>
+        <div class="step"><span id="ed-no-bantuan">3</span><h4>Bantuan yang sudah diterima tahun <span class="th"></span></h4></div>
+        <p class="hint">Isi <b>hanya jika</b> siswa sudah pernah menerima. Pilih jenis, ketuk bulan, isi nominal, lalu tekan <b>+ Tambah bantuan</b>.</p>
         <div class="given" id="ed-given"></div>
         <div class="grid2">
           <div><label for="b-jenis">Jenis bantuan</label><select id="b-jenis"><option>PIP</option><option>BAZNAS</option><option>Santunan Yatim Piatu</option></select></div>
@@ -252,35 +278,15 @@ input[type=date],input[type=file]{width:100%;font:inherit;font-size:15px;padding
       </div>
 
       <div class="box">
-        <h4>Kriteria prioritas</h4>
-        <p class="hint">Desil dan status bisa dilihat di Aplikasi Pengusulan PIP (label <b>DTSEN Desil</b> dan warna baris murid).</p>
-        <div style="margin-bottom:12px"><label for="p-nisn">NISN (10 angka, untuk mencari siswa di SiPINTAR)</label><input type="text" id="p-nisn" inputmode="numeric" maxlength="10" placeholder="Contoh: 0151234567"></div>
-        <div class="grid2" style="margin-bottom:12px">
-          <div><label for="p-tanggungan">Jumlah tanggungan keluarga (orang)</label><input type="number" id="p-tanggungan" min="1" max="30" inputmode="numeric" placeholder="Contoh: 6"><small class="hint" id="p-tanggungan-ket" style="display:block;margin-top:4px"></small></div>
-          <div><label for="p-desil">Desil DTSEN</label><select id="p-desil"><option value="">Belum diketahui</option></select></div>
-          <div><label for="p-status">Status di Aplikasi PIP</label><select id="p-status">
-            <option value="">Belum dicek</option><option>Dapat diusulkan</option><option>Tidak valid</option><option>Sedang diusulkan</option><option>Sudah SK</option></select></div>
-        </div>
-        <div class="checks" id="p-checks"></div>
-      </div>
-
-      <div class="box">
-        <h4>Pengecualian</h4>
-        <p class="hint">Jika dicentang, siswa <b>tidak masuk</b> daftar usulan bantuan apa pun. Data lain tetap tersimpan.</p>
-        <div class="checks">
-          <label class="check exc"><input type="checkbox" id="p-asn"><span>Anak ASN<small>Orang tua/wali berstatus ASN</small></span></label>
-          <label class="check exc"><input type="checkbox" id="p-mampu"><span>Mampu<small>Keluarga mampu secara ekonomi</small></span></label>
-        </div>
-      </div>
-
-      <div class="box">
-        <label for="p-catatan">Catatan (opsional)</label>
-        <textarea id="p-catatan" maxlength="500" placeholder="Contoh: Ayah meninggal Mei 2026; sedang mengurus surat keterangan"></textarea>
+        <div class="step"><span id="ed-no-catatan">4</span><h4>Catatan (boleh kosong)</h4></div>
+        <textarea id="p-catatan" maxlength="500" placeholder="Contoh: Ayah meninggal Mei 2026; sedang mengurus surat keterangan" aria-label="Catatan"></textarea>
         <p class="hint" id="p-jejak" style="margin:8px 0 0"></p>
       </div>
 
-      <div class="actions"><button class="btn ghost" id="ed-batal">Tutup</button><button class="btn" id="p-simpan">Simpan kriteria</button></div>
-      <div class="msg" id="p-msg" style="text-align:right"></div>
+      <div class="sheet-actions">
+        <div class="msg" id="p-msg"></div>
+        <div class="actions"><button class="btn ghost" id="ed-batal">Tutup</button><button class="btn ghost" id="p-simpan">Simpan</button><button class="btn" id="p-lanjut">Simpan &amp; siswa berikutnya &rsaquo;</button></div>
+      </div>
     </div>
   </div>
 </div>
@@ -453,7 +459,7 @@ function calon(jenis){
 /* ---------- tampilan ---------- */
 function tagsSiswa(v){
   const t = [];
-  if (v.kecuali) t.push(`<span class="tag ex">&#9940; Dikecualikan${v.p.asn ? ' · ASN' : ''}${v.p.mampu ? ' · Mampu' : ''}</span>`);
+  if (v.kecuali) t.push(`<span class="tag ex">&#9940; Dikecualikan${v.p.asn ? ' · PNS/ASN' : ''}${v.p.mampu ? ' · Mampu' : ''}</span>`);
   if (v.p.desil) t.push(`<span class="tag desil">Desil ${v.p.desil}</span>`);
   if (!v.kecuali && v.prioritas) t.push(`<span class="tag prio">&#11088; Prioritas ${v.prioritas}</span>`);
   KRITERIA.forEach((c, i) => { if (c.k !== 'desil' && v.met[i]) t.push(`<span class="tag">${c.k === 'tanggungan' ? 'Tanggungan ' + v.p.tanggungan + ' orang' : c.label}</span>`); });
@@ -525,7 +531,7 @@ function renderUsulan(){
   $('#usulan-info').innerHTML = nom
     ? `<b>${rows.length}</b> siswa dinominasikan &middot; <b>${rows.filter(r => r.sudah).length}</b> sudah diinput di SiPINTAR`
     : `<b>${list.length}</b> siswa &middot; ${esc(judul)}${kuota ? ` &middot; <b>${rows.filter(r => r.masuk).length}</b> masuk kuota (baris hijau)` : ''}${pilihKolom ? ` &middot; <b>${nNom}</b> dicentang untuk nominasi` : ''}`;
-  $('#dikecualikan').innerHTML = kecuali.length ? `<b>Dikecualikan (${kecuali.length}):</b> ` + kecuali.map(x => `${esc(x.s.nama)} (${esc(x.s.kelas)}, ${[x.v.p.asn?'ASN':'', x.v.p.mampu?'Mampu':''].filter(Boolean).join('/')})`).join(', ') : '';
+  $('#dikecualikan').innerHTML = kecuali.length ? `<b>Dikecualikan (${kecuali.length}):</b> ` + kecuali.map(x => `${esc(x.s.nama)} (${esc(x.s.kelas)}, ${[x.v.p.asn?'PNS/ASN':'', x.v.p.mampu?'Mampu':''].filter(Boolean).join('/')})`).join(', ') : '';
   return { kolom, rows, judul, kuota };
 }
 function renderRekap(){
@@ -558,7 +564,7 @@ function bukaEditor(id){
   CENTANG.forEach(c => { $('#p-' + c.k).checked = !!p[c.k]; });
   $('#p-tanggungan').value = p.tanggungan || '';
   $('#p-tanggungan-ket').textContent = `Dihitung "tanggungan banyak" jika ${batasTanggungan()} orang atau lebih.`;
-  $('#p-asn').checked = !!p.asn; $('#p-mampu').checked = !!p.mampu;
+  $('#p-asn').checked = !!p.asn; $('#p-mampu').checked = !!p.mampu; aturPengecualian();
   $('#p-catatan').value = p.catatan || '';
   $('#p-jejak').textContent = p.diubahOleh ? `Terakhir diubah oleh ${p.diubahOleh}, ${new Date(p.diubahPada).toLocaleString('id-ID',{dateStyle:'medium',timeStyle:'short'})}` : 'Kriteria siswa ini belum pernah disimpan.';
   $('#p-msg').textContent = ''; $('#b-msg').textContent = ''; $('#b-ket').value = '';
@@ -782,19 +788,42 @@ $('#ed-given').addEventListener('click', async e => {
     else { m.className='msg err'; m.textContent = res.pesan || 'Gagal menghapus.'; b.disabled = false; }
   } catch(e){ m.className='msg err'; m.textContent='Tidak dapat terhubung. Coba lagi.'; b.disabled = false; }
 });
-$('#p-simpan').onclick = async () => {
+function aturPengecualian(){
+  const ex = $('#p-asn').checked || $('#p-mampu').checked;
+  $('#ed-kriteria').classList.toggle('hidden', ex);
+  $('#ed-skip').classList.toggle('hidden', !ex);
+  $('#ed-no-bantuan').textContent = ex ? '2' : '3';
+  $('#ed-no-catatan').textContent = ex ? '3' : '4';
+}
+['#p-asn','#p-mampu'].forEach(x => $(x).addEventListener('change', aturPengecualian));
+/* urutan siswa sama dengan daftar yang sedang tampil (kelas & pencarian) */
+function siswaBerikutnya(id){
+  const q = $('#cari').value.trim().toUpperCase();
+  const list = DATA.siswa.filter(s => (KELAS === 'Semua' || s.kelas === KELAS) && (!q || s.nama.includes(q)))
+    .sort((a,b) => a.kelas.localeCompare(b.kelas) || a.urut - b.urut);
+  const i = list.findIndex(s => s.id === id);
+  return i >= 0 && i < list.length - 1 ? list[i + 1] : null;
+}
+async function simpanSiswa(lanjut){
   const m = $('#p-msg'), id = AKTIF.id;
   const data = { id, nisn: $('#p-nisn').value.trim(), desil: $('#p-desil').value, statusPip: $('#p-status').value, asn: $('#p-asn').checked, mampu: $('#p-mampu').checked, catatan: $('#p-catatan').value.trim() };
   CENTANG.forEach(c => { data[c.k] = $('#p-' + c.k).checked; });
   data.tanggungan = $('#p-tanggungan').value.trim();
-  m.className='msg'; m.textContent='Menyimpan…'; $('#p-simpan').disabled = true;
+  m.className='msg'; m.textContent='Menyimpan…'; $('#p-simpan').disabled = $('#p-lanjut').disabled = true;
   try {
     const res = await api({ aksi:'simpanProfil', data });
-    if (res.ok) { await muat(); m.className='msg ok'; m.textContent='Kriteria tersimpan.'; setTimeout(() => { if (AKTIF && AKTIF.id === id) tutupEditor(); }, 700); }
+    if (res.ok) {
+      await muat();
+      const berikut = lanjut ? siswaBerikutnya(id) : null;
+      if (berikut) { bukaEditor(berikut.id); $('#p-msg').className = 'msg ok'; $('#p-msg').textContent = 'Tersimpan. Sekarang: ' + berikut.nama; $('#editor').scrollTop = 0; }
+      else { m.className='msg ok'; m.textContent = lanjut ? 'Tersimpan. Ini siswa terakhir di daftar.' : 'Tersimpan.'; setTimeout(() => { if (AKTIF && AKTIF.id === id) tutupEditor(); }, lanjut ? 1400 : 700); }
+    }
     else { m.className='msg err'; m.textContent = res.pesan || 'Gagal menyimpan.'; if (res.sandiSalah) keluar(res.pesan); }
   } catch(e){ m.className='msg err'; m.textContent='Tidak dapat terhubung. Coba lagi.'; }
-  $('#p-simpan').disabled = false;
-};
+  $('#p-simpan').disabled = $('#p-lanjut').disabled = false;
+}
+$('#p-simpan').onclick = () => simpanSiswa(false);
+$('#p-lanjut').onclick = () => simpanSiswa(true);
 
 /* ---------- petunjuk: ingat yang disembunyikan ---------- */
 document.querySelectorAll('details.guide[data-g]').forEach(d => {
