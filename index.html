@@ -8,6 +8,7 @@
 <link rel="icon" type="image/png" href="logo.png">
 <link rel="stylesheet" href="prestasi/prestasi.css">
 <link rel="stylesheet" href="kabar/kabar.css">
+<link rel="stylesheet" href="statistik/grafik-bantuan.css">
 <style>
 :root{--red:#d71920;--red-dark:#9e1117;--yellow:#ffd21f;--blue:#12314f;--blue-dark:#081d32;--cream:#fffaf0;--ink:#16202a;--muted:#64748b;--line:#e9dfc8}
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--cream)}
@@ -48,6 +49,7 @@ footer a{color:var(--yellow);text-decoration:none;font-weight:700}footer a:hover
     <div class="section-head"><div><h2>Kabar Sekolah</h2><p>Cerita kegiatan terbaru di SD N BUGANGIN.</p></div><a class="prestasi-semua" href="kabar/">Semua kabar &rarr;</a></div>
     <div class="kabar-grid" id="kabar-grid"></div>
   </section>
+  <section class="prestasi-sec" id="grafik-bantuan" hidden aria-label="Bantuan pendidikan tersalurkan"></section>
   <section class="super"><div><h2>Nilai SUPER Kami</h2><p>Karakter yang menjadi semangat seluruh warga SD N BUGANGIN.</p></div><div class="super-list"><div class="super-item"><b>S</b>Sehat</div><div class="super-item"><b>U</b>Unggul</div><div class="super-item"><b>P</b>Patriotis</div><div class="super-item"><b>E</b>Etis</div><div class="super-item"><b>R</b>Religius</div></div></section>
   <section class="connect" id="kontak">
     <div class="section-head"><div><h2>Kunjungi &amp; Ikuti Kami</h2><p>Kabar terbaru dan lokasi SD N BUGANGIN.</p></div></div>
@@ -61,6 +63,7 @@ footer a{color:var(--yellow);text-decoration:none;font-weight:700}footer a:hover
 <footer><strong>SD N BUGANGIN</strong><br>Sekolah SUPER: Sehat, Unggul, Patriotis, Etis, Religius<br>Kecamatan Kendal &middot; Kabupaten Kendal &middot; Jawa Tengah<br><a href="https://www.facebook.com/esde.bugangin" target="_blank" rel="noopener">Facebook</a> &middot; <a href="https://www.instagram.com/sdnbuganginkendal/" target="_blank" rel="noopener">Instagram</a> &middot; <a href="https://maps.app.goo.gl/bxd44CbTydvfWHGd7" target="_blank" rel="noopener">Lokasi</a></footer>
 <script src="prestasi/prestasi.js"></script>
 <script src="kabar/kabar.js"></script>
+<script src="statistik/grafik-bantuan.js"></script>
 <script>
 Prestasi.ambil(function (list) {
   var sec = document.getElementById('prestasi');
