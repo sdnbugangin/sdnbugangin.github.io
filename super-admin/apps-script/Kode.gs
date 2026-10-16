@@ -28,7 +28,8 @@ var SHEET = {
 
 var KOLOM_PROFIL = ['ID Siswa', 'Kelas', 'Nama Siswa', 'Desil DTSEN', 'Status Aplikasi PIP',
   'Yatim/Piatu', 'Panti Asuhan', 'Berkebutuhan Khusus', 'Ortu PHK', 'Ortu Narapidana', 'ABH/LPKA',
-  'Anak ASN', 'Mampu', 'Catatan', 'Diubah Oleh', 'Diubah Pada', 'NISN', 'Nominasi PIP'];
+  'Anak ASN', 'Mampu', 'Catatan', 'Diubah Oleh', 'Diubah Pada', 'NISN', 'Nominasi PIP',
+  'Berpotensi Putus Sekolah', 'Jumlah Tanggungan'];
 var KOLOM_BANTUAN = ['ID', 'Tahun', 'ID Siswa', 'Kelas', 'Nama Siswa', 'Jenis Bantuan', 'Bulan',
   'Nominal', 'Keterangan', 'Dicatat Oleh', 'Dicatat Pada'];
 var KOLOM_LOG = ['Waktu', 'Oleh', 'Aksi', 'ID Siswa', 'Nama Siswa', 'Rincian'];
@@ -60,7 +61,8 @@ function siapkan() {
     ['Folder Foto Prestasi', '', 'ID folder Google Drive tempat foto prestasi disimpan. Diisi otomatis oleh "siapkan".'],
     ['Nama Kepala Sekolah', 'YOS PUTRA KURNIAWAN, S.Pd.', 'Untuk tanda tangan di PDF daftar nominasi.'],
     ['NIP Kepala Sekolah', '', 'Untuk tanda tangan di PDF daftar nominasi.'],
-    ['Alamat Sekolah', 'Kecamatan Kota Kendal, Kabupaten Kendal, Jawa Tengah', 'Untuk kop PDF.']
+    ['Alamat Sekolah', 'Kecamatan Kota Kendal, Kabupaten Kendal, Jawa Tengah', 'Untuk kop PDF.'],
+    ['Batas Tanggungan Banyak', '5', 'Siswa dengan jumlah tanggungan keluarga sebanyak ini atau lebih dihitung "tanggungan banyak" (kriteria pendukung).']
   ];
   var ada = atur.getDataRange().getValues().map(function (r) { return r[0]; });
   bawaan.forEach(function (b) { if (ada.indexOf(b[0]) < 0) atur.appendRow(b); });
@@ -99,6 +101,7 @@ function pengaturan_() {
     presensiId: nilai['ID Spreadsheet Presensi'] || '1lKVS4dI4afo0__O4UkHQhdWlfB2NwCuL9cYXsS_5Ap8',
     tahun: Number(nilai['Tahun Bantuan']) || new Date().getFullYear(),
     folderFoto: nilai['Folder Foto Prestasi'] || '',
+    batasTanggungan: Number(nilai['Batas Tanggungan Banyak']) || 5,
     sekolah: {
       nama: 'SD NEGERI BUGANGIN',
       alamat: nilai['Alamat Sekolah'] || 'Kecamatan Kota Kendal, Kabupaten Kendal, Jawa Tengah',
@@ -192,7 +195,9 @@ function bacaProfil_() {
       diubahOleh: String(r[14] || ''),
       diubahPada: r[15] instanceof Date ? r[15].toISOString() : String(r[15] || ''),
       nisn: String(r[16] || '').replace(/^'/, ''),
-      nominasi: r[17] === true
+      nominasi: r[17] === true,
+      putus: r[18] === true,
+      tanggungan: r[19] === '' || r[19] == null ? '' : Number(r[19])
     };
   });
   return peta;
@@ -217,7 +222,7 @@ function ambilData_() {
     return s;
   });
   return { ok: true, tahun: pengaturan_().tahun, siswa: siswa, bantuan: bacaBantuan_(), prestasi: bacaPrestasi_(), kabar: bacaKabar_(),
-    pilihan: { tingkat: TINGKAT, juara: JUARA }, sekolah: pengaturan_().sekolah, diambil: new Date().toISOString() };
+    pilihan: { tingkat: TINGKAT, juara: JUARA }, sekolah: pengaturan_().sekolah, aturan: { batasTanggungan: pengaturan_().batasTanggungan }, diambil: new Date().toISOString() };
 }
 
 /* ---------- tulis data ---------- */
@@ -236,10 +241,13 @@ function simpanProfil_(d, oleh) {
   var status = STATUS_PIP.indexOf(d.statusPip) >= 0 ? d.statusPip : '';
   var nisn = String(d.nisn || '').replace(/\D/g, '');
   if (nisn && nisn.length !== 10) return { ok: false, pesan: 'NISN harus 10 angka.' };
+  var tanggungan = d.tanggungan === '' || d.tanggungan == null ? '' : Math.round(Number(d.tanggungan));
+  if (tanggungan !== '' && !(tanggungan >= 1 && tanggungan <= 30)) return { ok: false, pesan: 'Jumlah tanggungan harus 1 sampai 30 orang.' };
   var lama = bacaProfil_()[s.id];
   var baris = [s.id, s.kelas, s.nama, desil, status];
   FLAG.forEach(function (f) { baris.push(d[f] === true); });
-  baris.push(String(d.catatan || '').slice(0, 500), oleh, new Date(), nisn ? "'" + nisn : '', lama ? lama.nominasi : false);
+  baris.push(String(d.catatan || '').slice(0, 500), oleh, new Date(), nisn ? "'" + nisn : '', lama ? lama.nominasi : false,
+    d.putus === true, tanggungan);
 
   var sh = sheetProfil_();
   if (lama) sh.getRange(lama.baris, 1, 1, baris.length).setValues([baris]);
@@ -251,6 +259,8 @@ function simpanProfil_(d, oleh) {
 function ringkasProfil_(b) {
   var nama = ['Yatim/Piatu', 'Panti', 'ABK', 'Ortu PHK', 'Ortu Napi', 'ABH', 'ASN', 'Mampu'];
   var tanda = nama.filter(function (n, i) { return b[5 + i] === true; });
+  if (b[18] === true) tanda.unshift('Berpotensi putus sekolah');
+  if (b[19] !== '') tanda.push('Tanggungan ' + b[19] + ' orang');
   return 'Desil ' + (b[3] === '' ? '-' : b[3]) + '; Status PIP: ' + (b[4] || '-') + '; ' + (tanda.join(', ') || 'tanpa tanda');
 }
 
@@ -435,7 +445,7 @@ function tandai_(req, oleh) {
     if (!p) {
       var baru = [s.id, s.kelas, s.nama, '', ''];
       FLAG.forEach(function () { baru.push(false); });
-      baru.push('', oleh, waktu, '', false);
+      baru.push('', oleh, waktu, '', false, false, '');
       baru[kolom - 1] = nilai;
       sh.appendRow(baru);
     } else {

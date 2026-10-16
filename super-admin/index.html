@@ -177,7 +177,7 @@ input[type=date],input[type=file]{width:100%;font:inherit;font-size:15px;padding
       <details class="guide" data-g="siswa" open><summary>&#128214; Petunjuk: cara mendata bantuan siswa</summary><ol>
         <li>Ketuk <b>kelas</b> Anda (misalnya <i>Kelas 3</i>), lalu ketuk <b>nama siswa</b>. Akan muncul lembar isian.</li>
         <li><b>Siswa sudah menerima bantuan?</b> Pilih jenis bantuan, ketuk <b>bulan</b> penerimaan, isi <b>nominal</b>, lalu tekan <b>+ Tambah bantuan</b>.</li>
-        <li><b>Kriteria prioritas:</b> pilih <b>Desil</b> (lihat label <i>DTSEN Desil</i> di Aplikasi Pengusulan PIP), lalu centang kotak yang sesuai. Tidak tahu? Biarkan kosong.</li>
+        <li><b>Kriteria prioritas:</b> pilih <b>Desil</b> (lihat label <i>DTSEN Desil</i> di Aplikasi Pengusulan PIP), isi <b>jumlah tanggungan keluarga</b>, lalu centang kotak yang sesuai, misalnya <b>Berpotensi putus sekolah</b>. Tidak tahu? Biarkan kosong.</li>
         <li>Orang tua <b>ASN</b> atau keluarga <b>mampu</b>? Centang di bagian <b>Pengecualian</b>.</li>
         <li>Tekan tombol merah <b>Simpan kriteria</b>.</li></ol>
         <p class="tip">Tidak perlu takut salah, semua isian bisa diubah lagi kapan saja. Data ini <b>rahasia</b>, jangan diceritakan ke orang tua siswa.</p></details>
@@ -212,7 +212,7 @@ input[type=date],input[type=file]{width:100%;font:inherit;font-size:15px;padding
       <div id="usulan-info" class="legend" style="margin:0 0 10px"></div>
       <div class="msg" id="usulan-msg" style="margin:0 0 8px"></div>
       <div class="tbl"><table id="tbl-usulan"></table></div>
-      <p class="legend">Urutan prioritas: 1) Desil 1&ndash;4, 2) Yatim/piatu, 3) Panti asuhan, 4) Berkebutuhan khusus, 5) Orang tua PHK, 6) Orang tua narapidana, 7) ABH/LPKA. Jika prioritas sama, siswa yang memenuhi lebih banyak kriteria berada di atas, lalu desil yang lebih kecil. Siswa bertanda <b>Anak ASN</b> atau <b>Mampu</b> tidak pernah masuk daftar. Isi <b>Kuota</b> dengan Target Sasaran di Aplikasi Pengusulan PIP untuk menandai siswa yang masuk kuota.</p>
+      <p class="legend">Urutan prioritas: 1) Desil 1&ndash;4 atau berpotensi putus sekolah / baru kembali bersekolah, 2) Yatim/piatu, 3) Panti asuhan, 4) Berkebutuhan khusus, 5) Orang tua PHK, 6) Orang tua narapidana, 7) ABH/LPKA, 8) tanggungan keluarga banyak (kriteria pendukung, di luar 7 prioritas resmi). Jika prioritas sama, siswa yang memenuhi lebih banyak kriteria berada di atas, lalu desil yang lebih kecil, lalu tanggungan yang lebih banyak. Siswa bertanda <b>Anak ASN</b> atau <b>Mampu</b> tidak pernah masuk daftar. Isi <b>Kuota</b> dengan Target Sasaran di Aplikasi Pengusulan PIP untuk menandai siswa yang masuk kuota.</p>
       <div id="dikecualikan" class="legend"></div>
     </div>
 
@@ -256,6 +256,7 @@ input[type=date],input[type=file]{width:100%;font:inherit;font-size:15px;padding
         <p class="hint">Desil dan status bisa dilihat di Aplikasi Pengusulan PIP (label <b>DTSEN Desil</b> dan warna baris murid).</p>
         <div style="margin-bottom:12px"><label for="p-nisn">NISN (10 angka, untuk mencari siswa di SiPINTAR)</label><input type="text" id="p-nisn" inputmode="numeric" maxlength="10" placeholder="Contoh: 0151234567"></div>
         <div class="grid2" style="margin-bottom:12px">
+          <div><label for="p-tanggungan">Jumlah tanggungan keluarga (orang)</label><input type="number" id="p-tanggungan" min="1" max="30" inputmode="numeric" placeholder="Contoh: 6"><small class="hint" id="p-tanggungan-ket" style="display:block;margin-top:4px"></small></div>
           <div><label for="p-desil">Desil DTSEN</label><select id="p-desil"><option value="">Belum diketahui</option></select></div>
           <div><label for="p-status">Status di Aplikasi PIP</label><select id="p-status">
             <option value="">Belum dicek</option><option>Dapat diusulkan</option><option>Tidak valid</option><option>Sedang diusulkan</option><option>Sudah SK</option></select></div>
@@ -390,15 +391,21 @@ const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const BULAN = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
 const rp = n => 'Rp' + Number(n||0).toLocaleString('id-ID');
+/* prio: urutan prioritas usulan (1 = paling atas). Prioritas 8 = kriteria pendukung, di luar 7 prioritas resmi. */
 const KRITERIA = [
-  { k:'desil', label:'Desil 1-4', ket:'Berpotensi putus sekolah / baru kembali bersekolah' },
-  { k:'yatim', label:'Yatim/piatu', ket:'Ayah dan/atau ibu meninggal' },
-  { k:'panti', label:'Panti asuhan', ket:'Tinggal di panti sosial/panti asuhan' },
-  { k:'abk',   label:'Berkebutuhan khusus', ket:'Murid berkebutuhan khusus' },
-  { k:'phk',   label:'Ortu PHK', ket:'Orang tua/wali terkena PHK' },
-  { k:'napi',  label:'Ortu narapidana', ket:'Orang tua/wali berstatus narapidana' },
-  { k:'abh',   label:'ABH/LPKA', ket:'Anak berkonflik dengan hukum / binaan LPKA' }
+  { k:'desil', prio:1, label:'Desil 1-4', ket:'Desil DTSEN 1 sampai 4' },
+  { k:'putus', prio:1, label:'Berpotensi putus sekolah', ket:'Berpotensi putus sekolah / baru kembali bersekolah' },
+  { k:'yatim', prio:2, label:'Yatim/piatu', ket:'Ayah dan/atau ibu meninggal' },
+  { k:'panti', prio:3, label:'Panti asuhan', ket:'Tinggal di panti sosial/panti asuhan' },
+  { k:'abk',   prio:4, label:'Berkebutuhan khusus', ket:'Murid berkebutuhan khusus' },
+  { k:'phk',   prio:5, label:'Ortu PHK', ket:'Orang tua/wali terkena PHK' },
+  { k:'napi',  prio:6, label:'Ortu narapidana', ket:'Orang tua/wali berstatus narapidana' },
+  { k:'abh',   prio:7, label:'ABH/LPKA', ket:'Anak berkonflik dengan hukum / binaan LPKA' },
+  { k:'tanggungan', prio:8, label:'Tanggungan banyak', ket:'Kriteria pendukung' }
 ];
+/* kriteria yang diisi dengan kotak centang di lembar siswa */
+const CENTANG = KRITERIA.filter(c => !['desil','tanggungan'].includes(c.k));
+const batasTanggungan = () => (DATA && DATA.aturan && DATA.aturan.batasTanggungan) || 5;
 const ss = { get:k=>{try{return sessionStorage.getItem(k)||''}catch(e){return ''}}, set:(k,v)=>{try{sessionStorage.setItem(k,v)}catch(e){}}, del:k=>{try{sessionStorage.removeItem(k)}catch(e){}} };
 const ls = { get:k=>{try{return localStorage.getItem(k)||''}catch(e){return ''}}, set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}} };
 
@@ -417,11 +424,12 @@ function nilai(s){
   const p = s.profil || {};
   const tahun = DATA.tahun;
   const terima = DATA.bantuan.filter(b => b.siswa === s.id && b.tahun === tahun);
-  const met = KRITERIA.map(c => c.k === 'desil' ? (p.desil >= 1 && p.desil <= 4) : !!p[c.k]);
-  const idx = met.indexOf(true);
+  const met = KRITERIA.map(c => c.k === 'desil' ? (p.desil >= 1 && p.desil <= 4)
+    : c.k === 'tanggungan' ? (p.tanggungan >= batasTanggungan()) : !!p[c.k]);
+  const prio = KRITERIA.filter((c, i) => met[i]).map(c => c.prio);
   return {
     p, terima, met,
-    prioritas: idx < 0 ? 0 : idx + 1,
+    prioritas: prio.length ? Math.min(...prio) : 0,
     jumlah: met.filter(Boolean).length,
     kecuali: !!(p.asn || p.mampu),
     dapat: j => terima.filter(b => b.jenis === j).sort((a,b) => a.bulan - b.bulan)
@@ -429,7 +437,8 @@ function nilai(s){
 }
 function bandingkan(a, b){
   const da = a.v.p.desil || 99, db = b.v.p.desil || 99;
-  return (a.v.prioritas - b.v.prioritas) || (b.v.jumlah - a.v.jumlah) || (da - db) || a.s.kelas.localeCompare(b.s.kelas) || (a.s.urut - b.s.urut);
+  // prioritas → jumlah kriteria → desil lebih kecil → tanggungan lebih banyak → kelas → nomor urut
+  return (a.v.prioritas - b.v.prioritas) || (b.v.jumlah - a.v.jumlah) || (da - db) || ((b.v.p.tanggungan || 0) - (a.v.p.tanggungan || 0)) || a.s.kelas.localeCompare(b.s.kelas) || (a.s.urut - b.s.urut);
 }
 function calon(jenis){
   const semua = DATA.siswa.map(s => ({ s, v: nilai(s) }));
@@ -447,7 +456,7 @@ function tagsSiswa(v){
   if (v.kecuali) t.push(`<span class="tag ex">&#9940; Dikecualikan${v.p.asn ? ' · ASN' : ''}${v.p.mampu ? ' · Mampu' : ''}</span>`);
   if (v.p.desil) t.push(`<span class="tag desil">Desil ${v.p.desil}</span>`);
   if (!v.kecuali && v.prioritas) t.push(`<span class="tag prio">&#11088; Prioritas ${v.prioritas}</span>`);
-  KRITERIA.forEach((c, i) => { if (i && v.met[i]) t.push(`<span class="tag">${c.label}</span>`); });
+  KRITERIA.forEach((c, i) => { if (c.k !== 'desil' && v.met[i]) t.push(`<span class="tag">${c.k === 'tanggungan' ? 'Tanggungan ' + v.p.tanggungan + ' orang' : c.label}</span>`); });
   if (v.p.statusPip === 'Tidak valid') t.push('<span class="tag bad">Tidak valid di aplikasi</span>');
   if (v.p.statusPip === 'Sedang diusulkan') t.push('<span class="tag warn">Sedang diusulkan</span>');
   if (v.p.statusPip === 'Sudah SK') t.push('<span class="tag ok">Sudah SK PIP</span>');
@@ -546,7 +555,9 @@ function bukaEditor(id){
   $('#p-desil').value = p.desil || '';
   $('#p-nisn').value = p.nisn || '';
   $('#p-status').value = p.statusPip || '';
-  KRITERIA.slice(1).forEach(c => { $('#p-' + c.k).checked = !!p[c.k]; });
+  CENTANG.forEach(c => { $('#p-' + c.k).checked = !!p[c.k]; });
+  $('#p-tanggungan').value = p.tanggungan || '';
+  $('#p-tanggungan-ket').textContent = `Dihitung "tanggungan banyak" jika ${batasTanggungan()} orang atau lebih.`;
   $('#p-asn').checked = !!p.asn; $('#p-mampu').checked = !!p.mampu;
   $('#p-catatan').value = p.catatan || '';
   $('#p-jejak').textContent = p.diubahOleh ? `Terakhir diubah oleh ${p.diubahOleh}, ${new Date(p.diubahPada).toLocaleString('id-ID',{dateStyle:'medium',timeStyle:'short'})}` : 'Kriteria siswa ini belum pernah disimpan.';
@@ -740,7 +751,7 @@ $('#unduh').onclick = () => {
 
 // editor
 $('#p-desil').innerHTML += Array.from({length:10}, (_, i) => `<option value="${i+1}">Desil ${i+1}${i < 4 ? ' (prioritas)' : ''}</option>`).join('');
-$('#p-checks').innerHTML = KRITERIA.slice(1).map(c => `<label class="check"><input type="checkbox" id="p-${c.k}"><span>${esc(c.label)}<small>${esc(c.ket)}</small></span></label>`).join('');
+$('#p-checks').innerHTML = CENTANG.map(c => `<label class="check"><input type="checkbox" id="p-${c.k}"><span>${esc(c.label)}<small>${esc(c.ket)}</small></span></label>`).join('');
 $('#ed-tutup').onclick = tutupEditor; $('#ed-batal').onclick = tutupEditor;
 $('#editor').addEventListener('click', e => { if (e.target.id === 'editor') tutupEditor(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && AKTIF) tutupEditor(); });
@@ -774,7 +785,8 @@ $('#ed-given').addEventListener('click', async e => {
 $('#p-simpan').onclick = async () => {
   const m = $('#p-msg'), id = AKTIF.id;
   const data = { id, nisn: $('#p-nisn').value.trim(), desil: $('#p-desil').value, statusPip: $('#p-status').value, asn: $('#p-asn').checked, mampu: $('#p-mampu').checked, catatan: $('#p-catatan').value.trim() };
-  KRITERIA.slice(1).forEach(c => { data[c.k] = $('#p-' + c.k).checked; });
+  CENTANG.forEach(c => { data[c.k] = $('#p-' + c.k).checked; });
+  data.tanggungan = $('#p-tanggungan').value.trim();
   m.className='msg'; m.textContent='Menyimpan…'; $('#p-simpan').disabled = true;
   try {
     const res = await api({ aksi:'simpanProfil', data });
