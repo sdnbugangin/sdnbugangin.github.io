@@ -1,0 +1,138 @@
+// Tiruan layanan Google Apps Script di memori, cukup untuk menguji alur akun dan pembuatan spreadsheet.
+// Hanya meniru metode yang dipakai berkas .gs; metode format (setFontWeight, dll.) diterima tanpa efek.
+const crypto = require('node:crypto');
+const fs = require('node:fs');
+const path = require('node:path');
+const vm = require('node:vm');
+
+const BERKAS_GS = ['Referensi.gs', 'Narasi.gs', 'Hitung.gs', 'Kode.gs', 'Akun.gs', 'Sekolah.gs'];
+const MAKS_BARIS = 1000;
+
+function tanpaEfek(target) {
+  const p = new Proxy(target, { get: (t, k) => (k in t ? t[k] : () => p) });
+  return p;
+}
+
+class Sheet {
+  constructor(nama) { this.nama = nama; this.data = []; this.format = {}; }
+  getName() { return this.nama; }
+  setName(n) { this.nama = n; return this; }
+  getLastRow() { return this.data.length; }
+  getMaxRows() { return MAKS_BARIS; }
+  appendRow(r) { this.data.push(r.slice()); return this; }
+  deleteRow(n) { this.data.splice(n - 1, 1); }
+  setFrozenRows() { return this; }
+  getDataRange() {
+    const lebar = Math.max(0, ...this.data.map((r) => r.length));
+    return this.getRange(1, 1, Math.max(this.data.length, 1), Math.max(lebar, 1));
+  }
+  getRange(baris, kolom, banyak = 1, lebar = 1) {
+    const sh = this;
+    const r = {
+      getValues() {
+        const hasil = [];
+        for (let i = 0; i < banyak; i++) {
+          const row = sh.data[baris - 1 + i] || [];
+          hasil.push(Array.from({ length: lebar }, (_, j) => (row[kolom - 1 + j] === undefined ? '' : row[kolom - 1 + j])));
+        }
+        return hasil;
+      },
+      setValues(v) {
+        if (v.length !== banyak || v.some((x) => x.length !== lebar)) throw new Error('Ukuran data tidak cocok dengan rentang.');
+        v.forEach((row, i) => row.forEach((x, j) => r._tulis(i, j, x)));
+        return r.__diri;
+      },
+      setValue(x) { r._tulis(0, 0, x); return r.__diri; },
+      setNumberFormat(f) {
+        for (let i = 0; i < banyak; i++) for (let j = 0; j < lebar; j++) sh.format[(baris + i) + ':' + (kolom + j)] = f;
+        return r.__diri;
+      },
+      _tulis(i, j, x) {
+        const b = baris - 1 + i, k = kolom - 1 + j;
+        while (sh.data.length <= b) sh.data.push([]);
+        // Seperti Google Sheets: teks berupa angka berubah jadi angka, kecuali kolomnya berformat teks.
+        if (typeof x === 'string' && /^\d+(\.\d+)?$/.test(x) && sh.format[(b + 1) + ':' + (k + 1)] !== '@') x = Number(x);
+        sh.data[b][k] = x;
+      }
+    };
+    r.__diri = tanpaEfek(r);
+    return r.__diri;
+  }
+}
+
+class Spreadsheet {
+  constructor(id, nama) { this.id = id; this.nama = nama; this.sheets = [new Sheet('Sheet1')]; }
+  getId() { return this.id; }
+  getName() { return this.nama; }
+  getSheets() { return this.sheets.slice(); }
+  getSheetByName(n) { return this.sheets.find((s) => s.nama === n) || null; }
+  insertSheet(n) {
+    if (this.getSheetByName(n)) throw new Error('Sheet sudah ada: ' + n);
+    const s = new Sheet(n); this.sheets.push(s); return s;
+  }
+  deleteSheet(s) { this.sheets = this.sheets.filter((x) => x !== s); }
+}
+
+function buatGas() {
+  let nomor = 0;
+  const berkas = {};
+  const cache = new Map();
+  const surat = [];
+  const pusat = new Spreadsheet('pusat', 'Rapor SD - Pusat');
+  const jam = { sekarang: Date.UTC(2026, 9, 18, 3, 0, 0) };
+
+  const NativeDate = Date;
+  class TiruanDate extends NativeDate {
+    constructor(...a) { if (a.length) super(...a); else super(jam.sekarang); }
+    static now() { return jam.sekarang; }
+  }
+
+  const gas = {
+    Date: TiruanDate,
+    SpreadsheetApp: {
+      getActive: () => pusat,
+      create: (nama) => { const ss = new Spreadsheet('ss' + (++nomor), nama); berkas[ss.id] = { ss, folder: null, sampah: false }; return ss; },
+      openById: (id) => { if (!berkas[id]) throw new Error('Tidak ditemukan: ' + id); return berkas[id].ss; }
+    },
+    DriveApp: {
+      createFolder: (nama) => ({ getId: () => 'folder-' + nama }),
+      getFolderById: (id) => ({ id }),
+      getFileById: (id) => ({
+        moveTo: (f) => { berkas[id].folder = f.id; },
+        setTrashed: (v) => { berkas[id].sampah = v; }
+      })
+    },
+    CacheService: {
+      getScriptCache: () => ({
+        get: (k) => { const v = cache.get(k); return v && v.sampai > jam.sekarang ? v.isi : null; },
+        put: (k, isi, detik) => { cache.set(k, { isi: String(isi), sampai: jam.sekarang + detik * 1000 }); },
+        remove: (k) => { cache.delete(k); }
+      })
+    },
+    LockService: { getScriptLock: () => ({ tryLock: () => true, waitLock: () => {}, releaseLock: () => {} }) },
+    MailApp: {
+      kuota: 100,
+      getRemainingDailyQuota() { return this.kuota; },
+      sendEmail(o) { this.kuota--; surat.push(o); }
+    },
+    Utilities: {
+      DigestAlgorithm: { SHA_256: 'sha256' },
+      computeDigest: (alg, teks) => [...crypto.createHash(alg).update(teks, 'utf8').digest()].map((b) => (b > 127 ? b - 256 : b)),
+      computeHmacSha256Signature: (teks, kunci) =>
+        [...crypto.createHmac('sha256', kunci).update(teks, 'utf8').digest()].map((b) => (b > 127 ? b - 256 : b)),
+      getUuid: () => crypto.randomUUID()
+    },
+    ContentService: {
+      MimeType: { JSON: 'json' },
+      createTextOutput: (t) => ({ setMimeType: () => ({ isi: JSON.parse(t) }) })
+    }
+  };
+
+  const ctx = vm.createContext({ ...gas, console });
+  for (const f of BERKAS_GS) {
+    vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'apps-script', f), 'utf8'), ctx, { filename: f });
+  }
+  return { ctx, pusat, berkas, cache, surat, jam, MailApp: gas.MailApp };
+}
+
+module.exports = { buatGas, BERKAS_GS };

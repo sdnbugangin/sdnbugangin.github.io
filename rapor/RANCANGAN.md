@@ -8,7 +8,7 @@ Aplikasi ini pengganti `RAPOR ... KELAS 5 ... .xlsm`: satu aplikasi untuk semua 
 
 | Hal | Keputusan |
 |---|---|
-| Login | Akun Google (termasuk belajar.id) |
+| Login | **Satu akun per sekolah**: email sekolah + kata sandi khusus aplikasi, dipakai bersama semua guru. Tanpa PIN, tanpa akun per guru. Risiko akun bersama menjadi tanggung jawab sekolah (disetujui saat mendaftar). |
 | Bobot nilai rapor | Sumatif lingkup materi 50%, sumatif akhir semester 50%. Bisa diubah per sekolah. |
 | Format rapor | Mengikuti RAPOR CETAK lama. **Semester 1 tanpa keterangan naik/lulus.** |
 | Rombel | Satu kelas bisa punya beberapa rombel (5A, 5B, …) |
@@ -17,26 +17,32 @@ Aplikasi ini pengganti `RAPOR ... KELAS 5 ... .xlsm`: satu aplikasi untuk semua 
 ## 2. Gambaran sistem
 
 ```
-Guru / operator (browser, login akun Google)
-        │
+Guru / operator (browser)
+        │  sdnbugangin.github.io/rapor/   — email sekolah + kata sandi
         ▼
-Aplikasi web Apps Script (HtmlService) ──── Spreadsheet Pusat: daftar sekolah terdaftar
+Aplikasi web Apps Script (berjalan sebagai akun pengelola)
         │
-        ▼
-Spreadsheet Sekolah (satu per sekolah, dibuat otomatis saat daftar)
+        ├── Spreadsheet Pusat: daftar sekolah, hash kata sandi, token, log
+        └── Folder "Rapor SD - Data Sekolah": satu spreadsheet per sekolah, dibuat otomatis
 ```
 
-Tampilan aplikasi disajikan oleh Apps Script, bukan halaman GitHub Pages.
-Alasannya, permintaan dari GitHub Pages ke Apps Script tidak bisa membawa login Google pengguna.
-Situs `sdnbugangin.github.io/rapor/` cukup berisi halaman perkenalan dan tombol menuju aplikasi.
+- Tampilan ada di GitHub Pages (`rapor/index.html`), sama seperti halaman Super Admin.
+- Apps Script dipasang sekali oleh pengelola (langkahnya di bagian atas `apps-script/Kode.gs`) dan dijalankan sebagai akun pengelola. Semua spreadsheet sekolah tersimpan di Drive akun itu.
+- Gunakan akun Google **khusus aplikasi ini**, bukan akun pribadi, supaya mudah diserahkan atau dikelola bersama.
+- Batas akun Gmail biasa: sekitar 100 email per hari (untuk aktivasi dan lupa kata sandi) dan jumlah permintaan bersamaan yang terbatas. Cukup untuk puluhan sekolah. Kalau penggunanya sudah ratusan sekolah, pindahkan ke akun Google Workspace.
 
-### Yang perlu diuji paling awal: izin akun belajar.id
+### Alur akun
 
-Admin Google Workspace belajar.id bisa memblokir aplikasi Apps Script yang belum diverifikasi Google.
-Sebelum membangun lebih jauh, kita uji aplikasi kecil dengan beberapa akun belajar.id.
+1. **Daftar:** operator mengisi NPSN, nama sekolah, email, dan kata sandi aplikasi, lalu menyetujui pengelolaan data.
+2. **Verifikasi:** tautan aktivasi dikirim ke email sekolah dan berlaku 48 jam. Saat diklik, akun aktif dan spreadsheet sekolah dibuat. Pendaftaran yang tidak diverifikasi dalam 48 jam boleh ditimpa, supaya NPSN tidak "tersandera" oleh salah ketik email.
+3. **Masuk:** email dan kata sandi. Salah 5 kali, akun dikunci 15 menit. Sesi berakhir setelah 6 jam tidak dipakai.
+4. **Ganti kata sandi** (misalnya saat ada guru pindah): semua perangkat lain otomatis keluar.
+5. **Lupa kata sandi:** tautan reset dikirim ke email sekolah, berlaku 1 jam dan hanya sekali pakai.
 
-- **Jika diizinkan:** aplikasi berjalan sebagai pengguna. Spreadsheet sekolah dibuat di Drive operator sekolah, sehingga data milik sekolah sendiri. Ini yang paling baik untuk perlindungan data pribadi (UU PDP).
-- **Jika diblokir:** aplikasi berjalan sebagai akun pengelola. Spreadsheet sekolah disimpan di Drive akun pengelola dan dibagikan ke operator sekolah. Kita perlu kebijakan privasi tertulis, dan kuota Apps Script akun pengelola dipakai bersama semua sekolah.
+Keamanan:
+- Kata sandi disimpan sebagai hash HMAC-SHA256 berulang dengan garam acak. Token aktivasi, reset, dan sesi hanya disimpan hash-nya.
+- Pesan kesalahan masuk dan lupa kata sandi tidak membocorkan apakah sebuah email terdaftar.
+- Aplikasi tidak pernah meminta kata sandi email sekolah.
 
 ## 3. Isi spreadsheet sekolah
 
@@ -46,16 +52,16 @@ Dengan cara ini tidak ada batas 15 TP atau 60 siswa, dan tidak ada 21 sheet beri
 | Sheet | Isi (kolom utama) |
 |---|---|
 | Profil Sekolah | nama, NPSN, alamat, kepala sekolah, NIP, tempat & tanggal rapor |
-| Pengaturan | tahun ajaran & semester aktif, bobot, KKTP, mode deskripsi, seni yang ditawarkan |
-| Pengguna | email, nama, NIP, peran (operator / kepala sekolah / wali kelas / guru mapel), rombel, mapel |
-| Rombel | id, tahun ajaran, kelas (1–6), nama (5A), wali kelas |
+| Pengaturan | tahun ajaran & semester aktif, bobot, mode deskripsi, seni yang ditawarkan |
+| KKTP | batas bawah, predikat, kalimat deskripsi |
+| Rombel | id, tahun ajaran, kelas (1–6), nama (5A), nama & NIP wali kelas |
 | Siswa | id, NIS, NISN, nama, panggilan, JK, agama, tempat & tanggal lahir, orang tua, status (aktif / mutasi / lulus) |
 | Anggota Rombel | tahun ajaran, rombel, siswa, seni pilihan |
 | Mapel Aktif | tahun ajaran, kelas, kode mapel, urutan, nama di rapor |
 | Tujuan Pembelajaran | tahun ajaran, semester, kelas, mapel (dan agama/seni bila perlu), kode TP, lingkup materi |
 | Nilai | tahun ajaran, semester, siswa, mapel, jenis (TP / akhir), kode, nilai, diubah oleh, diubah pada |
 | Kokurikuler | dimensi & subdimensi semester ini; capaian per siswa (Mahir / Cakap / Berkembang) |
-| Master Narasi | subdimensi, level, narasi |
+| Master Narasi | subdimensi, level, narasi (75 baris bawaan dari rapor lama) |
 | Ekstrakurikuler | siswa, kegiatan, predikat, keterangan |
 | Presensi & Catatan | siswa, sakit, izin, alpa, catatan wali kelas, tanggapan orang tua |
 | Kenaikan | siswa, keputusan (naik / tinggal); hanya dipakai di semester 2 |
@@ -65,14 +71,14 @@ Struktur mapel per kelas (bawaan, bisa diubah sekolah) ada di `apps-script/Refer
 IPAS mulai kelas 3; Bahasa Inggris aktif bawaan kelas 3–6; Koding & KA serta Mulok diaktifkan sekolah bila ada.
 Mapel agama dan seni dinilai sesuai agama dan seni pilihan masing-masing siswa, tetapi tampil sebagai satu baris di rapor.
 
-## 4. Peran pengguna
+Kolom identitas (NIS, NISN, ID, tahun ajaran) berformat teks, supaya NISN `0012345678` tidak berubah menjadi angka `12345678`.
+Struktur lengkapnya ada di `STRUKTUR_SEKOLAH` di `apps-script/Sekolah.gs`.
 
-| Peran | Boleh |
-|---|---|
-| Operator | Semua: profil, pengguna, rombel, siswa, pengaturan, kenaikan kelas tahunan |
-| Kepala sekolah | Melihat semua kelas, mengunci rapor, mencetak |
-| Wali kelas | Siswa rombelnya: nilai semua mapel, kokurikuler, ekstrakurikuler, presensi, catatan, cetak rapor |
-| Guru mapel | Nilai mapelnya saja (misalnya guru PAI, PJOK) di rombel yang ditugaskan |
+## 4. Pengguna
+
+Satu akun untuk satu sekolah. Semua guru (wali kelas maupun guru mapel) masuk dengan email dan kata sandi yang sama, lalu memilih kelas atau rombel yang akan diisi.
+Aplikasi tidak membatasi guru hanya pada kelasnya sendiri. Akibat akun bersama, misalnya nilai kelas lain yang terubah tanpa sengaja, menjadi tanggung jawab sekolah.
+Pengamannya: setiap perubahan nilai dicatat di Log beserta waktunya, dan kepala sekolah bisa mengunci rapor yang sudah final (tahap 5).
 
 ## 5. Pencegahan error (pelajaran dari rapor Excel lama)
 
@@ -94,16 +100,16 @@ Aturan umum:
 1. **Isian diperiksa sebelum disimpan.** Nilai harus angka 0–100 (koma desimal diterima). NISN 10 digit dan tidak boleh dobel. JK harus L/P. Agama dan seni harus dari daftar.
 2. **Tidak pernah tampil kode error.** Fungsi hitung selalu mengembalikan hasil berbentuk sama, ditambah daftar `peringatan` dan `salah` dalam bahasa guru.
 3. **Rapor hanya bisa dicetak jika lengkap.** Ada halaman "Cek Kelengkapan" per rombel yang menampilkan semua peringatan sebelum cetak.
-4. **Penyimpanan aman saat dipakai bersamaan.** `LockService` dipakai saat menyimpan, dan setiap perubahan nilai dicatat di Log.
-5. **Diuji otomatis.** `rapor/tes/` berisi uji untuk setiap kasus di tabel atas. Jalankan: `node --test rapor/tes/*.test.js`.
+4. **Aman saat dipakai bersamaan.** `LockService` dipakai saat menyimpan, dan setiap perubahan nilai dicatat di Log.
+5. **Diuji otomatis.** `rapor/tes/` berisi uji untuk setiap kasus di tabel atas dan untuk seluruh alur akun, memakai tiruan Apps Script (`tes/tiruan-gas.js`). Jalankan: `node --test rapor/tes/*.test.js`.
 
 ## 6. Tahapan
 
 | Tahap | Isi | Status |
 |---|---|---|
 | 1 | Mesin hitung + data referensi + uji otomatis | ✅ selesai (`apps-script/Hitung.gs`, `Referensi.gs`, `tes/`) |
-| 2 | Uji izin belajar.id; pendaftaran sekolah; pembuatan spreadsheet sekolah otomatis | berikutnya |
-| 3 | Halaman operator: profil, pengguna, rombel, siswa (dengan impor dari Excel/Dapodik) | |
+| 2 | Akun sekolah (daftar, verifikasi email, masuk, lupa & ganti kata sandi) dan pembuatan spreadsheet sekolah otomatis | ✅ selesai (`index.html`, `apps-script/Kode.gs`, `Akun.gs`, `Sekolah.gs`, `Narasi.gs`) |
+| 3 | Data sekolah: profil, rombel & wali kelas, siswa (dengan impor dari Excel/Dapodik), unduh salinan spreadsheet sekolah | berikutnya |
 | 4 | Halaman input nilai, TP, kokurikuler, ekstrakurikuler, presensi | |
-| 5 | Cek kelengkapan, rekap/leger, cetak rapor PDF (sampul, rapor, transkrip, SKL) | |
+| 5 | Cek kelengkapan, rekap/leger, cetak rapor PDF (sampul, rapor, transkrip, SKL), kunci rapor | |
 | 6 | Kenaikan kelas tahunan, uji coba di SDN Bugangin, lalu dibuka untuk sekolah lain | |
