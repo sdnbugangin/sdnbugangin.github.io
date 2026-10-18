@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#12314f">
+<meta name="robots" content="noindex">
+<title>Rapor SD | Pengolahan Nilai Kurikulum Merdeka</title>
+<link rel="icon" type="image/png" href="../logo.png">
+<style>
+:root{--red:#d71920;--red-dark:#9e1117;--yellow:#ffd21f;--blue:#12314f;--cream:#fffaf0;--ink:#16202a;--muted:#64748b;--line:#eadfc7;--ok:#1d7a37;--bad:#b42318}
+*{box-sizing:border-box}body{margin:0;background:var(--cream);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+.topline{height:6px;background:linear-gradient(90deg,var(--red) 0 42%,var(--yellow) 42% 68%,var(--blue) 68%)}
+.wrap{max-width:960px;margin:auto;padding:22px 16px}
+header{padding:24px;border-radius:24px;background:linear-gradient(135deg,var(--blue),#1f4f7a);color:#fff;box-shadow:0 16px 34px rgba(18,49,79,.13)}
+h1{margin:0 0 6px;font-size:clamp(1.5rem,4vw,2.3rem);letter-spacing:-.03em}header p{margin:0;color:#d6e2ee;line-height:1.5;font-size:14px}
+.card{background:#fff;border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 10px 24px rgba(18,49,79,.07)}
+.form{max-width:460px;margin:22px auto 0}.form h2{margin:0 0 6px}.form>p{color:var(--muted);font-size:14px;line-height:1.55;margin:0 0 16px}
+.field{margin-bottom:13px}label{display:block;font-size:13px;font-weight:700;margin:0 0 6px}.hint{font-size:12.5px;color:var(--muted);margin-top:5px;line-height:1.45}
+input[type=text],input[type=email],input[type=password]{width:100%;font:inherit;font-size:15px;padding:11px 12px;border:1px solid #d9cfb8;border-radius:12px;background:#fff;color:var(--ink)}
+input:focus{outline:2px solid var(--yellow);border-color:var(--yellow)}
+.check{display:flex;gap:10px;align-items:flex-start;font-weight:400;font-size:13.5px;line-height:1.5;padding:12px;border:1px solid var(--line);border-radius:12px;background:#fffdf7;cursor:pointer}.check input{margin-top:3px;width:18px;height:18px;flex:none;accent-color:var(--red)}
+.show{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--muted);margin:-4px 0 12px;cursor:pointer}.show input{accent-color:var(--blue)}
+.btn{display:inline-flex;align-items:center;justify-content:center;width:100%;border:0;border-radius:12px;padding:13px 18px;font:inherit;font-weight:800;font-size:15px;cursor:pointer;background:var(--red);color:#fff}.btn:hover{background:var(--red-dark)}.btn:disabled{opacity:.6;cursor:wait}
+.btn.ghost{background:#fff;color:var(--blue);border:1px solid var(--line);width:auto}.btn.ghost:hover{border-color:var(--blue)}
+.links{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:16px;font-size:14px}
+.links a,.link{color:var(--blue);font-weight:700;text-decoration:none;background:none;border:0;padding:0;font:inherit;cursor:pointer}.links a:hover,.link:hover{color:var(--red)}
+.msg{font-size:14px;line-height:1.5;margin-top:12px}.msg:empty{display:none}.msg.err{color:var(--bad)}.msg.ok{color:var(--ok);background:#e9f6ec;border-radius:12px;padding:12px}
+.msg ul{margin:6px 0 0;padding-left:18px}
+.notice{background:#fff3c0;border:1px solid #f0d77a;color:#5c4400;padding:12px 14px;border-radius:14px;font-size:14px;line-height:1.5;margin-top:16px}
+.hidden{display:none!important}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:22px 0 14px}.bar h2{margin:0;font-size:22px}.bar .sub{color:var(--muted);font-size:13px;margin-top:3px}
+.menu{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.tile{background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px}.tile b{display:block;font-size:16px;color:var(--blue);margin-bottom:4px}.tile span{display:block;font-size:13px;color:var(--muted);line-height:1.5}
+.tag{display:inline-block;margin-top:10px;font-size:11.5px;font-weight:800;padding:3px 9px;border-radius:999px;background:#eef3f8;color:var(--blue)}
+.akun{margin-top:18px}.akun h3{margin:0 0 4px;font-size:17px}.akun>p{color:var(--muted);font-size:13.5px;margin:0 0 14px;line-height:1.5}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;align-items:end}
+.akun .btn{width:auto}
+footer{text-align:center;color:var(--muted);font-size:13px;line-height:1.7;padding:28px 16px 8px}
+</style>
+</head>
+<body>
+<div class="topline"></div>
+<div class="wrap">
+  <header>
+    <h1>Rapor SD</h1>
+    <p>Pengolahan nilai dan rapor Kurikulum Merdeka kelas 1–6. Satu akun untuk satu sekolah, dipakai bersama semua guru.</p>
+  </header>
+
+  <div id="cfg-notice" class="notice hidden">Sistem belum tersambung. Isi <code>API_URL</code> di berkas <code>rapor/index.html</code> dengan URL Aplikasi web dari Apps Script (lihat <code>rapor/apps-script/Kode.gs</code>).</div>
+
+  <!-- MASUK -->
+  <section id="v-masuk" class="card form hidden">
+    <h2>Masuk</h2>
+    <p>Gunakan email dan kata sandi akun sekolah. Tanyakan kepada operator sekolah jika belum tahu.</p>
+    <form id="f-masuk">
+      <div class="field"><label for="m-email">Email sekolah</label><input id="m-email" type="email" autocomplete="username" required></div>
+      <div class="field"><label for="m-sandi">Kata sandi</label><input id="m-sandi" type="password" autocomplete="current-password" required></div>
+      <label class="show"><input type="checkbox" data-show="m-sandi"> Tampilkan kata sandi</label>
+      <button class="btn" type="submit">Masuk</button>
+      <div class="msg" id="m-msg"></div>
+    </form>
+    <div class="links"><a href="#daftar">Daftarkan sekolah</a><a href="#lupa">Lupa kata sandi?</a></div>
+  </section>
+
+  <!-- DAFTAR -->
+  <section id="v-daftar" class="card form hidden">
+    <h2>Daftarkan sekolah</h2>
+    <p>Diisi sekali oleh operator sekolah. Setelah email diverifikasi, spreadsheet rapor sekolah dibuat otomatis untuk kelas 1–6.</p>
+    <form id="f-daftar">
+      <div class="field"><label for="d-npsn">NPSN</label><input id="d-npsn" type="text" inputmode="numeric" maxlength="8" required></div>
+      <div class="field"><label for="d-nama">Nama sekolah</label><input id="d-nama" type="text" maxlength="100" placeholder="Contoh: SD N BUGANGIN" required></div>
+      <div class="field"><label for="d-email">Email sekolah</label><input id="d-email" type="email" autocomplete="username" required>
+        <div class="hint">Tautan aktivasi dan lupa kata sandi dikirim ke email ini. Satu email untuk satu sekolah.</div></div>
+      <div class="field"><label for="d-sandi">Buat kata sandi aplikasi</label><input id="d-sandi" type="password" autocomplete="new-password" required>
+        <div class="hint"><b>Jangan pakai kata sandi email Anda.</b> Kata sandi ini akan dibagikan ke semua guru. Minimal 8 karakter, campuran huruf dan angka.</div></div>
+      <div class="field"><label for="d-ulangi">Ulangi kata sandi</label><input id="d-ulangi" type="password" autocomplete="new-password" required></div>
+      <label class="show"><input type="checkbox" data-show="d-sandi,d-ulangi"> Tampilkan kata sandi</label>
+      <div class="field"><label class="check"><input id="d-setuju" type="checkbox">
+        <span>Saya, atas nama sekolah, menyetujui bahwa data sekolah, guru, dan siswa yang diisi disimpan di Google Drive pengelola aplikasi Rapor SD dan hanya dipakai untuk pengolahan nilai serta rapor sekolah ini. Akun dipakai bersama semua guru, sehingga sekolah bertanggung jawab atas siapa saja yang diberi kata sandi dan atas perubahan data yang dilakukan dengan akun ini.</span></label></div>
+      <button class="btn" type="submit">Daftar</button>
+      <div class="msg" id="d-msg"></div>
+    </form>
+    <div class="links"><a href="#masuk">Sudah punya akun? Masuk</a></div>
+  </section>
+
+  <!-- LUPA -->
+  <section id="v-lupa" class="card form hidden">
+    <h2>Lupa kata sandi</h2>
+    <p>Masukkan email sekolah. Kami kirim tautan untuk membuat kata sandi baru.</p>
+    <form id="f-lupa">
+      <div class="field"><label for="l-email">Email sekolah</label><input id="l-email" type="email" autocomplete="username" required></div>
+      <button class="btn" type="submit">Kirim tautan</button>
+      <div class="msg" id="l-msg"></div>
+    </form>
+    <div class="links"><a href="#masuk">Kembali ke Masuk</a></div>
+  </section>
+
+  <!-- RESET -->
+  <section id="v-reset" class="card form hidden">
+    <h2>Buat kata sandi baru</h2>
+    <p>Setelah disimpan, semua perangkat yang sedang masuk otomatis keluar. Beritahukan kata sandi baru kepada guru.</p>
+    <form id="f-reset">
+      <div class="field"><label for="r-sandi">Kata sandi baru</label><input id="r-sandi" type="password" autocomplete="new-password" required></div>
+      <div class="field"><label for="r-ulangi">Ulangi kata sandi baru</label><input id="r-ulangi" type="password" autocomplete="new-password" required></div>
+      <label class="show"><input type="checkbox" data-show="r-sandi,r-ulangi"> Tampilkan kata sandi</label>
+      <button class="btn" type="submit">Simpan kata sandi</button>
+      <div class="msg" id="r-msg"></div>
+    </form>
+    <div class="links"><a href="#masuk">Ke halaman Masuk</a></div>
+  </section>
+
+  <!-- VERIFIKASI -->
+  <section id="v-verifikasi" class="card form hidden">
+    <h2>Aktivasi akun sekolah</h2>
+    <p id="v-ket">Sedang mengaktifkan akun dan menyiapkan spreadsheet sekolah. Mohon tunggu, biasanya kurang dari satu menit…</p>
+    <div class="msg" id="v-msg"></div>
+    <div class="links"><a href="#masuk" id="v-lanjut" class="hidden">Lanjut ke Masuk →</a></div>
+  </section>
+
+  <!-- BERANDA -->
+  <section id="v-beranda" class="hidden">
+    <div class="bar">
+      <div><h2 id="b-nama">Sekolah</h2><div class="sub" id="b-sub"></div></div>
+      <button class="btn ghost" id="b-keluar" type="button">Keluar</button>
+    </div>
+    <div class="menu">
+      <div class="tile"><b>Data Sekolah &amp; Siswa</b><span>Profil sekolah, rombel kelas 1–6, wali kelas, dan daftar siswa.</span><div class="tag">Segera hadir</div></div>
+      <div class="tile"><b>Input Nilai</b><span>Tujuan pembelajaran, sumatif lingkup materi, dan sumatif akhir semester.</span><div class="tag">Segera hadir</div></div>
+      <div class="tile"><b>Kokurikuler &amp; Ekstrakurikuler</b><span>Capaian dimensi profil, ekstrakurikuler, presensi, dan catatan wali kelas.</span><div class="tag">Segera hadir</div></div>
+      <div class="tile"><b>Cek &amp; Cetak Rapor</b><span>Pemeriksaan kelengkapan, leger, dan cetak rapor PDF.</span><div class="tag">Segera hadir</div></div>
+    </div>
+
+    <div class="card akun">
+      <h3>Ganti kata sandi</h3>
+      <p>Lakukan ini jika ada guru yang pindah atau kata sandi tersebar. Semua perangkat lain otomatis keluar dan harus masuk dengan kata sandi baru.</p>
+      <form id="f-ganti" class="grid3">
+        <div><label for="g-lama">Kata sandi lama</label><input id="g-lama" type="password" autocomplete="current-password" required></div>
+        <div><label for="g-baru">Kata sandi baru</label><input id="g-baru" type="password" autocomplete="new-password" required></div>
+        <div><label for="g-ulangi">Ulangi kata sandi baru</label><input id="g-ulangi" type="password" autocomplete="new-password" required></div>
+        <div><button class="btn" type="submit">Ganti kata sandi</button></div>
+      </form>
+      <div class="msg" id="g-msg"></div>
+    </div>
+  </section>
+
+  <footer>Rapor SD · dikembangkan oleh SD N BUGANGIN · <a href="../" style="color:inherit">Beranda sekolah</a></footer>
+</div>
+
+<script>
+const API_URL = 'https://script.google.com/macros/s/AKfycbxzsY9gfcFeUemifoRPCk62sVkD0YOe3XggGjB1OhKSeVGUNrSY-7jegvwHMeRxkEoh/exec';
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ls = { get:k=>{try{return localStorage.getItem(k)||''}catch(e){return ''}}, set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}, del:k=>{try{localStorage.removeItem(k)}catch(e){}} };
+const KUNCI_SESI = 'rapor-sesi';
+const VIEWS = ['masuk','daftar','lupa','reset','verifikasi','beranda'];
+let TOKEN_RESET = '';
+
+async function api(body){
+  if (!API_URL) return { ok:false, pesan:'Sistem belum tersambung ke Apps Script.' };
+  try {
+    const r = await fetch(API_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify({ sesi: ls.get(KUNCI_SESI), ...body }) });
+    const res = await r.json();
+    if (res.sesiHabis) { ls.del(KUNCI_SESI); tampil('masuk'); pesan('#m-msg', res.pesan, false); }
+    return res;
+  } catch (e) {
+    return { ok:false, pesan:'Tidak bisa terhubung ke server. Periksa koneksi internet lalu coba lagi.' };
+  }
+}
+
+function tampil(v){
+  VIEWS.forEach(x => $('#v-' + x).classList.toggle('hidden', x !== v));
+  const fokus = { masuk:'#m-email', daftar:'#d-npsn', lupa:'#l-email', reset:'#r-sandi' }[v];
+  if (fokus) setTimeout(() => $(fokus).focus(), 0);
+}
+
+function pesan(sel, teks, ok, salah){
+  const el = $(sel);
+  el.className = 'msg ' + (ok ? 'ok' : 'err');
+  const daftar = (salah && salah.length > 1) ? '<ul>' + salah.map(s => '<li>' + esc(s) + '</li>').join('') + '</ul>' : '';
+  el.innerHTML = daftar || esc(teks || '');
+}
+
+/* Mencegah kirim ganda: tombol dimatikan selama permintaan berjalan. */
+async function kirim(form, fn){
+  const btn = form.querySelector('button[type=submit]');
+  if (btn.disabled) return;
+  const label = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Memproses…';
+  try { await fn(); } finally { btn.disabled = false; btn.textContent = label; }
+}
+
+function masukBeranda(sekolah){
+  $('#b-nama').textContent = sekolah.nama;
+  $('#b-sub').textContent = 'NPSN ' + sekolah.npsn + ' · ' + sekolah.email;
+  tampil('beranda');
+}
+
+/* ---------- formulir ---------- */
+$('#f-masuk').addEventListener('submit', e => { e.preventDefault(); kirim(e.target, async () => {
+  const res = await api({ aksi:'masuk', email: $('#m-email').value, sandi: $('#m-sandi').value });
+  if (!res.ok) return pesan('#m-msg', res.pesan, false);
+  ls.set(KUNCI_SESI, res.sesi);
+  $('#m-sandi').value = ''; $('#m-msg').textContent = '';
+  masukBeranda(res.sekolah);
+}); });
+
+$('#f-daftar').addEventListener('submit', e => { e.preventDefault(); kirim(e.target, async () => {
+  const res = await api({ aksi:'daftar', data: {
+    npsn: $('#d-npsn').value, nama: $('#d-nama').value, email: $('#d-email').value,
+    sandi: $('#d-sandi').value, ulangi: $('#d-ulangi').value, setuju: $('#d-setuju').checked } });
+  pesan('#d-msg', res.pesan, res.ok, res.salah);
+  if (res.ok) { e.target.querySelectorAll('input').forEach(i => { if (i.type === 'checkbox') i.checked = false; else i.value = ''; }); }
+}); });
+
+$('#f-lupa').addEventListener('submit', e => { e.preventDefault(); kirim(e.target, async () => {
+  const res = await api({ aksi:'lupaSandi', email: $('#l-email').value });
+  pesan('#l-msg', res.pesan, res.ok);
+}); });
+
+$('#f-reset').addEventListener('submit', e => { e.preventDefault(); kirim(e.target, async () => {
+  const res = await api({ aksi:'resetSandi', token: TOKEN_RESET, sandi: $('#r-sandi').value, ulangi: $('#r-ulangi').value });
+  pesan('#r-msg', res.pesan, res.ok, res.salah);
+  if (res.ok) { ls.del(KUNCI_SESI); e.target.querySelectorAll('input[type=password]').forEach(i => i.value = ''); }
+}); });
+
+$('#f-ganti').addEventListener('submit', e => { e.preventDefault(); kirim(e.target, async () => {
+  const res = await api({ aksi:'gantiSandi', lama: $('#g-lama').value, baru: $('#g-baru').value, ulangi: $('#g-ulangi').value });
+  if (res.sesiHabis) return;
+  pesan('#g-msg', res.pesan, res.ok, res.salah);
+  if (res.ok) { ls.set(KUNCI_SESI, res.sesi); e.target.reset(); }
+}); });
+
+$('#b-keluar').addEventListener('click', async () => {
+  await api({ aksi:'keluar' });
+  ls.del(KUNCI_SESI);
+  tampil('masuk');
+});
+
+document.querySelectorAll('[data-show]').forEach(cb => cb.addEventListener('change', () => {
+  cb.dataset.show.split(',').forEach(id => { $('#' + id).type = cb.checked ? 'text' : 'password'; });
+}));
+
+/* ---------- navigasi ---------- */
+document.querySelectorAll('a[href^="#"]').forEach(a => a.addEventListener('click', e => {
+  const h = a.getAttribute('href').slice(1);
+  if (!['masuk','daftar','lupa'].includes(h)) return;
+  e.preventDefault();
+  history.replaceState(null, '', location.pathname + '#' + h);
+  tampil(h);
+}));
+
+async function mulai(){
+  if (!API_URL) $('#cfg-notice').classList.remove('hidden');
+  const q = new URLSearchParams(location.search);
+  if (q.get('verifikasi') || q.get('reset')) history.replaceState(null, '', location.pathname); // token tidak tertinggal di riwayat
+
+  if (q.get('verifikasi')) {
+    tampil('verifikasi');
+    const res = await api({ aksi:'verifikasi', token: q.get('verifikasi') });
+    $('#v-ket').classList.add('hidden');
+    pesan('#v-msg', res.pesan, res.ok);
+    $('#v-lanjut').classList.remove('hidden');
+    return;
+  }
+  if (q.get('reset')) { TOKEN_RESET = q.get('reset'); tampil('reset'); return; }
+
+  if (ls.get(KUNCI_SESI)) {
+    const res = await api({ aksi:'sesi' });
+    if (res.ok) return masukBeranda(res.sekolah);
+    if (!res.sesiHabis) { tampil('masuk'); pesan('#m-msg', res.pesan, false); }
+    return;
+  }
+  const h = location.hash.slice(1);
+  tampil(['daftar','lupa'].includes(h) ? h : 'masuk');
+}
+mulai();
+</script>
+</body>
+</html>
