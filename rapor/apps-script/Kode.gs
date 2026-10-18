@@ -16,9 +16,17 @@
  * lalu Deploy → Kelola deployment → ikon pensil → Versi: Versi baru → Deploy. URL tetap sama.
  *
  * Setiap sekolah punya SATU akun (email sekolah + kata sandi khusus aplikasi ini) yang dipakai
- * bersama oleh semua gurunya. Spreadsheet setiap sekolah dibuat otomatis di Drive akun pengelola,
- * di folder "Rapor SD - Data Sekolah".
+ * bersama oleh semua gurunya.
+ *
+ * Semua hasil aplikasi berada di SATU folder utama di Drive akun pengelola (dibuat oleh "siapkan"):
+ *   Rapor SD/
+ *     Rapor SD - Pusat        ← spreadsheet ini (otomatis dipindahkan ke sini)
+ *     Data Sekolah/           ← satu spreadsheet per sekolah, dibuat otomatis
+ * Folder untuk hasil lain (mis. PDF rapor) kelak juga dibuat di dalam folder utama.
  */
+
+var FOLDER_UTAMA = 'Rapor SD';
+var SUBFOLDER = { dataSekolah: 'Data Sekolah' };
 
 var PUSAT = {
   sekolah: 'Sekolah',
@@ -44,15 +52,15 @@ function siapkan() {
   var bawaan = [
     ['Alamat Halaman', 'https://sdnbugangin.github.io/rapor/', 'Alamat halaman aplikasi. Dipakai untuk tautan di email verifikasi dan lupa kata sandi.'],
     ['Nama Aplikasi', 'Rapor SD', 'Nama yang tampil di email.'],
-    ['Folder Data Sekolah', '', 'ID folder Google Drive tempat spreadsheet sekolah disimpan. Diisi otomatis oleh "siapkan".'],
+    ['Folder Utama', '', 'ID folder "' + FOLDER_UTAMA + '" di Google Drive. Semua hasil aplikasi ada di dalamnya. Diisi otomatis.'],
+    ['Folder Data Sekolah', '', 'ID subfolder tempat spreadsheet sekolah disimpan. Diisi otomatis.'],
     ['Pendaftaran Dibuka', 'Ya', 'Tidak = sekolah baru tidak bisa mendaftar (sekolah terdaftar tetap bisa masuk).']
   ];
   var ada = atur.getDataRange().getValues().map(function (r) { return r[0]; });
   bawaan.forEach(function (b) { if (ada.indexOf(b[0]) < 0) atur.appendRow(b); });
-  if (!pengaturanPusat_().folder) {
-    var folder = DriveApp.createFolder('Rapor SD - Data Sekolah');
-    tulisPengaturanPusat_('Folder Data Sekolah', folder.getId());
-  }
+  var utama = folderUtama_();
+  DriveApp.getFileById(ss.getId()).moveTo(utama); // spreadsheet Pusat ikut masuk folder utama
+  folderBagian_('Folder Data Sekolah', SUBFOLDER.dataSekolah);
   var awal = ss.getSheetByName('Sheet1') || ss.getSheetByName('Lembar1');
   if (awal && ss.getSheets().length > 1 && awal.getLastRow() === 0) ss.deleteSheet(awal);
   MailApp.getRemainingDailyQuota(); // memicu izin kirim email
@@ -83,9 +91,53 @@ function pengaturanPusat_() {
   return {
     alamat: alamat.charAt(alamat.length - 1) === '/' ? alamat : alamat + '/',
     namaAplikasi: nilai['Nama Aplikasi'] || 'Rapor SD',
-    folder: nilai['Folder Data Sekolah'] || '',
     daftarDibuka: String(nilai['Pendaftaran Dibuka'] || 'Ya').toLowerCase() !== 'tidak'
   };
+}
+
+/* ---------- folder Drive ---------- */
+
+/** Folder dari ID yang tersimpan, atau null jika kosong, terhapus, atau tidak bisa dibuka. */
+function bukaFolder_(id) {
+  if (!id) return null;
+  try {
+    var f = DriveApp.getFolderById(id);
+    return f.isTrashed() ? null : f;
+  } catch (e) {
+    return null;
+  }
+}
+
+function idPengaturan_(kunci) {
+  var sh = pusat_().getSheetByName(PUSAT.atur);
+  var rows = sh ? sh.getDataRange().getValues() : [];
+  for (var i = 0; i < rows.length; i++) if (rows[i][0] === kunci) return String(rows[i][1]).trim();
+  return '';
+}
+
+/** Folder utama "Rapor SD". Dibuat ulang jika hilang atau terhapus. */
+function folderUtama_() {
+  var f = bukaFolder_(idPengaturan_('Folder Utama'));
+  if (f) return f;
+  f = DriveApp.createFolder(FOLDER_UTAMA);
+  tulisPengaturanPusat_('Folder Utama', f.getId());
+  return f;
+}
+
+/**
+ * Subfolder di dalam folder utama. Folder lama yang tersimpan (mis. dari versi sebelumnya yang
+ * dibuat di luar folder utama) dipindahkan ke dalam folder utama; jika hilang, dibuat baru di dalamnya.
+ */
+function folderBagian_(kunci, nama) {
+  var utama = folderUtama_();
+  var f = bukaFolder_(idPengaturan_(kunci));
+  if (f) {
+    f.moveTo(utama);
+    return f;
+  }
+  f = utama.createFolder(nama);
+  tulisPengaturanPusat_(kunci, f.getId());
+  return f;
 }
 
 function tulisPengaturanPusat_(kunci, nilai) {

@@ -23,8 +23,19 @@ Guru / operator (browser)
 Aplikasi web Apps Script (berjalan sebagai akun pengelola)
         │
         ├── Spreadsheet Pusat: daftar sekolah, hash kata sandi, token, log
-        └── Folder "Rapor SD - Data Sekolah": satu spreadsheet per sekolah, dibuat otomatis
+        └── Folder "Data Sekolah": satu spreadsheet per sekolah, dibuat otomatis
 ```
+
+Semua hasil aplikasi berada di **satu folder utama** di Drive akun pengelola. Tidak ada berkas yang tertinggal di akar Drive:
+
+```
+Rapor SD/
+├── Rapor SD - Pusat      (spreadsheet + skrip; dipindahkan ke sini oleh "siapkan")
+└── Data Sekolah/         (satu spreadsheet per sekolah)
+```
+
+Hasil berikutnya (PDF rapor, unduhan) dibuat sebagai subfolder di dalam `Rapor SD/` lewat `folderBagian_`.
+Jika folder terhapus, aplikasi membuatnya lagi di dalam folder utama. Spreadsheet sekolah yang gagal dipindah atau diisi langsung dibuang.
 
 - Tampilan ada di GitHub Pages (`rapor/index.html`), sama seperti halaman Super Admin.
 - Apps Script dipasang sekali oleh pengelola (langkahnya di bagian atas `apps-script/Kode.gs`) dan dijalankan sebagai akun pengelola. Semua spreadsheet sekolah tersimpan di Drive akun itu.

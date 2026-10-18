@@ -78,6 +78,22 @@ function buatGas() {
   const berkas = {};
   const cache = new Map();
   const surat = [];
+  // Google Drive tiruan: folder (id → { nama, induk, sampah }) dan letak tiap berkas (id → id folder induk).
+  const folder = {};
+  const lokasi = { pusat: 'akar' };
+  let nomorFolder = 0;
+  const objekFolder = (id) => ({
+    getId: () => id,
+    getName: () => folder[id].nama,
+    isTrashed: () => folder[id].sampah,
+    createFolder: (nama) => buatFolder(nama, id),
+    moveTo: (f) => { folder[id].induk = f.getId(); }
+  });
+  const buatFolder = (nama, induk) => {
+    const id = 'folder' + (++nomorFolder);
+    folder[id] = { nama, induk, sampah: false };
+    return objekFolder(id);
+  };
   const pusat = new Spreadsheet('pusat', 'Rapor SD - Pusat');
   const jam = { sekarang: Date.UTC(2026, 9, 18, 3, 0, 0) };
 
@@ -91,16 +107,24 @@ function buatGas() {
     Date: TiruanDate,
     SpreadsheetApp: {
       getActive: () => pusat,
-      create: (nama) => { const ss = new Spreadsheet('ss' + (++nomor), nama); berkas[ss.id] = { ss, folder: null, sampah: false }; return ss; },
+      create: (nama) => {
+        const ss = new Spreadsheet('ss' + (++nomor), nama);
+        berkas[ss.id] = { ss, sampah: false };
+        lokasi[ss.id] = 'akar'; // seperti Google: berkas baru selalu di akar Drive
+        return ss;
+      },
       openById: (id) => { if (!berkas[id]) throw new Error('Tidak ditemukan: ' + id); return berkas[id].ss; }
     },
     DriveApp: {
-      createFolder: (nama) => ({ getId: () => 'folder-' + nama }),
-      getFolderById: (id) => ({ id }),
-      getFileById: (id) => ({
-        moveTo: (f) => { berkas[id].folder = f.id; },
-        setTrashed: (v) => { berkas[id].sampah = v; }
-      })
+      createFolder: (nama) => buatFolder(nama, 'akar'),
+      getFolderById: (id) => { if (!folder[id]) throw new Error('Folder tidak ditemukan: ' + id); return objekFolder(id); },
+      getFileById: (id) => {
+        if (!(id in lokasi)) throw new Error('Berkas tidak ditemukan: ' + id);
+        return {
+          moveTo: (f) => { if (gas.DriveApp.gagalPindah) throw new Error('Gagal memindah'); lokasi[id] = f.getId(); },
+          setTrashed: (v) => { if (berkas[id]) berkas[id].sampah = v; }
+        };
+      }
     },
     CacheService: {
       getScriptCache: () => ({
@@ -132,7 +156,12 @@ function buatGas() {
   for (const f of BERKAS_GS) {
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'apps-script', f), 'utf8'), ctx, { filename: f });
   }
-  return { ctx, pusat, berkas, cache, surat, jam, MailApp: gas.MailApp };
+  /** Isi akar Drive yang bukan sampah: harus hanya folder utama. */
+  const isiAkar = () => [
+    ...Object.entries(folder).filter(([, f]) => f.induk === 'akar' && !f.sampah).map(([, f]) => '📁 ' + f.nama),
+    ...Object.entries(lokasi).filter(([id, l]) => l === 'akar' && !(berkas[id] && berkas[id].sampah)).map(([id]) => '📄 ' + id)
+  ];
+  return { ctx, pusat, berkas, cache, surat, jam, folder, lokasi, isiAkar, MailApp: gas.MailApp, DriveApp: gas.DriveApp };
 }
 
 module.exports = { buatGas, BERKAS_GS };

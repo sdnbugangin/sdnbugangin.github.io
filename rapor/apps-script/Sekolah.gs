@@ -46,12 +46,22 @@ function tahunAjaran_(tanggal) {
     : { tahunAjaran: (t - 1) + '/' + t, semester: 2 };
 }
 
-/** Membuat spreadsheet sekolah di folder data sekolah. Hasil: ID spreadsheet. */
+/**
+ * Membuat spreadsheet sekolah di folder "Rapor SD/Data Sekolah". Hasil: ID spreadsheet.
+ * Spreadsheet baru selalu muncul dulu di akar Drive, jadi langsung dipindahkan. Jika gagal dipindah
+ * atau diisi, spreadsheet dibuang agar tidak ada berkas berserakan di Drive.
+ */
 function buatSpreadsheetSekolah_(d) {
+  var folder = folderBagian_('Folder Data Sekolah', SUBFOLDER.dataSekolah);
   var ss = SpreadsheetApp.create('Rapor - ' + d.nama + ' (' + d.npsn + ')');
-  var folder = pengaturanPusat_().folder;
-  if (folder) DriveApp.getFileById(ss.getId()).moveTo(DriveApp.getFolderById(folder));
-  isiSpreadsheetSekolah_(ss, d, new Date());
+  var berkas = DriveApp.getFileById(ss.getId());
+  try {
+    berkas.moveTo(folder);
+    isiSpreadsheetSekolah_(ss, d, new Date());
+  } catch (e) {
+    berkas.setTrashed(true);
+    throw e;
+  }
   return ss.getId();
 }
 

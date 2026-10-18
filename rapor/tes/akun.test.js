@@ -27,8 +27,65 @@ function aktif(g, data = DATA) {
 test('siapkan aman dijalankan berulang', () => {
   const g = siap();
   g.ctx.siapkan();
-  assert.equal(g.pusat.getSheetByName('Pengaturan').data.length, 5);
+  assert.equal(g.pusat.getSheetByName('Pengaturan').data.length, 6);
   assert.equal(g.pusat.sheets.length, 4);
+  assert.equal(Object.keys(g.folder).length, 2, 'tidak ada folder dobel');
+});
+
+/** Nama-nama folder dari akar sampai folder berkas, mis. "Rapor SD/Data Sekolah". */
+function jalur(g, id) {
+  const nama = [];
+  for (let f = g.lokasi[id] || id; f && f !== 'akar'; f = g.folder[f].induk) nama.unshift(g.folder[f].nama);
+  return nama.join('/');
+}
+
+test('Drive rapi: semua hasil di dalam satu folder utama "Rapor SD"', () => {
+  const g = siap();
+  assert.deepEqual(g.isiAkar(), ['📁 Rapor SD']);
+  assert.equal(jalur(g, 'pusat'), 'Rapor SD');
+  aktif(g);
+  aktif(g, { ...DATA, npsn: '20321654', email: 'sekolah.lain@gmail.com' });
+  for (const id of Object.keys(g.berkas)) assert.equal(jalur(g, id), 'Rapor SD/Data Sekolah');
+  assert.deepEqual(g.isiAkar(), ['📁 Rapor SD']);
+});
+
+test('Drive rapi: folder lama di luar folder utama dipindah masuk', () => {
+  const g = buatGas();
+  const lama = g.DriveApp.createFolder('Rapor SD - Data Sekolah');
+  g.ctx.siapkan(); // pertama kali: belum ada pengaturan folder
+  g.ctx.tulisPengaturanPusat_('Folder Data Sekolah', lama.getId()); // meniru pemasangan versi lama
+  g.ctx.siapkan();
+  assert.equal(jalur(g, lama.getId()), 'Rapor SD/Rapor SD - Data Sekolah');
+});
+
+test('Drive rapi: folder yang terhapus dibuat ulang di dalam folder utama', () => {
+  const g = siap();
+  const idData = Object.keys(g.folder).find((id) => g.folder[id].nama === 'Data Sekolah');
+  g.folder[idData].sampah = true;
+  aktif(g);
+  const id = Object.keys(g.berkas)[0];
+  assert.equal(jalur(g, id), 'Rapor SD/Data Sekolah');
+  assert.notEqual(g.lokasi[id], idData);
+
+  const idUtama = Object.keys(g.folder).find((x) => g.folder[x].nama === 'Rapor SD');
+  g.folder[idUtama].sampah = true;
+  aktif(g, { ...DATA, npsn: '20321654', email: 'sekolah.lain@gmail.com' });
+  const baru = Object.keys(g.berkas)[1];
+  assert.equal(jalur(g, baru), 'Rapor SD/Data Sekolah');
+});
+
+test('Drive rapi: spreadsheet yang gagal dipindah langsung dibuang, akun tetap menunggu', () => {
+  const g = siap();
+  g.minta({ aksi: 'daftar', data: DATA });
+  const token = g.tokenDari('verifikasi');
+  g.DriveApp.gagalPindah = true;
+  const h = g.minta({ aksi: 'verifikasi', token });
+  assert.equal(h.ok, false);
+  assert.equal(g.berkas.ss1.sampah, true);
+  assert.deepEqual(g.isiAkar(), ['📁 Rapor SD']);
+  assert.equal(g.barisSekolah()[0][5], 'Menunggu verifikasi');
+  g.DriveApp.gagalPindah = false;
+  assert.equal(g.minta({ aksi: 'verifikasi', token }).ok, true, 'bisa dicoba lagi dengan tautan yang sama');
 });
 
 test('daftar: isian salah ditolak dengan pesan yang jelas', () => {
@@ -110,7 +167,7 @@ test('verifikasi: spreadsheet sekolah dibuat lengkap di folder data sekolah', ()
   const [baris] = g.barisSekolah();
   assert.equal(baris[5], 'Aktif');
   const b = g.berkas[baris[6]];
-  assert.equal(b.folder, 'folder-Rapor SD - Data Sekolah');
+  assert.equal(jalur(g, baris[6]), 'Rapor SD/Data Sekolah');
   assert.equal(b.ss.getName(), 'Rapor - SD N BUGANGIN (20321653)');
   const nama = b.ss.getSheets().map((s) => s.nama);
   assert.deepEqual(nama, JSON.parse(JSON.stringify(g.ctx.STRUKTUR_SEKOLAH.map((s) => s.nama))));
