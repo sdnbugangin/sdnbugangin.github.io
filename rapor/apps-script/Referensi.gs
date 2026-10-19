@@ -93,5 +93,21 @@ function mapelBawaan_(kode) {
   return null;
 }
 
+/*
+ * Kode mapel dan judul pada format impor TP e-Rapor Kemendikdasmen (berkas "f_tp (…).xlsx", jenjang SD).
+ * Diambil dari template resmi yang dikirim sekolah. Mapel yang belum tercantum tetap bisa diunduh,
+ * tetapi kode e-Rapor di sel C2 masih kosong dan harus diisi sendiri.
+ */
+var KODE_ERAPOR = {
+  BIND: { kode: '300110000', nama: 'BAHASA INDONESIA', berkas: 'Bahasa Indonesia' },
+  BING: { kode: '300210000', nama: 'BAHASA INGGRIS', berkas: 'Bahasa Inggris' },
+  MTK: { kode: '401000000', nama: 'MATEMATIKA (UMUM)', berkas: 'Matematika (Umum)' },
+  IPAS: { kode: '401900000', nama: 'ILMU PENGETAHUAN ALAM DAN SOSIAL (IPAS)', berkas: 'Ilmu Pengetahuan Alam dan Sosial (IPAS)' },
+  SENI: { kode: '843020100', nama: 'SENI BUDAYA', berkas: 'Seni Budaya' }
+};
+
+/* Panjang maksimal satu TP di e-Rapor. */
+var MAKS_KARAKTER_TP = 100;
+
 /* Capaian kokurikuler, urut dari tertinggi. */
 var LEVEL_KOKURIKULER = ['Mahir', 'Cakap', 'Berkembang'];

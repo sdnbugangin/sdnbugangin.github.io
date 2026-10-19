@@ -73,6 +73,12 @@ table.mapel .jenis{display:inline-block;font-size:11px;font-weight:800;padding:2
 .jenis.wajib{background:#eef3f8;color:var(--blue)}.jenis.pilihan{background:#fff3c0;color:#6b4b00}
 table.mapel .na{color:#c9bfa8}
 .jml{font-weight:700}.jml.pas{color:var(--ok)}.jml.kurang{color:var(--bad)}
+.mapel-pil{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}
+.mapel-pil button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:9px 14px;font:inherit;font-size:13.5px;font-weight:700;color:var(--blue);cursor:pointer}
+.mapel-pil button.on{background:var(--blue);border-color:var(--blue);color:#fff}.mapel-pil button .n{font-weight:800;margin-left:6px;opacity:.75}
+.mapel-pil button.kosong .n{color:var(--bad);opacity:1}.mapel-pil button.on.kosong .n{color:#ffd0cc}
+table.siswa.tp{width:100%}table.tp td.kar{font-size:12px;text-align:center;min-width:72px;color:var(--muted)}table.tp td.kar.lebih{color:var(--bad);font-weight:800}
+table.tp .dinilai{display:block;font-size:11px;color:var(--ok);font-weight:700;padding:0 8px 4px}
 .back{display:inline-block;margin-bottom:6px;font-size:14px}
 footer{text-align:center;color:var(--muted);font-size:13px;line-height:1.7;padding:28px 16px 8px}
 </style>
@@ -164,7 +170,8 @@ footer{text-align:center;color:var(--muted);font-size:13px;line-height:1.7;paddi
     </div>
     <div class="menu">
       <button class="tile" type="button" id="t-data"><b>Data Sekolah &amp; Siswa</b><span>Profil sekolah, rombel kelas 1–6, wali kelas, dan daftar siswa.</span><div class="tag on">Buka →</div></button>
-      <div class="tile"><b>Input Nilai</b><span>Tujuan pembelajaran, sumatif lingkup materi, dan sumatif akhir semester.</span><div class="tag">Segera hadir</div></div>
+      <button class="tile" type="button" id="t-tp"><b>Tujuan Pembelajaran</b><span>Daftar TP per kelas, mapel, dan semester. Bisa diunduh dalam format impor e-Rapor.</span><div class="tag on">Buka →</div></button>
+      <div class="tile"><b>Input Nilai</b><span>Sumatif lingkup materi dan sumatif akhir semester per rombel dan mapel.</span><div class="tag">Segera hadir</div></div>
       <div class="tile"><b>Kokurikuler &amp; Ekstrakurikuler</b><span>Capaian dimensi profil, ekstrakurikuler, presensi, dan catatan wali kelas.</span><div class="tag">Segera hadir</div></div>
       <div class="tile"><b>Cek &amp; Cetak Rapor</b><span>Pemeriksaan kelengkapan, leger, dan cetak rapor PDF.</span><div class="tag">Segera hadir</div></div>
     </div>
@@ -186,6 +193,35 @@ footer{text-align:center;color:var(--muted);font-size:13px;line-height:1.7;paddi
         </form>
       </div>
       <div class="msg" id="g-msg"></div>
+    </div>
+  </section>
+
+  <!-- TUJUAN PEMBELAJARAN -->
+  <section id="v-tp" class="hidden">
+    <div class="bar">
+      <div><button class="link back" type="button" data-ke="beranda">← Beranda</button><h2>Tujuan Pembelajaran</h2><div class="sub" id="tp-sub"></div></div>
+    </div>
+    <div class="card">
+      <div class="grid2">
+        <div><label for="tp-kelas">Kelas</label><select id="tp-kelas"><option value="1">Kelas 1 (Fase A)</option><option value="2">Kelas 2 (Fase A)</option><option value="3">Kelas 3 (Fase B)</option><option value="4">Kelas 4 (Fase B)</option><option value="5">Kelas 5 (Fase C)</option><option value="6">Kelas 6 (Fase C)</option></select></div>
+        <div><label for="tp-semester">Semester</label><select id="tp-semester"><option value="1">Semester 1 (Ganjil)</option><option value="2">Semester 2 (Genap)</option></select></div>
+        <div class="aksi"><button class="btn ghost small" type="button" id="tp-unduh" title="Satu berkas per mapel, semester 1 dan 2, siap diimpor ke e-Rapor Kemendikdasmen">Unduh TP kelas ini (format e-Rapor)</button></div>
+      </div>
+      <div class="msg" id="tpu-msg"></div>
+    </div>
+    <div class="mapel-pil" id="tp-mapel" role="tablist" aria-label="Mata pelajaran"></div>
+    <div id="tp-editor" class="hidden">
+      <div class="toolbar" id="tp-varian-wrap"><label for="tp-varian" style="margin:0" id="tp-varian-label">Agama</label><select id="tp-varian" style="width:auto;min-width:220px"></select></div>
+      <div class="panduan">Tujuan pembelajaran maksimal <b>100 karakter</b> (batas e-Rapor). <i>Lingkup materi</i> boleh dikosongkan; isinya dipakai di kalimat deskripsi rapor (misalnya "…menunjukkan penguasaan yang sangat baik dalam <b>keliling bangun datar</b>"), dan jika kosong teks TP yang dipakai.
+        Bisa tempel dari Excel: kolom TP lalu kolom lingkup materi.</div>
+      <div class="toolbar">
+        <button class="btn add" type="button" id="tp-tambah">+ Tambah TP</button>
+        <button class="btn" type="button" id="tp-simpan" style="width:auto">Simpan TP</button>
+        <button class="btn ghost small hidden" type="button" id="tp-bawaan">Pakai TP bawaan</button>
+        <span class="sub" id="tp-jumlah"></span>
+      </div>
+      <div class="msg" id="tp-msg"></div>
+      <div class="tbl"><table class="siswa tp"><thead><tr><th>No.</th><th style="min-width:420px">Tujuan Pembelajaran *</th><th>Karakter</th><th style="min-width:260px">Lingkup materi (deskripsi rapor)</th><th></th></tr></thead><tbody id="tp-body"></tbody></table></div>
     </div>
   </section>
 
@@ -287,7 +323,7 @@ const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const ls = { get:k=>{try{return localStorage.getItem(k)||''}catch(e){return ''}}, set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}, del:k=>{try{localStorage.removeItem(k)}catch(e){}} };
 const KUNCI_SESI = 'rapor-sesi';
-const VIEWS = ['masuk','daftar','lupa','reset','verifikasi','beranda','data','siswa'];
+const VIEWS = ['masuk','daftar','lupa','reset','verifikasi','beranda','data','siswa','tp'];
 let TOKEN_RESET = '';
 let DATA = null, ROMBEL = null, SISWA = [], UBAH = false, SENI_SEKOLAH = [], TARGET = 0;
 const SEMUA_SENI = ['Seni Musik', 'Seni Rupa', 'Seni Tari', 'Seni Teater'];
@@ -698,11 +734,233 @@ $('#s-kembali').addEventListener('click', () => {
   UBAH = false;
   tampil('data'); pilihTab('rombel'); renderRombel();
 });
-window.addEventListener('beforeunload', e => { if (UBAH) { e.preventDefault(); e.returnValue = ''; } });
+window.addEventListener('beforeunload', e => { if (UBAH || TP_UBAH) { e.preventDefault(); e.returnValue = ''; } });
 
 document.querySelectorAll('[data-tab]').forEach(b => b.addEventListener('click', () => pilihTab(b.dataset.tab)));
 document.querySelectorAll('[data-ke="beranda"]').forEach(b => b.addEventListener('click', () => tampil('beranda')));
 $('#t-data').addEventListener('click', () => bukaData('profil'));
+$('#t-tp').addEventListener('click', () => bukaTp());
+
+/* ---------- tujuan pembelajaran ---------- */
+let TPD = null, TP_MAPEL = '', TP_VARIAN = '', TP_LIST = [], TP_UBAH = false;
+const kunciTp = () => TP_MAPEL + '|' + TP_VARIAN;
+const tpKosong = t => !String(t.tp || '').trim() && !String(t.materi || '').trim();
+function tinggalkanTp(){ return !TP_UBAH || confirm('Perubahan TP belum disimpan. Tinggalkan?'); }
+
+async function bukaTp(){
+  tampil('tp');
+  if (!TPD) {
+    const kelasAwal = DATA && DATA.rombel && DATA.rombel.length ? DATA.rombel[0].kelas : 1;
+    $('#tp-kelas').value = String(kelasAwal);
+    return muatTp(0, true); // pertama kali: semester mengikuti semester sekolah yang berjalan
+  }
+  await muatTp();
+}
+
+async function muatTp(semester, semesterSekolah){
+  $('#tp-mapel').innerHTML = '<span class="sub">Memuat…</span>';
+  $('#tp-editor').classList.add('hidden');
+  const res = await api({ aksi:'tpKelas', kelas: Number($('#tp-kelas').value),
+    semester: semesterSekolah ? undefined : (semester || Number($('#tp-semester').value)) });
+  if (res.sesiHabis) return;
+  if (!res.ok) { $('#tp-mapel').innerHTML = ''; return pesan('#tpu-msg', res.pesan, false); }
+  TPD = res; TP_UBAH = false;
+  $('#tp-semester').value = String(res.semester);
+  $('#tp-sub').textContent = 'Tahun ajaran ' + res.tahunAjaran + ' · Kelas ' + res.kelas + ' (Fase ' + res.fase + ') · Semester ' + res.semester;
+  if (!res.mapel.some(m => m.kode === TP_MAPEL)) TP_MAPEL = res.mapel.length ? res.mapel[0].kode : '';
+  renderMapelTp();
+  pilihMapelTp(TP_MAPEL);
+}
+
+function jumlahTp(m){
+  return m.varian.reduce((n, v) => n + ((TPD.tp[m.kode + '|' + v] || []).length), 0);
+}
+function renderMapelTp(){
+  $('#tp-mapel').innerHTML = TPD.mapel.map(m => { const n = jumlahTp(m);
+    return '<button type="button" role="tab" data-mapel="' + esc(m.kode) + '" class="' + (m.kode === TP_MAPEL ? 'on ' : '') + (n ? '' : 'kosong') + '">' +
+      esc(m.nama) + '<span class="n">' + n + ' TP</span></button>'; }).join('') ||
+    '<span class="sub">Belum ada mapel aktif di kelas ini. Atur di Data Sekolah → Mata Pelajaran.</span>';
+}
+
+function pilihMapelTp(kode, varian){
+  const m = TPD.mapel.find(x => x.kode === kode);
+  TP_MAPEL = kode;
+  if (!m) return;
+  renderMapelTp();
+  // varian: agama terbanyak di kelas ini lebih dulu, atau seni pertama sekolah
+  if (varian === undefined) {
+    varian = m.varian[0];
+    if (m.jenis === 'agama') varian = Object.keys(TPD.agama).sort((a, b) => TPD.agama[b] - TPD.agama[a])[0] || 'Islam';
+  }
+  TP_VARIAN = varian;
+  $('#tp-varian-wrap').classList.toggle('hidden', m.varian.length < 2);
+  $('#tp-varian-label').textContent = m.jenis === 'agama' ? 'Agama' : 'Seni';
+  $('#tp-varian').innerHTML = m.varian.map(v => '<option value="' + esc(v) + '">' + esc(v) +
+    (m.jenis === 'agama' && TPD.agama[v] ? ' (' + TPD.agama[v] + ' siswa)' : '') + ((TPD.tp[m.kode + '|' + v] || []).length ? ' · ' + TPD.tp[m.kode + '|' + v].length + ' TP' : '') + '</option>').join('');
+  $('#tp-varian').value = TP_VARIAN;
+  TP_LIST = (TPD.tp[kunciTp()] || []).map(t => ({ ...t }));
+  if (!TP_LIST.length) TP_LIST = [{}, {}, {}];
+  TP_UBAH = false;
+  $('#tp-bawaan').classList.toggle('hidden', !TPD.adaBawaan);
+  $('#tp-msg').textContent = '';
+  $('#tp-editor').classList.remove('hidden');
+  renderTp();
+}
+
+function renderTp(){
+  const maks = TPD.maksKarakter;
+  $('#tp-body').innerHTML = TP_LIST.map((t, i) => {
+    const n = String(t.tp || '').trim().length, dinilai = t.kode && TPD.bernilai[TP_MAPEL + '|' + t.kode];
+    return '<tr><td class="no">' + (i + 1) + '</td>' +
+      '<td><input data-i="' + i + '" data-k="tp" maxlength="200" value="' + esc(t.tp) + '" aria-label="Tujuan pembelajaran ' + (i + 1) + '">' +
+        (dinilai ? '<span class="dinilai">✓ sudah dinilai</span>' : '') + '</td>' +
+      '<td class="kar' + (n > maks ? ' lebih' : '') + '" data-kar="' + i + '">' + n + '/' + maks + '</td>' +
+      '<td><input data-i="' + i + '" data-k="materi" maxlength="150" value="' + esc(t.materi) + '" placeholder="opsional" aria-label="Lingkup materi ' + (i + 1) + '"></td>' +
+      '<td>' + (dinilai ? '' : '<button class="hapus" type="button" data-hapus-tp="' + i + '" title="Hapus TP" aria-label="Hapus TP ' + (i + 1) + '">×</button>') + '</td></tr>';
+  }).join('');
+  const isi = TP_LIST.filter(t => !tpKosong(t)).length;
+  $('#tp-jumlah').innerHTML = isi + ' TP' + (TP_UBAH ? ' · <b>belum disimpan</b>' : '');
+}
+
+$('#tp-body').addEventListener('input', e => {
+  const t = e.target;
+  if (!t.dataset.k) return;
+  const i = Number(t.dataset.i);
+  TP_LIST[i][t.dataset.k] = t.value;
+  if (t.dataset.k === 'tp') {
+    const n = t.value.trim().length, sel = document.querySelector('[data-kar="' + i + '"]');
+    sel.textContent = n + '/' + TPD.maksKarakter; sel.classList.toggle('lebih', n > TPD.maksKarakter);
+  }
+  TP_UBAH = true;
+  $('#tp-jumlah').innerHTML = TP_LIST.filter(x => !tpKosong(x)).length + ' TP · <b>belum disimpan</b>';
+});
+$('#tp-body').addEventListener('click', e => {
+  const b = e.target.closest('[data-hapus-tp]');
+  if (!b) return;
+  TP_LIST.splice(Number(b.dataset.hapusTp), 1);
+  if (!TP_LIST.length) TP_LIST.push({});
+  TP_UBAH = true; renderTp();
+});
+$('#tp-body').addEventListener('paste', e => {
+  const t = e.target;
+  if (!t.dataset.k) return;
+  const teks = (e.clipboardData || window.clipboardData).getData('text');
+  if (!/[\t\n]/.test(teks.replace(/\s+$/, ''))) return;
+  e.preventDefault();
+  const baris = teks.replace(/\r/g, '').replace(/\n+$/, '').split('\n').map(r => r.split('\t'));
+  if (baris.length > 1 && /^(no\.?|tujuan pembelajaran.*|tp|lingkup materi)$/i.test(baris[0][0].trim())) baris.shift();
+  const i0 = Number(t.dataset.i), k0 = t.dataset.k === 'tp' ? 0 : 1, kolom = ['tp', 'materi'];
+  baris.forEach((r, bi) => {
+    if (!TP_LIST[i0 + bi]) TP_LIST[i0 + bi] = {};
+    r.forEach((v, ki) => { const k = kolom[k0 + ki]; if (k) TP_LIST[i0 + bi][k] = v.trim(); });
+  });
+  TP_UBAH = true; renderTp();
+  pesan('#tp-msg', baris.length + ' baris ditempel. Periksa lalu klik Simpan TP.', true);
+});
+$('#tp-tambah').addEventListener('click', () => {
+  TP_LIST.push({}); renderTp();
+  document.querySelector('#tp-body tr:last-child input').focus();
+});
+$('#tp-simpan').addEventListener('click', e => sibuk(e.target, async () => {
+  TP_LIST = TP_LIST.filter(t => !tpKosong(t));
+  renderTp();
+  const res = await api({ aksi:'simpanTp', kelas: TPD.kelas, semester: TPD.semester, mapel: TP_MAPEL, varian: TP_VARIAN, tp: TP_LIST });
+  if (res.sesiHabis) return;
+  pesan('#tp-msg', res.pesan, res.ok, res.salah);
+  if (!TP_LIST.length) TP_LIST.push({});
+  if (!res.ok) return renderTp();
+  TPD.tp[kunciTp()] = res.tp;
+  TP_LIST = res.tp.map(t => ({ ...t }));
+  TP_UBAH = false; renderTp(); renderMapelTp();
+}));
+$('#tp-bawaan').addEventListener('click', e => sibuk(e.target, async () => {
+  const ada = TP_LIST.filter(t => !tpKosong(t)).length;
+  if (ada && !confirm('Ganti ' + ada + ' TP yang ada di layar dengan TP bawaan? (Belum tersimpan sampai Anda klik Simpan TP.)')) return;
+  const res = await api({ aksi:'tpBawaan', kelas: TPD.kelas, semester: TPD.semester, mapel: TP_MAPEL, varian: TP_VARIAN });
+  if (res.sesiHabis) return;
+  pesan('#tp-msg', res.pesan, res.ok);
+  if (!res.ok) return;
+  // TP bawaan yang teksnya sama dengan TP lama memakai kode lama, agar nilai yang sudah ada tetap melekat.
+  const lama = {}; TP_LIST.forEach(t => { if (t.kode) lama[String(t.tp).trim().toLowerCase()] = t.kode; });
+  TP_LIST = res.tp.map(t => ({ ...t, kode: lama[t.tp.trim().toLowerCase()] }));
+  TP_UBAH = true; renderTp();
+}));
+$('#tp-mapel').addEventListener('click', e => {
+  const b = e.target.closest('[data-mapel]');
+  if (!b || b.dataset.mapel === TP_MAPEL || !tinggalkanTp()) return;
+  pilihMapelTp(b.dataset.mapel);
+});
+$('#tp-varian').addEventListener('change', e => {
+  if (!tinggalkanTp()) { e.target.value = TP_VARIAN; return; }
+  pilihMapelTp(TP_MAPEL, e.target.value);
+});
+['tp-kelas', 'tp-semester'].forEach(id => {
+  let sebelum = '';
+  $('#' + id).addEventListener('focus', e => { sebelum = e.target.value; });
+  $('#' + id).addEventListener('change', e => {
+    if (!tinggalkanTp()) { e.target.value = sebelum; return; }
+    muatTp(id === 'tp-semester' ? Number(e.target.value) : undefined);
+  });
+});
+document.querySelector('#v-tp [data-ke="beranda"]').addEventListener('click', e => {
+  if (!tinggalkanTp()) { e.stopImmediatePropagation(); tampil('tp'); return; }
+  TP_UBAH = false;
+});
+
+/* Unduh TP kelas: satu berkas .xlsx per mapel sesuai format impor e-Rapor, digabung dalam satu ZIP. */
+const PUSTAKA = {
+  ExcelJS: 'https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js',
+  JSZip: 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js'
+};
+function muatPustaka(nama){
+  if (window[nama]) return Promise.resolve();
+  return new Promise((ok, gagal) => {
+    const s = document.createElement('script');
+    s.src = PUSTAKA[nama]; s.onload = ok; s.onerror = () => gagal(new Error('Pustaka ' + nama + ' gagal dimuat. Periksa koneksi internet.'));
+    document.head.appendChild(s);
+  });
+}
+async function berkasErapor(b){
+  const wb = new ExcelJS.Workbook();
+  const ws = wb.addWorksheet('Worksheet');
+  ws.columns = [{ width: 5 }, { width: 12 }, { width: 12 }, { width: 12 }, { width: 100 }];
+  ws.getCell('A1').value = 'FORMAT IMPORT TP  ' + b.judul + ' , JENJANG SD';
+  if (b.kodeErapor) ws.getCell('C2').value = Number(b.kodeErapor);
+  ws.getCell('D2').value = 'SD';
+  ws.getRow(3).values = ['NO', 'TINGKAT', 'FASE', 'SEMESTER', 'TUJUAN PEMBELAJARAN (Maximal 100 Karakter)'];
+  ws.getRow(3).font = { bold: true };
+  for (let i = 0; i < 100; i++) {
+    const r = 4 + i, t = b.baris[i];
+    ws.getCell('A' + r).value = i + 1;
+    if (t) { ws.getCell('B' + r).value = t.tingkat; ws.getCell('C' + r).value = t.fase; ws.getCell('D' + r).value = t.semester; ws.getCell('E' + r).value = t.tp; }
+    ws.getCell('B' + r).dataValidation = { type: 'list', allowBlank: true, formulae: ['"1, 2, 3, 4, 5, 6"'] };
+    ws.getCell('C' + r).dataValidation = { type: 'list', allowBlank: true, formulae: ['"A, B, C"'] };
+    ws.getCell('D' + r).dataValidation = { type: 'list', allowBlank: true, formulae: ['"1, 2"'] };
+    ws.getCell('E' + r).dataValidation = { type: 'custom', allowBlank: true, formulae: ['LEN(E' + r + ')<=100'] };
+  }
+  return wb.xlsx.writeBuffer();
+}
+$('#tp-unduh').addEventListener('click', e => sibuk(e.target, async () => {
+  if (TP_UBAH && !confirm('Ada TP yang belum disimpan dan tidak ikut terunduh. Lanjutkan?')) return;
+  pesan('#tpu-msg', 'Menyiapkan berkas…', true);
+  const res = await api({ aksi:'tpEkspor', kelas: Number($('#tp-kelas').value) });
+  if (res.sesiHabis) return;
+  if (!res.ok) return pesan('#tpu-msg', res.pesan, false);
+  try {
+    await muatPustaka('ExcelJS'); await muatPustaka('JSZip');
+    const zip = new JSZip();
+    for (const b of res.berkas) zip.file(b.namaBerkas, await berkasErapor(b));
+    const blob = await zip.generateAsync({ type: 'blob' });
+    const nama = 'TP e-Rapor Kelas ' + res.kelas + ' ' + res.tahunAjaran.replace('/', '-') + '.zip';
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = nama; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+    const ok = nama + ' terunduh: ' + res.berkas.length + ' berkas (' + res.berkas.map(b => b.nama).join(', ') + ').';
+    pesan('#tpu-msg', ok, true, res.peringatan.length ? [ok].concat(res.peringatan) : null);
+  } catch (err) {
+    pesan('#tpu-msg', err.message, false);
+  }
+}));
 
 $('#b-unduh').addEventListener('click', e => sibuk(e.target, async () => {
   pesan('#u-msg', 'Menyiapkan berkas Excel…', true);

@@ -27,7 +27,7 @@ function aktif(g, data = DATA) {
 test('siapkan aman dijalankan berulang', () => {
   const g = siap();
   g.ctx.siapkan();
-  assert.equal(g.pusat.getSheetByName('Pengaturan').data.length, 6);
+  assert.equal(g.pusat.getSheetByName('Pengaturan').data.length, 7);
   assert.equal(g.pusat.sheets.length, 4);
   assert.equal(Object.keys(g.folder).length, 2, 'tidak ada folder dobel');
 });
