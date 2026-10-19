@@ -249,19 +249,69 @@ function tanggalDariSerial_(serial, zona) {
  * bacaTabel_ membaca dengan cara biasa.
  */
 var GALAT_BACA_SEKALIGUS_ = ''; // sebab terakhir baca sekaligus tidak dipakai (untuk ujiBeban)
+var CARA_BACA_SEKALIGUS_ = '';  // 'layanan Sheets (ID: …)' atau 'Sheets API lewat UrlFetch'
 
-function bacaSekaligus_(ss, daftar) {
-  if (typeof Sheets === 'undefined' || !Sheets || !Sheets.Spreadsheets) {
-    GALAT_BACA_SEKALIGUS_ = 'layanan "Sheets" belum ditambahkan di proyek Apps Script';
-    return false;
+/** Layanan lanjutan Google Sheets API, apa pun ID yang dipakai saat menambahkannya (biasanya "Sheets"). */
+function layananSheets_() {
+  if (typeof Sheets !== 'undefined' && Sheets && Sheets.Spreadsheets) return { id: 'Sheets', api: Sheets };
+  var g = typeof globalThis !== 'undefined' ? globalThis : (function () { return this; })();
+  var nama = g ? Object.getOwnPropertyNames(g) : [];
+  for (var i = 0; i < nama.length; i++) {
+    try {
+      var o = g[nama[i]];
+      if (o && typeof o === 'object' && o.Spreadsheets && o.Spreadsheets.Values && typeof o.Spreadsheets.Values.batchGet === 'function') {
+        return { id: nama[i], api: o };
+      }
+    } catch (e) { /* properti yang tidak bisa dibaca: lewati */ }
   }
+  return null;
+}
+
+/**
+ * Satu panggilan batchGet: lewat layanan lanjutan bila ada, kalau tidak langsung ke REST API Sheets
+ * dengan token skrip. Penolakan REST (mis. API tidak aktif di proyek) diingat 1 jam agar tidak dicoba terus.
+ */
+function ambilBatch_(id, ranges) {
+  var opsi = { valueRenderOption: 'UNFORMATTED_VALUE', dateTimeRenderOption: 'SERIAL_NUMBER' };
+  var layanan = layananSheets_(), galat = [];
+  if (layanan) {
+    try {
+      var r = layanan.api.Spreadsheets.Values.batchGet(id, { ranges: ranges, valueRenderOption: opsi.valueRenderOption, dateTimeRenderOption: opsi.dateTimeRenderOption });
+      CARA_BACA_SEKALIGUS_ = 'layanan Sheets (ID: ' + layanan.id + ')';
+      return r;
+    } catch (e) { galat.push('layanan ' + layanan.id + ': ' + e.message); }
+  } else {
+    galat.push('layanan Sheets tidak ditemukan');
+  }
+  var cache = CacheService.getScriptCache();
+  var mati = cache.get('sheetsapi:mati');
+  if (mati) { GALAT_BACA_SEKALIGUS_ = galat.concat(['REST: ' + mati]).join('; '); return null; }
+  try {
+    var url = 'https://sheets.googleapis.com/v4/spreadsheets/' + encodeURIComponent(id) + '/values:batchGet?' +
+      ranges.map(function (x) { return 'ranges=' + encodeURIComponent(x); }).join('&') +
+      '&valueRenderOption=' + opsi.valueRenderOption + '&dateTimeRenderOption=' + opsi.dateTimeRenderOption;
+    var jawab = UrlFetchApp.fetch(url, { headers: { Authorization: 'Bearer ' + ScriptApp.getOAuthToken() }, muteHttpExceptions: true });
+    var kode = jawab.getResponseCode();
+    if (kode === 200) { CARA_BACA_SEKALIGUS_ = 'Sheets API lewat UrlFetch'; return JSON.parse(jawab.getContentText()); }
+    var alasan = 'HTTP ' + kode + ' ' + String(jawab.getContentText()).replace(/\s+/g, ' ').slice(0, 160);
+    if (kode === 403 || kode === 404 || kode === 400) cache.put('sheetsapi:mati', alasan, 3600);
+    galat.push('REST: ' + alasan);
+  } catch (e2) { galat.push('REST: ' + e2.message); }
+  GALAT_BACA_SEKALIGUS_ = galat.join('; ');
+  return null;
+}
+
+/**
+ * Membaca beberapa sheet dalam SATU panggilan Google Sheets API.
+ * Membuka sheet satu per satu lewat SpreadsheetApp makan ±0,2–0,3 detik per sheet; ini memangkasnya.
+ * Bila API tidak bisa dipakai, tidak terjadi apa-apa: bacaTabel_ membaca dengan cara biasa.
+ */
+function bacaSekaligus_(ss, daftar) {
   var perlu = daftar.filter(function (n) { return !ISI_SHEET_[kunciIsi_(ss, n)]; });
   if (!perlu.length) return true;
   try {
-    var res = Sheets.Spreadsheets.Values.batchGet(ss.getId(), {
-      ranges: perlu.map(function (n) { return "'" + n + "'!A1:" + hurufKolom_(strukturSheet_(n).kolom.length); }),
-      valueRenderOption: 'UNFORMATTED_VALUE', dateTimeRenderOption: 'SERIAL_NUMBER'
-    });
+    var res = ambilBatch_(ss.getId(), perlu.map(function (n) { return "'" + n + "'!A1:" + hurufKolom_(strukturSheet_(n).kolom.length); }));
+    if (!res) return false;
     var zona = ss.getSpreadsheetTimeZone(), hasil = {};
     perlu.forEach(function (n, i) {
       var st = strukturSheet_(n), vr = (res.valueRanges || [])[i];
