@@ -71,7 +71,8 @@ Dengan cara ini tidak ada batas 15 TP atau 60 siswa, dan tidak ada 21 sheet beri
 | Mapel Aktif | tahun ajaran, kelas, kode mapel, urutan, nama di rapor |
 | Tujuan Pembelajaran | tahun ajaran, semester, kelas, mapel (dan agama/seni bila perlu), kode TP, lingkup materi |
 | Nilai | tahun ajaran, semester, siswa, mapel, jenis (TP / akhir), kode, nilai, diubah oleh, diubah pada |
-| Kokurikuler | dimensi & subdimensi semester ini; capaian per siswa (Mahir / Cakap / Berkembang) |
+| Kokurikuler | subdimensi yang dinilai per kelas per semester (dimensi mengikuti subdimensinya) |
+| Capaian Kokurikuler | capaian per siswa per subdimensi (Mahir / Cakap / Berkembang) |
 | Master Narasi | subdimensi, level, narasi (75 baris bawaan dari rapor lama) |
 | Ekstrakurikuler | siswa, kegiatan, predikat, keterangan |
 | Presensi & Catatan | siswa, sakit, izin, alpa, catatan wali kelas, tanggapan orang tua |
@@ -148,6 +149,14 @@ Pengamannya: setiap perubahan nilai dicatat di Log beserta waktunya, dan kepala 
 - **Nilai rapor, predikat, dan deskripsi tidak disimpan.** Semuanya dihitung ulang dari angka dengan `hitungNilaiMapel_` memakai bobot, KKTP, dan gaya deskripsi sekolah, sehingga perubahan pengaturan langsung berlaku. Pengaturan yang rusak (bobot ≠ 100%) dilaporkan, bukan menghasilkan nilai salah.
 - **Hasil per siswa** (nilai, predikat, deskripsi tertinggi/terendah, peringatan seperti "SAS belum diisi") tampil setelah disimpan, ditambah penghitung "Lengkap 28 dari 30 siswa".
 
+### Kokurikuler
+
+- **Subdimensi per kelas per semester** (1–8), dipilih dari 8 dimensi profil lulusan (`DIMENSI_PROFIL`). Dimensinya mengikuti otomatis. Pilihan ini berlaku untuk semua rombel di kelas itu.
+- **Capaian disimpan per subdimensi**, bukan per nomor urut, sehingga mengubah urutan atau menambah subdimensi tidak menggeser capaian yang sudah ada. Subdimensi yang sudah punya capaian tidak bisa dihapus.
+- **Isian**: Mahir / Cakap / Berkembang (huruf M/C/B juga diterima). Isian lain ditolak semuanya, dan isian kosong menghapus capaian. Pilihan di judul kolom mengisi satu kolom sekaligus.
+- **Deskripsi** dihitung ulang dengan `deskripsiKokurikuler_`, memakai narasi dari Master Narasi sekolah: dimensi tertinggi disebut "sudah baik… salah satunya mampu…", dimensi terendah "masih perlu bimbingan… agar dapat…".
+- **Master Narasi** bisa diubah di aplikasi dan berlaku untuk semua kelas. Narasi yang dikosongkan kembali ke bawaan. Ejaan lama "Fleksibitas Berpikir" tetap dikenali.
+
 ## 5. Pencegahan error (pelajaran dari rapor Excel lama)
 
 | Masalah di file lama | Penyebab | Penanganan di aplikasi baru |
@@ -178,6 +187,6 @@ Aturan umum:
 | 1 | Mesin hitung + data referensi + uji otomatis | ✅ selesai (`apps-script/Hitung.gs`, `Referensi.gs`, `tes/`) |
 | 2 | Akun sekolah (daftar, verifikasi email, masuk, lupa & ganti kata sandi) dan pembuatan spreadsheet sekolah otomatis | ✅ selesai (`index.html`, `apps-script/Kode.gs`, `Akun.gs`, `Sekolah.gs`, `Narasi.gs`) |
 | 3 | Data sekolah: profil, rombel & wali kelas, siswa (tempel langsung dari Excel/Dapodik), unduh salinan Excel | ✅ selesai (`apps-script/Data.gs`, halaman Data Sekolah & Siswa) |
-| 4 | Tujuan Pembelajaran ✅ (`Tp.gs`), input nilai ✅ (`Nilai.gs`); kokurikuler, ekstrakurikuler, presensi, catatan, kenaikan | sedang dikerjakan |
+| 4 | Tujuan Pembelajaran ✅ (`Tp.gs`), input nilai ✅ (`Nilai.gs`), kokurikuler ✅ (`Kokurikuler.gs`); ekstrakurikuler, presensi, catatan, kenaikan | sedang dikerjakan |
 | 5 | Cek kelengkapan, rekap/leger, cetak rapor PDF (sampul, rapor, transkrip, SKL), kunci rapor | |
 | 6 | Kenaikan kelas tahunan, uji coba di SDN Bugangin, lalu dibuka untuk sekolah lain | |

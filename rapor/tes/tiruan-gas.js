@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 
-const BERKAS_GS = ['Referensi.gs', 'Narasi.gs', 'Hitung.gs', 'Kode.gs', 'Akun.gs', 'Sekolah.gs', 'Data.gs', 'Tp.gs', 'Nilai.gs'];
+const BERKAS_GS = ['Referensi.gs', 'Narasi.gs', 'Hitung.gs', 'Kode.gs', 'Akun.gs', 'Sekolah.gs', 'Data.gs', 'Tp.gs', 'Nilai.gs', 'Kokurikuler.gs'];
 const MAKS_BARIS = 1000;
 
 function tanpaEfek(target) {

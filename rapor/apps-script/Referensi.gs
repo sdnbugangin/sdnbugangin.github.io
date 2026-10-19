@@ -111,3 +111,21 @@ var MAKS_KARAKTER_TP = 100;
 
 /* Capaian kokurikuler, urut dari tertinggi. */
 var LEVEL_KOKURIKULER = ['Mahir', 'Cakap', 'Berkembang'];
+
+/* Delapan dimensi profil lulusan dan subdimensinya (urutan baku). */
+var DIMENSI_PROFIL = [
+  { dimensi: 'Keimanan dan Ketakwaan terhadap Tuhan YME', sub: ['Hubungan dengan Tuhan Yang Maha Esa', 'Hubungan dengan sesama Manusia', 'Hubungan dengan Lingkungan Alam'] },
+  { dimensi: 'Kewargaan', sub: ['Kewargaan Lokal', 'Kewargaan Nasional', 'Kewargaan Global'] },
+  { dimensi: 'Penalaran Kritis', sub: ['Penyampaian Argumentasi', 'Pengambilan Keputusan', 'Penyelesaian Masalah'] },
+  { dimensi: 'Kreativitas', sub: ['Gagasan Baru', 'Fleksibilitas Berpikir', 'Karya'] },
+  { dimensi: 'Kolaborasi', sub: ['Peduli', 'Berbagi', 'Kerjasama'] },
+  { dimensi: 'Kemandirian', sub: ['Bertanggung jawab', 'Kepemimpinan', 'Pengembangan Diri'] },
+  { dimensi: 'Kesehatan', sub: ['Hidup Bersih dan Sehat', 'Kebugaran, Kesehatan Fisik, dan Kesehatan Mental', 'Kesehatan Lingkungan'] },
+  { dimensi: 'Komunikasi', sub: ['Menyimak', 'Berbicara', 'Membaca', 'Menulis'] }
+];
+
+/* Ejaan lama di Master Narasi yang tetap dikenali. */
+var ALIAS_SUBDIMENSI = { 'fleksibitas berpikir': 'Fleksibilitas Berpikir' };
+
+/* Batas subdimensi yang dinilai per kelas per semester. */
+var MAKS_SUBDIMENSI = 8;

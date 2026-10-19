@@ -87,6 +87,19 @@ table.nilai td.na{text-align:center;font-weight:800;font-size:15px;min-width:56p
 table.nilai td.ket{min-width:340px;font-size:12.5px;line-height:1.45;color:var(--ink)}table.nilai td.ket .w{color:#9a6c00}
 table.nilai.tanpa-deskripsi .ds{display:none}
 table.nilai tr.basi td.na,table.nilai tr.basi td.pr,table.nilai tr.basi td.ket{opacity:.45}
+table.kok{width:100%}table.kok th.sd{min-width:150px;white-space:normal;line-height:1.3}table.kok th.sd small{display:block;font-weight:400;opacity:.8}
+table.kok th.sd select{margin-top:6px;padding:4px 6px;font-size:12px;border-radius:8px}
+table.kok td.lv select{padding:6px 8px;font-size:13px;border-radius:8px;min-width:132px;border-color:#e3d8c0}
+table.kok select.Mahir{background:#e3f4e7;color:var(--ok);font-weight:700}table.kok select.Cakap{background:#eef3f8;color:var(--blue);font-weight:700}table.kok select.Berkembang{background:#fff3c0;color:#6b4b00;font-weight:700}
+table.kok td.ket{min-width:360px;font-size:12.5px;line-height:1.45}table.kok td.ket .w{color:#9a6c00}
+table.kok tr.basi td.ket{opacity:.45}
+.sd-baris{display:flex;gap:8px;align-items:center;margin-bottom:8px}.sd-baris .urut{font-weight:800;color:var(--muted);min-width:20px}.sd-baris select{flex:1}
+.sd-baris .terisi{font-size:12px;color:var(--ok);white-space:nowrap}
+.narasi{margin-top:14px}.narasi h4{margin:14px 0 6px;font-size:14px;color:var(--blue)}
+.narasi .lv{display:grid;grid-template-columns:110px 1fr;gap:8px;align-items:start;margin-bottom:8px}.narasi .lv b{font-size:13px;padding-top:9px}
+.narasi textarea{width:100%;font:inherit;font-size:13.5px;line-height:1.45;padding:9px 10px;border:1px solid #d9cfb8;border-radius:10px;resize:vertical;min-height:58px}
+.narasi textarea:focus{outline:2px solid var(--yellow);border-color:var(--yellow)}
+@media (max-width:560px){.narasi .lv{grid-template-columns:1fr}.narasi .lv b{padding-top:0}}
 .back{display:inline-block;margin-bottom:6px;font-size:14px}
 footer{text-align:center;color:var(--muted);font-size:13px;line-height:1.7;padding:28px 16px 8px}
 </style>
@@ -180,7 +193,8 @@ footer{text-align:center;color:var(--muted);font-size:13px;line-height:1.7;paddi
       <button class="tile" type="button" id="t-data"><b>Data Sekolah &amp; Siswa</b><span>Profil sekolah, rombel kelas 1–6, wali kelas, dan daftar siswa.</span><div class="tag on">Buka →</div></button>
       <button class="tile" type="button" id="t-tp"><b>Tujuan Pembelajaran</b><span>Daftar TP per kelas, mapel, dan semester. Bisa diunduh dalam format impor e-Rapor.</span><div class="tag on">Buka →</div></button>
       <button class="tile" type="button" id="t-nilai"><b>Input Nilai</b><span>Sumatif lingkup materi dan sumatif akhir semester per rombel dan mapel, lengkap dengan nilai rapor dan deskripsinya.</span><div class="tag on">Buka →</div></button>
-      <div class="tile"><b>Kokurikuler &amp; Ekstrakurikuler</b><span>Capaian dimensi profil, ekstrakurikuler, presensi, dan catatan wali kelas.</span><div class="tag">Segera hadir</div></div>
+      <button class="tile" type="button" id="t-kok"><b>Kokurikuler</b><span>Subdimensi profil lulusan per kelas, capaian Mahir/Cakap/Berkembang, dan deskripsi otomatis.</span><div class="tag on">Buka →</div></button>
+      <div class="tile"><b>Ekstrakurikuler, Presensi &amp; Catatan</b><span>Ekstrakurikuler, ketidakhadiran, catatan wali kelas, dan kenaikan kelas.</span><div class="tag">Segera hadir</div></div>
       <div class="tile"><b>Cek &amp; Cetak Rapor</b><span>Pemeriksaan kelengkapan, leger, dan cetak rapor PDF.</span><div class="tag">Segera hadir</div></div>
     </div>
 
@@ -229,6 +243,49 @@ footer{text-align:center;color:var(--muted);font-size:13px;line-height:1.7;paddi
       </div>
       <div class="msg" id="nl-msg"></div>
       <div class="tbl"><table class="siswa nilai"><thead><tr id="nl-head"></tr></thead><tbody id="nl-body"></tbody></table></div>
+    </div>
+  </section>
+
+  <!-- KOKURIKULER -->
+  <section id="v-kok" class="hidden">
+    <div class="bar">
+      <div><button class="link back" type="button" data-ke="beranda">← Beranda</button><h2>Kokurikuler</h2><div class="sub" id="kk-sub"></div></div>
+    </div>
+    <div class="card">
+      <div class="grid2">
+        <div><label for="kk-rombel">Rombel</label><select id="kk-rombel"></select></div>
+        <div><label for="kk-semester">Semester</label><select id="kk-semester"><option value="1">Semester 1 (Ganjil)</option><option value="2">Semester 2 (Genap)</option></select></div>
+      </div>
+    </div>
+    <div class="msg" id="kk-info"></div>
+    <div id="kk-isi" class="hidden">
+      <details class="card" id="kk-dim-box" style="margin-top:14px">
+        <summary><b id="kk-dim-judul">Subdimensi yang dinilai</b> <span class="sub" id="kk-dim-ring"></span></summary>
+        <p class="hint" id="kk-dim-ket" style="margin:10px 0 12px"></p>
+        <div id="kk-dim"></div>
+        <div class="toolbar">
+          <button class="btn add small" type="button" id="kk-dim-tambah">+ Tambah subdimensi</button>
+          <button class="btn small" type="button" id="kk-dim-simpan">Simpan subdimensi</button>
+        </div>
+        <div class="msg" id="kk-dim-msg"></div>
+      </details>
+      <div id="kk-editor" class="hidden">
+        <div class="panduan" style="margin-top:14px">Pilih capaian tiap siswa: <b>Mahir</b>, <b>Cakap</b>, atau <b>Berkembang</b> (bisa juga mengetik huruf M, C, atau B di kotak pilihan).
+          Pilihan di judul kolom mengisi satu kolom sekaligus. Deskripsi rapor dibuat otomatis dari capaian tertinggi dan terendah.</div>
+        <div class="toolbar">
+          <button class="btn" type="button" id="kk-simpan" style="width:auto">Simpan capaian</button>
+          <span class="sub" id="kk-status"></span>
+        </div>
+        <div class="msg" id="kk-msg"></div>
+        <div class="tbl"><table class="siswa kok"><thead><tr id="kk-head"></tr></thead><tbody id="kk-body"></tbody></table></div>
+        <details class="card narasi" id="kk-narasi-box">
+          <summary><b>Narasi deskripsi</b> <span class="sub">— kalimat yang dipakai untuk tiap capaian; berlaku untuk semua kelas di sekolah</span></summary>
+          <p class="hint">Tulis dengan awalan kata kerja dan huruf kecil, misalnya "bekerja sama dengan teman…". Dalam rapor kalimatnya menjadi "…salah satunya mampu <i>narasi</i>". Kosongkan untuk kembali ke narasi bawaan.</p>
+          <div id="kk-narasi"></div>
+          <div class="toolbar"><button class="btn small" type="button" id="kk-narasi-simpan">Simpan narasi</button></div>
+          <div class="msg" id="kk-narasi-msg"></div>
+        </details>
+      </div>
     </div>
   </section>
 
@@ -359,7 +416,7 @@ const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const ls = { get:k=>{try{return localStorage.getItem(k)||''}catch(e){return ''}}, set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}, del:k=>{try{localStorage.removeItem(k)}catch(e){}} };
 const KUNCI_SESI = 'rapor-sesi';
-const VIEWS = ['masuk','daftar','lupa','reset','verifikasi','beranda','data','siswa','tp','nilai'];
+const VIEWS = ['masuk','daftar','lupa','reset','verifikasi','beranda','data','siswa','tp','nilai','kok'];
 let TOKEN_RESET = '';
 let DATA = null, ROMBEL = null, SISWA = [], UBAH = false, SENI_SEKOLAH = [], TARGET = 0;
 const SEMUA_SENI = ['Seni Musik', 'Seni Rupa', 'Seni Tari', 'Seni Teater'];
@@ -937,6 +994,199 @@ $('#nl-varian').addEventListener('change', e => {
 document.querySelector('#v-nilai [data-ke="beranda"]').addEventListener('click', e => {
   if (!tinggalkanNilai()) { tampil('nilai'); return; }
   NL_UBAH = false;
+});
+
+/* ---------- kokurikuler ---------- */
+let KK = null, KK_ISI = {}, KK_DIM = [], KK_NAR = {}, KK_BASI = {};
+const KK_UBAH = { capaian:false, dimensi:false, narasi:false };
+$('#t-kok').addEventListener('click', () => bukaKok());
+function tinggalkanKok(){
+  const apa = [KK_UBAH.dimensi && 'subdimensi', KK_UBAH.capaian && 'capaian', KK_UBAH.narasi && 'narasi'].filter(Boolean);
+  if (apa.length && !confirm('Perubahan ' + apa.join(', ') + ' belum disimpan. Tinggalkan?')) return false;
+  KK_UBAH.capaian = KK_UBAH.dimensi = KK_UBAH.narasi = false;
+  return true;
+}
+
+async function bukaKok(){
+  tampil('kok');
+  if (!DATA) {
+    const d = await api({ aksi:'dataSekolah' });
+    if (d.sesiHabis) return;
+    if (!d.ok) return pesan('#kk-info', d.pesan, false);
+    DATA = d;
+  }
+  if (!DATA.rombel.length) {
+    $('#kk-rombel').innerHTML = ''; $('#kk-isi').classList.add('hidden');
+    return pesan('#kk-info', 'Belum ada rombel. Buat dulu di Data Sekolah & Siswa → Rombel & Siswa.', false);
+  }
+  const pilih = $('#kk-rombel').value;
+  $('#kk-rombel').innerHTML = DATA.rombel.map(r => '<option value="' + esc(r.id) + '">' + esc(labelRombel(r)) + (r.wali ? ' — ' + esc(r.wali) : '') + '</option>').join('');
+  if (pilih && DATA.rombel.some(r => r.id === pilih)) $('#kk-rombel').value = pilih;
+  $('#kk-semester').value = String(KK ? KK.semester : DATA.semester);
+  await muatKok();
+}
+
+function pakaiKok(res){
+  KK = res; KK_BASI = {};
+  KK_UBAH.capaian = KK_UBAH.dimensi = KK_UBAH.narasi = false;
+  KK_ISI = {};
+  res.siswa.forEach(s => { KK_ISI[s.id] = Object.assign({}, res.capaian[s.id] || {}); });
+  KK_DIM = res.dimensi.map(d => d.subdimensi);
+  KK_NAR = {};
+}
+
+async function muatKok(){
+  $('#kk-info').textContent = ''; $('#kk-msg').textContent = ''; $('#kk-dim-msg').textContent = ''; $('#kk-narasi-msg').textContent = '';
+  const res = await api({ aksi:'kokRombel', rombel: $('#kk-rombel').value, semester: Number($('#kk-semester').value) });
+  if (res.sesiHabis) return;
+  if (!res.ok) { $('#kk-isi').classList.add('hidden'); return pesan('#kk-info', res.pesan, false); }
+  pakaiKok(res);
+  $('#kk-sub').textContent = 'Tahun ajaran ' + res.tahunAjaran + ' · ' + labelRombel(res.rombel) + ' · Semester ' + res.semester;
+  $('#kk-isi').classList.remove('hidden');
+  $('#kk-dim-box').open = !res.dimensi.length;
+  renderKok();
+}
+
+function renderKok(){
+  renderDimKok();
+  const ada = KK.dimensi.length > 0;
+  $('#kk-editor').classList.toggle('hidden', !ada || !KK.siswa.length);
+  if (!ada) return pesan('#kk-info', 'Pilih dulu subdimensi yang dinilai di kelas ' + KK.rombel.kelas + ' semester ' + KK.semester + ', lalu klik Simpan subdimensi.', false);
+  if (!KK.siswa.length) return pesan('#kk-info', 'Rombel ini belum punya siswa. Isi dulu di Data Sekolah & Siswa → Rombel & Siswa.', false);
+  $('#kk-info').textContent = '';
+  renderTabelKok();
+  renderNarasiKok();
+}
+
+function opsiSubdimensi(pilih, dipakai){
+  return '<option value="">— pilih subdimensi —</option>' + KK.referensi.map(d => '<optgroup label="' + esc(d.dimensi) + '">' +
+    d.sub.map(s => '<option value="' + esc(s) + '"' + (s === pilih ? ' selected' : '') + (s !== pilih && dipakai.includes(s) ? ' disabled' : '') + '>' + esc(s) + '</option>').join('') +
+    '</optgroup>').join('');
+}
+function renderDimKok(){
+  $('#kk-dim-judul').textContent = 'Subdimensi yang dinilai — Kelas ' + KK.rombel.kelas + ', Semester ' + KK.semester;
+  $('#kk-dim-ring').textContent = KK.dimensi.length ? '(' + KK.dimensi.map(d => d.subdimensi).join(', ') + ')' : '(belum dipilih)';
+  $('#kk-dim-ket').textContent = 'Berlaku untuk semua rombel kelas ' + KK.rombel.kelas + '. Pilih 1–' + KK.maks +
+    ' subdimensi sesuai kegiatan kokurikuler semester ini; dimensinya mengikuti otomatis. Subdimensi yang sudah berisi capaian siswa tidak bisa dihapus.';
+  if (!KK_DIM.length) KK_DIM = [''];
+  $('#kk-dim').innerHTML = KK_DIM.map((s, i) => {
+    const n = KK.terisi[s] || 0;
+    return '<div class="sd-baris"><span class="urut">' + (i + 1) + '.</span><select data-i="' + i + '" aria-label="Subdimensi ' + (i + 1) + '">' + opsiSubdimensi(s, KK_DIM) + '</select>' +
+      (n ? '<span class="terisi">' + n + ' siswa terisi</span>' : '<button class="hapus btn danger small" type="button" data-hapus="' + i + '" title="Hapus">✕</button>') + '</div>';
+  }).join('');
+  $('#kk-dim-tambah').classList.toggle('hidden', KK_DIM.length >= KK.maks);
+}
+$('#kk-dim').addEventListener('change', e => {
+  if (!e.target.dataset.i) return;
+  KK_DIM[Number(e.target.dataset.i)] = e.target.value; KK_UBAH.dimensi = true; renderDimKok();
+});
+$('#kk-dim').addEventListener('click', e => {
+  const b = e.target.closest('[data-hapus]');
+  if (!b) return;
+  KK_DIM.splice(Number(b.dataset.hapus), 1); KK_UBAH.dimensi = true; renderDimKok();
+});
+$('#kk-dim-tambah').addEventListener('click', () => { KK_DIM.push(''); KK_UBAH.dimensi = true; renderDimKok(); });
+$('#kk-dim-simpan').addEventListener('click', e => sibuk(e.target, async () => {
+  if (KK_UBAH.capaian && !confirm('Capaian yang diubah belum disimpan dan akan hilang. Lanjutkan?')) return;
+  const res = await api({ aksi:'simpanDimensiKok', rombel: KK.rombel.id, semester: KK.semester, dimensi: KK_DIM.filter(Boolean) });
+  if (res.sesiHabis) return;
+  pesan('#kk-dim-msg', res.pesan, res.ok, res.salah);
+  if (!res.ok) return;
+  pakaiKok(res);
+  renderKok();
+  pesan('#kk-dim-msg', res.pesan, true);
+}));
+
+function renderTabelKok(){
+  const lv = KK.level;
+  $('#kk-head').innerHTML = '<th title="Nomor absen">No. Absen</th><th style="min-width:200px">Nama</th>' +
+    KK.dimensi.map((d, j) => '<th class="sd"><small>' + esc(d.dimensi) + '</small>' + esc(d.subdimensi) +
+      '<select data-semua="' + j + '" aria-label="Isi semua ' + esc(d.subdimensi) + '"><option value="">isi semua…</option>' + lv.map(l => '<option>' + l + '</option>').join('') + '</select></th>').join('') +
+    '<th>Deskripsi rapor / catatan</th>';
+  $('#kk-body').innerHTML = KK.siswa.map((s, i) => {
+    const h = KK.hasil[s.id] || {}, isi = KK_ISI[s.id] || {};
+    const ket = esc(h.teks || '') + (h.peringatan && h.peringatan.length ? '<div class="w">⚠ ' + h.peringatan.map(esc).join('<br>⚠ ') + '</div>' : '');
+    return '<tr class="' + (KK_BASI[s.id] ? 'basi' : '') + '"><td class="no">' + s.no + '</td><td>' + esc(s.nama) + '</td>' +
+      KK.dimensi.map((d, j) => {
+        const v = isi[d.subdimensi] || '';
+        return '<td class="lv"><select data-s="' + i + '" data-c="' + j + '" class="' + v + '" aria-label="' + esc(d.subdimensi + ' ' + s.nama) + '"><option value="">–</option>' +
+          lv.map(l => '<option' + (l === v ? ' selected' : '') + '>' + l + '</option>').join('') + '</select></td>';
+      }).join('') + '<td class="ket">' + ket + '</td></tr>';
+  }).join('');
+  statusKok();
+}
+function statusKok(){
+  const lengkap = KK.siswa.filter(s => KK.dimensi.every(d => (KK_ISI[s.id] || {})[d.subdimensi])).length;
+  $('#kk-status').innerHTML = 'Lengkap ' + teksJumlah(lengkap, KK.siswa.length) + (KK_UBAH.capaian ? ' · <b>belum disimpan</b>' : '');
+}
+function ubahCapaian(i, j, v){
+  const s = KK.siswa[i], sub = KK.dimensi[j].subdimensi;
+  if (v) KK_ISI[s.id][sub] = v; else delete KK_ISI[s.id][sub];
+  KK_BASI[s.id] = true; KK_UBAH.capaian = true;
+}
+$('#kk-body').addEventListener('change', e => {
+  const t = e.target;
+  if (t.dataset.s === undefined) return;
+  ubahCapaian(Number(t.dataset.s), Number(t.dataset.c), t.value);
+  t.className = t.value;
+  t.closest('tr').classList.add('basi');
+  statusKok();
+});
+$('#kk-head').addEventListener('change', e => {
+  const t = e.target;
+  if (t.dataset.semua === undefined || !t.value) return;
+  KK.siswa.forEach((s, i) => ubahCapaian(i, Number(t.dataset.semua), t.value));
+  renderTabelKok();
+});
+$('#kk-simpan').addEventListener('click', e => sibuk(e.target, async () => {
+  const res = await api({ aksi:'simpanKok', rombel: KK.rombel.id, semester: KK.semester, capaian: KK_ISI });
+  if (res.sesiHabis) return;
+  pesan('#kk-msg', res.pesan, res.ok, res.salah);
+  if (!res.ok) return;
+  const nar = KK_NAR, ubahNar = KK_UBAH.narasi, dim = KK_DIM, ubahDim = KK_UBAH.dimensi;
+  pakaiKok(res);
+  KK_NAR = nar; KK_UBAH.narasi = ubahNar; KK_DIM = dim; KK_UBAH.dimensi = ubahDim; // simpan capaian tidak membuang ketikan lain
+  renderTabelKok(); renderDimKok();
+}));
+
+function renderNarasiKok(){
+  $('#kk-narasi').innerHTML = KK.dimensi.map(d => '<h4>' + esc(d.subdimensi) + ' <span class="sub">(' + esc(d.dimensi) + ')</span></h4>' +
+    KK.level.map(l => {
+      const n = KK.narasi[d.subdimensi][l], k = d.subdimensi + '|' + l;
+      const v = k in KK_NAR ? KK_NAR[k] : n.teks;
+      return '<div class="lv"><b>' + l + '</b><textarea data-k="' + esc(k) + '" maxlength="300" placeholder="' + esc(n.bawaan) + '">' + esc(v) + '</textarea></div>';
+    }).join('')).join('');
+}
+$('#kk-narasi').addEventListener('input', e => {
+  if (!e.target.dataset.k) return;
+  KK_NAR[e.target.dataset.k] = e.target.value; KK_UBAH.narasi = true;
+});
+$('#kk-narasi-simpan').addEventListener('click', e => sibuk(e.target, async () => {
+  const kunci = Object.keys(KK_NAR);
+  if (!kunci.length) return pesan('#kk-narasi-msg', 'Belum ada narasi yang diubah.', false);
+  const res = await api({ aksi:'simpanNarasi', narasi: kunci.map(k => { const [sub, l] = k.split('|'); return { subdimensi: sub, level: l, narasi: KK_NAR[k] }; }) });
+  if (res.sesiHabis) return;
+  pesan('#kk-narasi-msg', res.pesan, res.ok, res.salah);
+  if (!res.ok) return;
+  KK_NAR = {}; KK_UBAH.narasi = false;
+  if (KK_UBAH.capaian) return pesan('#kk-narasi-msg', res.pesan + ' Simpan capaian untuk melihat deskripsi dengan narasi baru.', true);
+  const segar = await api({ aksi:'kokRombel', rombel: KK.rombel.id, semester: KK.semester });
+  if (!segar.ok) return;
+  const dim = KK_DIM, ubahDim = KK_UBAH.dimensi;
+  pakaiKok(segar); KK_DIM = dim; KK_UBAH.dimensi = ubahDim;
+  renderTabelKok(); renderNarasiKok();
+}));
+
+['kk-rombel', 'kk-semester'].forEach(id => {
+  let sebelum = '';
+  $('#' + id).addEventListener('focus', e => { sebelum = e.target.value; });
+  $('#' + id).addEventListener('change', e => {
+    if (!tinggalkanKok()) { e.target.value = sebelum; return; }
+    muatKok();
+  });
+});
+document.querySelector('#v-kok [data-ke="beranda"]').addEventListener('click', () => {
+  if (!tinggalkanKok()) tampil('kok');
 });
 
 /* ---------- tujuan pembelajaran ---------- */
