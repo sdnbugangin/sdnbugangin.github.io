@@ -65,6 +65,17 @@ test('simpanEkskul: keterangan otomatis dari predikat, keterangan sendiri dipert
   assert.equal(g.isi('Ekstrakurikuler').length, 2);
 });
 
+test('simpanEkskul: tanpa batas per siswa selain daftar sekolah; daftar sekolah sampai 50', () => {
+  const { g, rombel, id } = siapWali();
+  const daftar = Array.from({ length: 13 }, (_, i) => 'Kegiatan ' + (i + 1));
+  assert.equal(g.minta({ aksi: 'simpanEkskulSekolah', daftar }).ok, true);
+  const h = g.minta({ aksi: 'simpanEkskul', rombel, ekskul: { [id.Ani]: daftar.map((k) => ({ kegiatan: k, predikat: 'Baik' })) } });
+  assert.equal(h.ok, true, h.pesan);
+  assert.equal(h.ekskul[id.Ani].length, 13, 'siswa boleh mengikuti 13 kegiatan');
+  const banyak = Array.from({ length: 51 }, (_, i) => 'K' + i);
+  assert.match(g.minta({ aksi: 'simpanEkskulSekolah', daftar: banyak }).pesan, /Paling banyak 50/);
+});
+
 test('simpanEkskul: isian salah ditolak semuanya', () => {
   const { g, rombel, id } = siapWali();
   g.minta({ aksi: 'simpanEkskulSekolah', daftar: ['Pramuka'] });
@@ -73,7 +84,6 @@ test('simpanEkskul: isian salah ditolak semuanya', () => {
   assert.match(salah([{ kegiatan: 'Pramuka', predikat: 'Baik' }, { kegiatan: 'PRAMUKA', predikat: 'Baik' }]).pesan, /lebih dari sekali/);
   assert.match(salah([{ kegiatan: 'Pramuka', predikat: 'Bagus' }]).pesan, /predikat harus/);
   assert.match(salah([{ kegiatan: 'Pramuka' }]).pesan, /isi predikat atau keterangan/);
-  assert.match(salah(Array(6).fill({ kegiatan: 'Pramuka', predikat: 'B' })).pesan, /paling banyak 5/);
   assert.equal(g.minta({ aksi: 'simpanEkskul', rombel, ekskul: { 'S-asing': [] } }).ok, false);
   assert.equal(g.isi('Ekstrakurikuler').length, 0);
 });

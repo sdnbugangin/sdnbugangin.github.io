@@ -74,7 +74,7 @@ Dengan cara ini tidak ada batas 15 TP atau 60 siswa, dan tidak ada 21 sheet beri
 | Kokurikuler | subdimensi yang dinilai per kelas per semester (dimensi mengikuti subdimensinya) |
 | Capaian Kokurikuler | capaian per siswa per subdimensi (Mahir / Cakap / Berkembang) |
 | Master Narasi | subdimensi, level, narasi (75 baris bawaan dari rapor lama) |
-| Ekstrakurikuler | siswa, kegiatan, predikat, keterangan (paling banyak 5 kegiatan per siswa per semester) |
+| Ekstrakurikuler | siswa, kegiatan, predikat, keterangan (tanpa batas jumlah per siswa) |
 | Presensi & Catatan | siswa, sakit, izin, alpa, catatan wali kelas, tanggapan orang tua |
 | Kenaikan | siswa, keputusan (Naik / Tinggal; kelas 6: Lulus / Tidak Lulus) per tahun ajaran; hanya tampil di rapor semester 2 |
 | Log | waktu, pengguna, aksi, rincian |
@@ -159,14 +159,25 @@ Pengamannya: setiap perubahan nilai dicatat di Log beserta waktunya, dan kepala 
 
 ### Wali kelas (ekstrakurikuler, ketidakhadiran, catatan, kenaikan)
 
-- **Daftar ekstrakurikuler sekolah** disimpan di Pengaturan "Ekstrakurikuler Ditawarkan". Kegiatan yang sudah diisi untuk siswa tahun ini tidak bisa dihapus.
-- **Ekstrakurikuler siswa**: paling banyak 5 kegiatan dari daftar sekolah, masing-masing dengan predikat (Sangat Baik/Baik/Cukup/Kurang) dan keterangan.
+- **Daftar ekstrakurikuler sekolah** diisi dengan "jumlah ekstrakurikuler" lalu kotak bernomor (maks. 50 sebagai pengaman), disimpan di Pengaturan "Ekstrakurikuler Ditawarkan". Kegiatan yang sudah diisi untuk siswa tahun ini tidak bisa dihapus.
+- **Ekstrakurikuler siswa**: boleh lebih dari satu kegiatan dari daftar sekolah (tanpa batas selain daftar itu; satu kegiatan sekali), masing-masing dengan predikat (Sangat Baik/Baik/Cukup/Kurang) dan keterangan.
   - Keterangan kosong dibuat otomatis saat dibaca, misalnya "Sangat baik dalam mengikuti kegiatan Pramuka.", sehingga selalu sesuai predikat.
   - Satu kegiatan bisa ditambahkan ke semua siswa sekaligus.
 - **Ketidakhadiran**: bilangan bulat 0–200 hari; kosong = belum diisi. Tersedia tombol "isi 0" dan tempel blok dari Excel.
 - **Catatan wali kelas**: maksimal 500 karakter.
 - **Tanggapan Orang Tua** tidak diubah oleh aplikasi.
 - **Kenaikan** diisi sekali per tahun ajaran. Kelas 6 memakai Lulus/Tidak Lulus. Keterangan hanya muncul di rapor semester 2 (`keteranganKenaikan_`).
+
+### Cek & cetak rapor
+
+- **`rekapRombel_`** (Rapor.gs) menghitung ulang seluruh isi rapor satu rombel dari data mentah dengan fungsi yang sama seperti layar input.
+  - Agama memakai varian sesuai agama siswa. Nama mapelnya menjadi "Pendidikan Agama Islam dan Budi Pekerti" dan seterusnya.
+  - Seni memakai `hitungNilaiGabungan_` atas semua seni pilihan siswa.
+- **Kelengkapan** per siswa: nilai tiap mapel (TP + SAS lengkap), kokurikuler, ekstrakurikuler, ketidakhadiran, catatan, dan kenaikan (hanya semester 2). Juga diperiksa: profil sekolah (kepala sekolah, alamat, tempat & tanggal pembagian) dan nama wali kelas.
+- **Leger**: nilai semua mapel, jumlah, rata-rata, dan peringkat. Peringkat hanya diberikan kepada siswa yang semua nilainya lengkap; nilai sama mendapat peringkat sama.
+- **Cetak** dilakukan dari peramban (A4 tegak; leger A4 mendatar) lewat dialog cetak, yang juga bisa **Simpan sebagai PDF**. Cara ini dipilih karena guru tidak punya akses ke Drive pengelola, sehingga PDF di Drive tidak berguna bagi sekolah.
+  - Format mengikuti RAPOR CETAK lama: identitas, tabel muatan pelajaran (muatan lokal dikelompokkan a., b., …), kokurikuler, ekstrakurikuler, ketidakhadiran & catatan, tanggapan orang tua, keputusan (semester 2), dan tanda tangan.
+  - Mencetak rapor yang belum lengkap tetap bisa, tetapi harus dikonfirmasi dulu.
 
 ## 5. Pencegahan error (pelajaran dari rapor Excel lama)
 
@@ -199,5 +210,5 @@ Aturan umum:
 | 2 | Akun sekolah (daftar, verifikasi email, masuk, lupa & ganti kata sandi) dan pembuatan spreadsheet sekolah otomatis | ✅ selesai (`index.html`, `apps-script/Kode.gs`, `Akun.gs`, `Sekolah.gs`, `Narasi.gs`) |
 | 3 | Data sekolah: profil, rombel & wali kelas, siswa (tempel langsung dari Excel/Dapodik), unduh salinan Excel | ✅ selesai (`apps-script/Data.gs`, halaman Data Sekolah & Siswa) |
 | 4 | Tujuan Pembelajaran ✅ (`Tp.gs`), input nilai ✅ (`Nilai.gs`), kokurikuler ✅ (`Kokurikuler.gs`), ekstrakurikuler, presensi, catatan, kenaikan ✅ (`WaliKelas.gs`) | ✅ selesai |
-| 5 | Cek kelengkapan, rekap/leger, cetak rapor PDF (sampul, rapor, transkrip, SKL), kunci rapor | |
+| 5 | Cek kelengkapan ✅, leger ✅, cetak rapor ✅ (`Rapor.gs`); sampul, transkrip, SKL, kunci rapor | sedang dikerjakan |
 | 6 | Kenaikan kelas tahunan, uji coba di SDN Bugangin, lalu dibuka untuk sekolah lain | |

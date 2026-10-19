@@ -17,7 +17,7 @@ h1{margin:0 0 6px;font-size:clamp(1.5rem,4vw,2.3rem);letter-spacing:-.03em}heade
 .card{background:#fff;border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 10px 24px rgba(18,49,79,.07)}
 .form{max-width:460px;margin:22px auto 0}.form h2{margin:0 0 6px}.form>p{color:var(--muted);font-size:14px;line-height:1.55;margin:0 0 16px}
 .field{margin-bottom:13px}label{display:block;font-size:13px;font-weight:700;margin:0 0 6px}.hint{font-size:12.5px;color:var(--muted);margin-top:5px;line-height:1.45}
-input[type=text],input[type=email],input[type=password],input[type=date]{width:100%;font:inherit;font-size:15px;padding:11px 12px;border:1px solid #d9cfb8;border-radius:12px;background:#fff;color:var(--ink)}
+input[type=text],input[type=email],input[type=password],input[type=date],input[type=number]{width:100%;font:inherit;font-size:15px;padding:11px 12px;border:1px solid #d9cfb8;border-radius:12px;background:#fff;color:var(--ink)}
 input:focus{outline:2px solid var(--yellow);border-color:var(--yellow)}
 .check{display:flex;gap:10px;align-items:flex-start;font-weight:400;font-size:13.5px;line-height:1.5;padding:12px;border:1px solid var(--line);border-radius:12px;background:#fffdf7;cursor:pointer}.check input{margin-top:3px;width:18px;height:18px;flex:none;accent-color:var(--red)}
 .show{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--muted);margin:-4px 0 12px;cursor:pointer}.show input{accent-color:var(--blue)}
@@ -100,6 +100,9 @@ table.kok tr.basi td.ket{opacity:.45}
 .narasi textarea{width:100%;font:inherit;font-size:13.5px;line-height:1.45;padding:9px 10px;border:1px solid #d9cfb8;border-radius:10px;resize:vertical;min-height:58px}
 .narasi textarea:focus{outline:2px solid var(--yellow);border-color:var(--yellow)}
 @media (max-width:560px){.narasi .lv{grid-template-columns:1fr}.narasi .lv b{padding-top:0}}
+.eks-daftar{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px;margin-top:12px}
+.eks-daftar label{display:flex;align-items:center;gap:8px;margin:0;font-size:13px;color:var(--muted)}.eks-daftar label b{min-width:22px;text-align:right}
+.eks-daftar input{padding:9px 10px!important;font-size:14px!important}
 .eks{display:flex;flex-direction:column;gap:6px;padding:6px 4px;min-width:560px}
 .eks .e{display:grid;grid-template-columns:170px 130px 1fr 34px;gap:6px;align-items:center}
 .eks select,.eks input{padding:6px 8px!important;font-size:13px!important;border:1px solid #e3d8c0!important;border-radius:8px!important;background:#fff!important}
@@ -112,6 +115,40 @@ table.wk select.naik{background:#e3f4e7;color:var(--ok);font-weight:700}table.wk
 table.wk td.w{font-size:12px;color:#9a6c00;min-width:200px;line-height:1.4}
 .back{display:inline-block;margin-bottom:6px;font-size:14px}
 footer{text-align:center;color:var(--muted);font-size:13px;line-height:1.7;padding:28px 16px 8px}
+.cek-ok{color:var(--ok);font-weight:800}.cek-x{color:var(--bad);font-weight:800}
+table.cek td.rinci{font-size:12.5px;line-height:1.5;color:#7a5600;min-width:360px}table.cek td.rinci ul{margin:0;padding-left:16px}
+table.leger th.m,table.leger td.m{text-align:center;min-width:52px}table.leger td.m.sem{color:var(--muted);font-style:italic}
+table.leger td.j{text-align:center;font-weight:800}
+.pilih-siswa{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:6px;margin-top:10px}
+.pilih-siswa label{display:flex;gap:8px;align-items:center;font-weight:600;font-size:13.5px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:#fff;margin:0;cursor:pointer}
+.pilih-siswa input{width:17px;height:17px;accent-color:var(--red)}.pilih-siswa .st{margin-left:auto;font-size:12px}
+/* ---------- area cetak ---------- */
+#area-cetak{display:none}
+@page{size:A4 portrait;margin:12mm 14mm 12mm 16mm}
+@page leger{size:A4 landscape;margin:10mm}
+@media print{
+  body{background:#fff}
+  body>*:not(#area-cetak){display:none!important}
+  #area-cetak{display:block!important}
+}
+#area-cetak{font-family:Arial,Helvetica,sans-serif;color:#000;font-size:10pt;line-height:1.3}
+#area-cetak .hal{break-after:page}#area-cetak .hal:last-child{break-after:auto}
+#area-cetak h1{text-align:center;font-size:13pt;margin:0 0 10pt;letter-spacing:.02em}
+#area-cetak table{border-collapse:collapse;width:100%}
+#area-cetak .id td{padding:1.5pt 3pt;vertical-align:top}#area-cetak .id td.t{width:2%}
+#area-cetak .kotak th,#area-cetak .kotak td{border:0.75pt solid #000;padding:3pt 5pt;vertical-align:top}
+#area-cetak .kotak th{background:#e8e8e8;text-align:center;font-weight:700;vertical-align:middle}
+#area-cetak .utuh{break-inside:avoid}
+#area-cetak .kotak tr{break-inside:avoid}
+#area-cetak .c{text-align:center}#area-cetak .sub{padding-left:16pt}
+#area-cetak .cap div+div{margin-top:3pt}
+#area-cetak h2{font-size:10.5pt;margin:10pt 0 4pt}
+#area-cetak .blok{border:0.75pt solid #000;padding:5pt 6pt;min-height:28pt}
+#area-cetak .dua{display:grid;grid-template-columns:42% 1fr;gap:10pt;margin-top:10pt;break-inside:avoid}
+#area-cetak .putusan{border:0.75pt solid #000;padding:6pt 8pt;margin:10pt 0 0 auto;width:62%;break-inside:avoid}
+#area-cetak .ttd{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8pt;margin-top:14pt;text-align:center;break-inside:avoid}
+#area-cetak .ttd .nm{margin-top:52pt;font-weight:700;text-decoration:underline}
+#area-cetak .leger{page:leger;font-size:8.5pt}#area-cetak .leger th,#area-cetak .leger td{padding:2pt 3pt}
 </style>
 </head>
 <body>
@@ -205,7 +242,7 @@ footer{text-align:center;color:var(--muted);font-size:13px;line-height:1.7;paddi
       <button class="tile" type="button" id="t-nilai"><b>Input Nilai</b><span>Sumatif lingkup materi dan sumatif akhir semester per rombel dan mapel, lengkap dengan nilai rapor dan deskripsinya.</span><div class="tag on">Buka →</div></button>
       <button class="tile" type="button" id="t-kok"><b>Kokurikuler</b><span>Subdimensi profil lulusan per kelas, capaian Mahir/Cakap/Berkembang, dan deskripsi otomatis.</span><div class="tag on">Buka →</div></button>
       <button class="tile" type="button" id="t-wk"><b>Wali Kelas</b><span>Ekstrakurikuler, ketidakhadiran, catatan wali kelas, dan keputusan naik kelas/lulus.</span><div class="tag on">Buka →</div></button>
-      <div class="tile"><b>Cek &amp; Cetak Rapor</b><span>Pemeriksaan kelengkapan, leger, dan cetak rapor PDF.</span><div class="tag">Segera hadir</div></div>
+      <button class="tile" type="button" id="t-cetak"><b>Cek &amp; Cetak Rapor</b><span>Pemeriksaan kelengkapan, leger nilai, dan cetak rapor (bisa disimpan sebagai PDF).</span><div class="tag on">Buka →</div></button>
     </div>
 
     <div class="card akun">
@@ -321,13 +358,14 @@ footer{text-align:center;color:var(--muted);font-size:13px;line-height:1.7;paddi
       <div id="wk-eks">
         <details class="card" id="wk-daftar-box">
           <summary><b>Daftar ekstrakurikuler sekolah</b> <span class="sub" id="wk-daftar-ring"></span></summary>
-          <p class="hint" style="margin:10px 0">Satu kegiatan per baris, misalnya Pramuka, Drum Band, Tilawah. Daftar ini dipakai semua kelas. Kegiatan yang sudah diisi untuk siswa tidak bisa dihapus.</p>
-          <div class="narasi"><textarea id="wk-daftar" rows="5" aria-label="Daftar ekstrakurikuler"></textarea></div>
+          <p class="hint" style="margin:10px 0">Isi jumlah ekstrakurikuler di sekolah, lalu tulis namanya di kotak bernomor (misalnya Pramuka, Drum Band, Tilawah). Daftar ini dipakai semua kelas. Kegiatan yang sudah diisi untuk siswa tidak bisa dihapus.</p>
+          <div style="max-width:240px"><label for="wk-jml">Jumlah ekstrakurikuler</label><input type="number" id="wk-jml" min="0" max="50" inputmode="numeric" placeholder="misalnya 10"></div>
+          <div class="eks-daftar" id="wk-daftar"></div>
           <div class="toolbar"><button class="btn small" type="button" id="wk-daftar-simpan">Simpan daftar</button></div>
           <div class="msg" id="wk-daftar-msg"></div>
         </details>
         <div id="wk-eks-editor">
-          <div class="panduan" style="margin-top:14px">Tiap siswa paling banyak 5 ekstrakurikuler. Pilih kegiatan dan predikatnya. Keterangan boleh dikosongkan; rapor akan memakai kalimat otomatis seperti yang tampil samar di kotak keterangan.</div>
+          <div class="panduan" style="margin-top:14px">Siswa boleh mengikuti lebih dari satu ekstrakurikuler (klik <b>+ ekstrakurikuler</b>). Pilih kegiatan dan predikatnya. Keterangan boleh dikosongkan; rapor akan memakai kalimat otomatis seperti yang tampil samar di kotak keterangan.</div>
           <div class="toolbar">
             <span class="sub">Tambahkan ke semua siswa:</span>
             <select id="wk-massal-keg" style="width:auto"></select>
@@ -363,6 +401,47 @@ footer{text-align:center;color:var(--muted);font-size:13px;line-height:1.7;paddi
         </div>
         <div class="msg" id="wk-naik-msg"></div>
         <div class="tbl"><table class="siswa wk"><thead><tr><th>No. Absen</th><th style="min-width:200px">Nama</th><th>Keputusan</th><th>Di rapor</th></tr></thead><tbody id="wk-naik-body"></tbody></table></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CEK & CETAK RAPOR -->
+  <section id="v-cetak" class="hidden">
+    <div class="bar">
+      <div><button class="link back" type="button" data-ke="beranda">← Beranda</button><h2>Cek &amp; Cetak Rapor</h2><div class="sub" id="ct-sub"></div></div>
+    </div>
+    <div class="card">
+      <div class="grid2">
+        <div><label for="ct-rombel">Rombel</label><select id="ct-rombel"></select></div>
+        <div><label for="ct-semester">Semester</label><select id="ct-semester"><option value="1">Semester 1 (Ganjil)</option><option value="2">Semester 2 (Genap)</option></select></div>
+      </div>
+    </div>
+    <div class="msg" id="ct-info"></div>
+    <div id="ct-isi" class="hidden">
+      <div class="notice hidden" id="ct-umum"></div>
+      <div class="tabs" role="tablist" style="margin-top:14px">
+        <button type="button" data-ct="cek" class="on">Kelengkapan</button>
+        <button type="button" data-ct="leger">Leger</button>
+        <button type="button" data-ct="cetak">Cetak Rapor</button>
+      </div>
+      <div id="ct-cek">
+        <div class="toolbar"><span class="sub" id="ct-siap"></span><button class="btn ghost small" type="button" id="ct-segar">Periksa ulang</button></div>
+        <div class="tbl"><table class="siswa cek" style="width:100%"><thead><tr><th>No. Absen</th><th style="min-width:200px">Nama</th><th>Status</th><th>Yang perlu dilengkapi</th></tr></thead><tbody id="ct-cek-body"></tbody></table></div>
+      </div>
+      <div id="ct-leger" class="hidden">
+        <div class="toolbar"><button class="btn ghost small" type="button" id="ct-cetak-leger">Cetak leger</button><span class="sub">Nilai bercetak miring masih sementara (belum lengkap). Peringkat hanya untuk siswa yang nilainya lengkap.</span></div>
+        <div class="tbl"><table class="siswa leger" style="width:100%"><thead><tr id="ct-leger-head"></tr></thead><tbody id="ct-leger-body"></tbody></table></div>
+      </div>
+      <div id="ct-cetak" class="hidden">
+        <div class="panduan">Pilih siswa, lalu klik <b>Cetak / Simpan PDF</b>. Di jendela cetak pilih printer, atau pilih <b>Simpan sebagai PDF</b> untuk menyimpan berkasnya. Ukuran kertas A4, tegak.</div>
+        <div class="toolbar">
+          <button class="btn" type="button" id="ct-cetak-btn" style="width:auto">Cetak / Simpan PDF</button>
+          <button class="btn ghost small" type="button" id="ct-semua">Pilih semua</button>
+          <button class="btn ghost small" type="button" id="ct-lengkap">Hanya yang lengkap</button>
+          <span class="sub" id="ct-jumlah"></span>
+        </div>
+        <div class="msg" id="ct-msg"></div>
+        <div class="pilih-siswa" id="ct-pilih"></div>
       </div>
     </div>
   </section>
@@ -494,7 +573,7 @@ const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const ls = { get:k=>{try{return localStorage.getItem(k)||''}catch(e){return ''}}, set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}, del:k=>{try{localStorage.removeItem(k)}catch(e){}} };
 const KUNCI_SESI = 'rapor-sesi';
-const VIEWS = ['masuk','daftar','lupa','reset','verifikasi','beranda','data','siswa','tp','nilai','kok','wk'];
+const VIEWS = ['masuk','daftar','lupa','reset','verifikasi','beranda','data','siswa','tp','nilai','kok','wk','cetak'];
 let TOKEN_RESET = '';
 let DATA = null, ROMBEL = null, SISWA = [], UBAH = false, SENI_SEKOLAH = [], TARGET = 0;
 const SEMUA_SENI = ['Seni Musik', 'Seni Rupa', 'Seni Tari', 'Seni Teater'];
@@ -1268,6 +1347,11 @@ document.querySelector('#v-kok [data-ke="beranda"]').addEventListener('click', (
 });
 
 /* ---------- wali kelas ---------- */
+let WK_DAFTAR = [];
+function renderDaftarEkskul(){
+  $('#wk-jml').value = WK_DAFTAR.length || '';
+  $('#wk-daftar').innerHTML = WK_DAFTAR.map((n, i) => '<label><b>' + (i + 1) + '.</b><input type="text" data-i="' + i + '" maxlength="60" value="' + esc(n) + '" aria-label="Ekstrakurikuler ' + (i + 1) + '"></label>').join('');
+}
 let WK = null, WK_TAB = 'eks', WK_EKS = {}, WK_HADIR = {}, WK_NAIK = {};
 const WK_UBAH = { eks:false, hadir:false, naik:false };
 const WK_HARI = [{ k:'sakit' }, { k:'izin' }, { k:'alpa' }];
@@ -1321,7 +1405,7 @@ async function muatWali(){
   $('#wk-sub').textContent = 'Tahun ajaran ' + res.tahunAjaran + ' · ' + labelRombel(res.rombel) + ' · Semester ' + res.semester;
   if (!res.siswa.length) { $('#wk-isi').classList.add('hidden'); return pesan('#wk-info', 'Rombel ini belum punya siswa. Isi dulu di Data Sekolah & Siswa → Rombel & Siswa.', false); }
   $('#wk-isi').classList.remove('hidden');
-  $('#wk-daftar').value = res.ekskulSekolah.join('\n');
+  WK_DAFTAR = res.ekskulSekolah.slice(); renderDaftarEkskul();
   $('#wk-daftar-box').open = !res.ekskulSekolah.length;
   renderWali();
 }
@@ -1337,6 +1421,12 @@ document.querySelectorAll('[data-wk]').forEach(b => b.addEventListener('click', 
 const opsi = (daftar, pilih, kosong) => (kosong !== undefined ? '<option value="">' + esc(kosong) + '</option>' : '') +
   daftar.map(v => '<option' + (v === pilih ? ' selected' : '') + '>' + esc(v) + '</option>').join('');
 const ketOtomatis = e => e.kegiatan && e.predikat ? e.predikat.charAt(0) + e.predikat.slice(1).toLowerCase() + ' dalam mengikuti kegiatan ' + e.kegiatan + '.' : 'Keterangan (isi jika tanpa predikat)';
+/* Kegiatan yang sudah dipilih di baris lain siswa yang sama tidak bisa dipilih lagi. */
+function opsiKegiatan(daftar, isi, pilih){
+  const lain = isi.map(e => e.kegiatan).filter(k => k && k !== pilih);
+  const semua = !pilih || daftar.includes(pilih) ? daftar : daftar.concat(pilih);
+  return '<option value="">— kegiatan —</option>' + semua.map(v => '<option' + (v === pilih ? ' selected' : '') + (lain.includes(v) ? ' disabled' : '') + '>' + esc(v) + '</option>').join('');
+}
 function renderEkskul(){
   const daftar = WK.ekskulSekolah;
   $('#wk-daftar-ring').textContent = daftar.length ? '(' + daftar.join(', ') + ')' : '(belum ada — isi dulu)';
@@ -1346,11 +1436,11 @@ function renderEkskul(){
   $('#wk-eks-body').innerHTML = WK.siswa.map((s, i) => {
     const isi = WK_EKS[s.id] || [];
     return '<tr><td class="no">' + s.no + '</td><td>' + esc(s.nama) + '</td><td><div class="eks">' +
-      isi.map((e, j) => '<div class="e"><select data-s="' + i + '" data-j="' + j + '" data-f="kegiatan" aria-label="Kegiatan">' + opsi(daftar.includes(e.kegiatan) || !e.kegiatan ? daftar : daftar.concat(e.kegiatan), e.kegiatan, '— kegiatan —') + '</select>' +
+      isi.map((e, j) => '<div class="e"><select data-s="' + i + '" data-j="' + j + '" data-f="kegiatan" aria-label="Kegiatan">' + opsiKegiatan(daftar, isi, e.kegiatan) + '</select>' +
         '<select data-s="' + i + '" data-j="' + j + '" data-f="predikat" aria-label="Predikat">' + opsi(WK.predikat, e.predikat, '— predikat —') + '</select>' +
         '<input data-s="' + i + '" data-j="' + j + '" data-f="keterangan" maxlength="300" value="' + esc(e.keterangan || '') + '" placeholder="' + esc(ketOtomatis(e)) + '" aria-label="Keterangan">' +
         '<button class="hapus" type="button" data-s="' + i + '" data-hapus="' + j + '" title="Hapus">✕</button></div>').join('') +
-      (isi.length < WK.maksEkskul ? '<button class="tambah" type="button" data-s="' + i + '" data-tambah="1">+ ekstrakurikuler</button>' : '') +
+      (isi.length < daftar.length ? '<button class="tambah" type="button" data-s="' + i + '" data-tambah="1">+ ekstrakurikuler</button>' : '') +
       '</div></td></tr>';
   }).join('');
   statusEkskul();
@@ -1372,20 +1462,20 @@ $('#wk-eks-body').addEventListener('click', e => {
   if (!t.dataset.f) return;
   const en = WK_EKS[WK.siswa[Number(t.dataset.s)].id][Number(t.dataset.j)];
   en[t.dataset.f] = t.value; WK_UBAH.eks = true;
+  if (t.dataset.f === 'kegiatan' && e.type === 'change') { renderEkskul(); return; }
   if (t.dataset.f !== 'keterangan') t.closest('.e').querySelector('input').placeholder = ketOtomatis(en);
   statusEkskul();
 }));
 $('#wk-massal').addEventListener('click', () => {
   const keg = $('#wk-massal-keg').value, pred = $('#wk-massal-pred').value;
-  let n = 0, penuh = 0;
+  let n = 0;
   WK.siswa.forEach(s => {
     const isi = WK_EKS[s.id];
     if (isi.some(e => e.kegiatan === keg)) return;
-    if (isi.length >= WK.maksEkskul) { penuh++; return; }
     isi.push({ kegiatan: keg, predikat: pred, keterangan:'' }); n++;
   });
   WK_UBAH.eks = WK_UBAH.eks || n > 0; renderEkskul();
-  pesan('#wk-eks-msg', keg + ' ditambahkan ke ' + n + ' siswa.' + (penuh ? ' ' + penuh + ' siswa sudah 5 kegiatan.' : '') + ' Klik Simpan ekstrakurikuler.', !penuh);
+  pesan('#wk-eks-msg', keg + ' ditambahkan ke ' + n + ' siswa' + (n < WK.siswa.length ? ' (siswa lain sudah mengikutinya)' : '') + '. Klik Simpan ekstrakurikuler.', true);
 });
 $('#wk-eks-simpan').addEventListener('click', e => sibuk(e.target, async () => {
   const res = await api({ aksi:'simpanEkskul', rombel: WK.rombel.id, semester: WK.semester, ekskul: WK_EKS });
@@ -1394,12 +1484,35 @@ $('#wk-eks-simpan').addEventListener('click', e => sibuk(e.target, async () => {
   if (!res.ok) return;
   pakaiWali(res, ['eks']); renderWali();
 }));
+$('#wk-jml').addEventListener('change', e => {
+  const n = Math.max(0, Math.min(50, Math.floor(Number(e.target.value) || 0)));
+  if (n < WK_DAFTAR.length) {
+    const terisi = WK_DAFTAR.slice(n).map((x, i) => x.trim() ? n + i + 1 : 0).filter(Boolean);
+    if (terisi.length) {
+      e.target.value = WK_DAFTAR.length;
+      return pesan('#wk-daftar-msg', 'Kotak nomor ' + terisi.join(', ') + ' masih berisi. Kosongkan dulu jika memang ingin mengurangi jumlahnya.', false);
+    }
+  }
+  while (WK_DAFTAR.length < n) WK_DAFTAR.push('');
+  WK_DAFTAR.length = n;
+  $('#wk-daftar-msg').textContent = '';
+  renderDaftarEkskul();
+  const kosong = $('#wk-daftar input[value=""]');
+  if (kosong) kosong.focus();
+});
+$('#wk-daftar').addEventListener('input', e => { if (e.target.dataset.i !== undefined) WK_DAFTAR[Number(e.target.dataset.i)] = e.target.value; });
+$('#wk-daftar').addEventListener('keydown', e => {
+  if (e.key !== 'Enter' || e.target.dataset.i === undefined) return;
+  e.preventDefault();
+  const lanjut = $('#wk-daftar input[data-i="' + (Number(e.target.dataset.i) + 1) + '"]');
+  if (lanjut) lanjut.focus(); else $('#wk-daftar-simpan').focus();
+});
 $('#wk-daftar-simpan').addEventListener('click', e => sibuk(e.target, async () => {
-  const res = await api({ aksi:'simpanEkskulSekolah', daftar: $('#wk-daftar').value.split('\n') });
+  const res = await api({ aksi:'simpanEkskulSekolah', daftar: WK_DAFTAR });
   if (res.sesiHabis) return;
   pesan('#wk-daftar-msg', res.pesan, res.ok, res.salah);
   if (!res.ok) return;
-  WK.ekskulSekolah = res.ekskulSekolah; $('#wk-daftar').value = res.ekskulSekolah.join('\n');
+  WK.ekskulSekolah = res.ekskulSekolah; WK_DAFTAR = res.ekskulSekolah.slice(); renderDaftarEkskul();
   renderEkskul();
 }));
 
@@ -1497,6 +1610,138 @@ $('#wk-naik-simpan').addEventListener('click', e => sibuk(e.target, async () => 
 });
 document.querySelector('#v-wk [data-ke="beranda"]').addEventListener('click', () => {
   if (!tinggalkanWali()) tampil('wk');
+});
+
+/* ---------- cek & cetak rapor ---------- */
+let CT = null, CT_TAB = 'cek';
+$('#t-cetak').addEventListener('click', () => bukaCetak());
+async function bukaCetak(){
+  tampil('cetak');
+  if (!DATA) {
+    const d = await api({ aksi:'dataSekolah' });
+    if (d.sesiHabis) return;
+    if (!d.ok) return pesan('#ct-info', d.pesan, false);
+    DATA = d;
+  }
+  if (!DATA.rombel.length) {
+    $('#ct-rombel').innerHTML = ''; $('#ct-isi').classList.add('hidden');
+    return pesan('#ct-info', 'Belum ada rombel. Buat dulu di Data Sekolah & Siswa → Rombel & Siswa.', false);
+  }
+  const pilih = $('#ct-rombel').value;
+  $('#ct-rombel').innerHTML = DATA.rombel.map(r => '<option value="' + esc(r.id) + '">' + esc(labelRombel(r)) + (r.wali ? ' — ' + esc(r.wali) : '') + '</option>').join('');
+  if (pilih && DATA.rombel.some(r => r.id === pilih)) $('#ct-rombel').value = pilih;
+  $('#ct-semester').value = String(CT ? CT.semester : DATA.semester);
+  await muatCetak();
+}
+async function muatCetak(){
+  $('#ct-info').textContent = ''; $('#ct-msg').textContent = '';
+  $('#ct-info').className = 'msg'; $('#ct-info').textContent = 'Memeriksa data rombel…';
+  const res = await api({ aksi:'rekapRombel', rombel: $('#ct-rombel').value, semester: Number($('#ct-semester').value) });
+  $('#ct-info').textContent = '';
+  if (res.sesiHabis) return;
+  if (!res.ok) { $('#ct-isi').classList.add('hidden'); return pesan('#ct-info', res.pesan, false); }
+  CT = res;
+  $('#ct-sub').textContent = 'Tahun ajaran ' + res.tahunAjaran + ' · ' + res.rombel.label + ' · Semester ' + res.semester;
+  if (!res.siswa.length) { $('#ct-isi').classList.add('hidden'); return pesan('#ct-info', 'Rombel ini belum punya siswa.', false); }
+  $('#ct-isi').classList.remove('hidden');
+  $('#ct-umum').classList.toggle('hidden', !res.masalahUmum.length);
+  $('#ct-umum').innerHTML = '<b>Perlu dilengkapi sebelum mencetak:</b><ul style="margin:6px 0 0;padding-left:18px">' + res.masalahUmum.map(m => '<li>' + esc(m) + '</li>').join('') + '</ul>';
+  renderCetak();
+}
+function renderCetak(){
+  document.querySelectorAll('[data-ct]').forEach(b => b.classList.toggle('on', b.dataset.ct === CT_TAB));
+  ['cek', 'leger', 'cetak'].forEach(t => $('#ct-' + t).classList.toggle('hidden', t !== CT_TAB));
+  const n = CT.siswa.length;
+  $('#ct-siap').innerHTML = 'Siap cetak ' + teksJumlah(CT.siap, n);
+  $('#ct-cek-body').innerHTML = CT.siswa.map(s => '<tr><td class="no">' + s.no + '</td><td>' + esc(s.nama) + '</td>' +
+    '<td>' + (s.masalah.length ? '<span class="cek-x">' + s.masalah.length + ' kekurangan</span>' : '<span class="cek-ok">✓ Lengkap</span>') + '</td>' +
+    '<td class="rinci">' + (s.masalah.length ? '<ul>' + s.masalah.map(m => '<li>' + esc(m) + '</li>').join('') + '</ul>' : '') + '</td></tr>').join('');
+  $('#ct-leger-head').innerHTML = '<th>No. Absen</th><th style="min-width:200px">Nama</th>' +
+    CT.mapel.map(m => '<th class="m" title="' + esc(m.nama) + '">' + esc(m.kode) + '</th>').join('') + '<th class="m">Jumlah</th><th class="m">Rata-rata</th><th class="m">Peringkat</th>';
+  $('#ct-leger-body').innerHTML = CT.siswa.map(s => '<tr><td class="no">' + s.no + '</td><td>' + esc(s.nama) + '</td>' +
+    s.mapel.map(m => '<td class="m' + (m.lengkap ? '' : ' sem') + '">' + (m.nilai ?? '–') + '</td>').join('') +
+    '<td class="m j">' + (s.jumlah ?? '–') + '</td><td class="m j">' + (s.rataRata ?? '–') + '</td><td class="m j">' + (s.peringkat ?? '–') + '</td></tr>').join('');
+  const dipilih = new Set([...document.querySelectorAll('#ct-pilih input:checked')].map(x => x.value));
+  const awal = !$('#ct-pilih').dataset.rombel || $('#ct-pilih').dataset.rombel !== CT.rombel.id + '|' + CT.semester;
+  $('#ct-pilih').dataset.rombel = CT.rombel.id + '|' + CT.semester;
+  $('#ct-pilih').innerHTML = CT.siswa.map(s => '<label><input type="checkbox" value="' + esc(s.id) + '"' + (awal || dipilih.has(s.id) ? ' checked' : '') + '>' +
+    s.no + '. ' + esc(s.nama) + '<span class="st ' + (s.masalah.length ? 'cek-x">belum lengkap' : 'cek-ok">✓') + '</span></label>').join('');
+  jumlahPilih();
+}
+function jumlahPilih(){ $('#ct-jumlah').textContent = document.querySelectorAll('#ct-pilih input:checked').length + ' siswa dipilih'; }
+$('#ct-pilih').addEventListener('change', jumlahPilih);
+$('#ct-semua').addEventListener('click', () => { document.querySelectorAll('#ct-pilih input').forEach(x => { x.checked = true; }); jumlahPilih(); });
+$('#ct-lengkap').addEventListener('click', () => {
+  const siap = new Set(CT.siswa.filter(s => !s.masalah.length).map(s => s.id));
+  document.querySelectorAll('#ct-pilih input').forEach(x => { x.checked = siap.has(x.value); }); jumlahPilih();
+});
+document.querySelectorAll('[data-ct]').forEach(b => b.addEventListener('click', () => { CT_TAB = b.dataset.ct; renderCetak(); }));
+$('#ct-segar').addEventListener('click', e => sibuk(e.target, muatCetak));
+['ct-rombel', 'ct-semester'].forEach(id => $('#' + id).addEventListener('change', () => muatCetak()));
+
+/* Satu rapor siswa dalam format cetak. */
+function halamanRapor(s){
+  const R = CT, sem = R.semester === 1 ? '1 (Ganjil)' : '2 (Genap)';
+  const kelas = R.rombel.nama === String(R.rombel.kelas) ? R.rombel.romawi : esc(R.rombel.nama);
+  const baris = (a, b, c, d) => '<tr><td>' + a + '</td><td class="t">:</td><td>' + b + '</td><td style="width:14%">' + c + '</td><td class="t">:</td><td style="width:18%">' + d + '</td></tr>';
+  const cap = m => '<td class="cap">' + (m.deskripsi.length ? m.deskripsi.map(d => '<div>' + esc(d) + '</div>').join('') : '') + '</td>';
+  let no = 0, huruf = 0, adaMulok = false;
+  const barisMapel = s.mapel.map(m => {
+    if (m.jenis === 'mulok') {
+      let kepala = '';
+      if (!adaMulok) { adaMulok = true; no++; kepala = '<tr><td class="c">' + no + '</td><td colspan="3"><b>Muatan Lokal</b></td></tr>'; }
+      return kepala + '<tr><td></td><td class="sub">' + String.fromCharCode(97 + huruf++) + '. ' + esc(m.nama) + '</td><td class="c">' + (m.nilai ?? '') + '</td>' + cap(m) + '</tr>';
+    }
+    no++;
+    return '<tr><td class="c">' + no + '</td><td>' + esc(m.nama) + '</td><td class="c">' + (m.nilai ?? '') + '</td>' + cap(m) + '</tr>';
+  }).join('');
+  const hari = v => (v === '' || v === null || v === undefined ? '-' : v) + ' hari';
+  const eks = s.ekskul.length ? s.ekskul.map((e, i) => '<tr><td class="c">' + (i + 1) + '</td><td>' + esc(e.kegiatan) + '</td><td>' + esc(e.keterangan) + '</td></tr>').join('')
+    : '<tr><td class="c">1</td><td>-</td><td>-</td></tr>';
+  const sekolah = R.sekolah;
+  return '<div class="hal"><h1>LAPORAN HASIL BELAJAR<br>(RAPOR)</h1>' +
+    '<table class="id">' + baris('Nama Murid', '<b>' + esc(s.nama) + '</b>', 'Kelas', kelas) +
+    baris('NISN / NIS', esc(s.nisn || '-') + ' / ' + esc(s.nis || '-'), 'Fase', R.rombel.fase) +
+    baris('Nama Sekolah', esc(sekolah.nama), 'Semester', sem) +
+    baris('Alamat Sekolah', esc(sekolah.alamat), 'Tahun Ajaran', esc(R.tahunAjaran)) + '</table>' +
+    '<table class="kotak" style="margin-top:8pt"><thead><tr><th style="width:5%">No</th><th style="width:27%">Muatan Pelajaran</th><th style="width:9%">Nilai Akhir</th><th>Capaian Kompetensi</th></tr></thead><tbody>' + barisMapel + '</tbody></table>' +
+    '<div class="utuh"><h2>KOKURIKULER</h2><div class="blok">' + esc(s.kokurikuler || '-') + '</div></div>' +
+    '<table class="kotak utuh" style="margin-top:10pt"><thead><tr><th style="width:5%">No</th><th style="width:32%">Ekstrakurikuler</th><th>Keterangan</th></tr></thead><tbody>' + eks + '</tbody></table>' +
+    '<div class="dua"><table class="kotak"><thead><tr><th colspan="2">Ketidakhadiran</th></tr></thead><tbody>' +
+      '<tr><td>Sakit</td><td>' + hari(s.presensi.sakit) + '</td></tr><tr><td>Izin</td><td>' + hari(s.presensi.izin) + '</td></tr><tr><td>Tanpa Keterangan</td><td>' + hari(s.presensi.alpa) + '</td></tr></tbody></table>' +
+      '<table class="kotak"><thead><tr><th>Catatan Wali Kelas</th></tr></thead><tbody><tr><td style="height:52pt">' + esc(s.presensi.catatan || '') + '</td></tr></tbody></table></div>' +
+    '<div class="utuh"><h2>Tanggapan Orang Tua/Wali Murid</h2><div class="blok" style="min-height:40pt"></div></div>' +
+    (s.kenaikan.tampil ? '<div class="putusan"><b>Keputusan:</b><br>Berdasarkan pencapaian seluruh kompetensi, ananda ' + esc(s.nama) + ' dinyatakan:<br><b>' + esc(s.kenaikan.teks || '..........................') + '</b></div>' : '') +
+    '<div class="ttd"><div>Mengetahui,<br>Orang Tua/Wali<div class="nm">' + '.'.repeat(30) + '</div></div>' +
+      '<div>Mengetahui,<br>Kepala Sekolah<div class="nm">' + esc(sekolah.kepala || '') + '</div>' + (sekolah.nipKepala ? 'NIP. ' + esc(sekolah.nipKepala) : '') + '</div>' +
+      '<div>' + esc(sekolah.tempat || '') + (sekolah.tanggal ? ', ' + esc(sekolah.tanggal) : '') + '<br>Wali Kelas<div class="nm">' + esc(R.rombel.wali || '') + '</div>' + (R.rombel.nip ? 'NIP. ' + esc(R.rombel.nip) : '') + '</div></div>' +
+    '</div>';
+}
+function areaCetak(){
+  let a = document.getElementById('area-cetak');
+  if (!a) { a = document.createElement('div'); a.id = 'area-cetak'; document.body.appendChild(a); }
+  return a;
+}
+$('#ct-cetak-btn').addEventListener('click', () => {
+  const ids = new Set([...document.querySelectorAll('#ct-pilih input:checked')].map(x => x.value));
+  const siswa = CT.siswa.filter(s => ids.has(s.id));
+  if (!siswa.length) return pesan('#ct-msg', 'Pilih minimal satu siswa.', false);
+  const belum = siswa.filter(s => s.masalah.length).length;
+  if ((belum || CT.masalahUmum.length) && !confirm((belum ? belum + ' rapor yang dipilih belum lengkap. ' : '') +
+    (CT.masalahUmum.length ? 'Profil sekolah/wali kelas belum lengkap. ' : '') + 'Tetap cetak?')) return;
+  areaCetak().innerHTML = siswa.map(halamanRapor).join('');
+  document.title = 'Rapor ' + CT.rombel.label + ' Semester ' + CT.semester + ' ' + CT.tahunAjaran.replace('/', '-');
+  window.print();
+  document.title = 'Rapor SD';
+});
+$('#ct-cetak-leger').addEventListener('click', () => {
+  const R = CT;
+  areaCetak().innerHTML = '<div class="leger"><h1>LEGER NILAI ' + esc(R.rombel.label.toUpperCase()) + ' — SEMESTER ' + R.semester + ' TAHUN AJARAN ' + esc(R.tahunAjaran) + '<br>' + esc(R.sekolah.nama) + '</h1>' +
+    '<table class="kotak"><thead><tr><th>No</th><th>Nama</th>' + R.mapel.map(m => '<th>' + esc(m.kode) + '</th>').join('') + '<th>Jumlah</th><th>Rata-rata</th><th>Peringkat</th></tr></thead><tbody>' +
+    R.siswa.map(s => '<tr><td class="c">' + s.no + '</td><td>' + esc(s.nama) + '</td>' + s.mapel.map(m => '<td class="c">' + (m.nilai ?? '') + (m.lengkap ? '' : '*') + '</td>').join('') +
+      '<td class="c">' + (s.jumlah ?? '') + '</td><td class="c">' + (s.rataRata ?? '') + '</td><td class="c">' + (s.peringkat ?? '') + '</td></tr>').join('') + '</tbody></table>' +
+    '<p style="font-size:8pt">Keterangan: ' + R.mapel.map(m => esc(m.kode) + ' = ' + esc(m.nama)).join('; ') + '. Tanda * = nilai belum lengkap.</p></div>';
+  window.print();
 });
 
 /* ---------- tujuan pembelajaran ---------- */

@@ -1,14 +1,15 @@
 /**
  * Aplikasi Rapor SD — isian wali kelas per rombel: ekstrakurikuler, ketidakhadiran, catatan wali kelas, dan kenaikan.
  *
- * Ekstrakurikuler: sekolah menyusun daftar kegiatan (Pengaturan "Ekstrakurikuler Ditawarkan"); tiap siswa paling
- *   banyak MAKS_EKSKUL kegiatan, masing-masing dengan predikat dan keterangan. Keterangan yang dikosongkan dibuat
+ * Ekstrakurikuler: sekolah menyusun daftar kegiatan (Pengaturan "Ekstrakurikuler Ditawarkan"); siswa boleh mengikuti
+ *   sebanyak apa pun dari daftar itu (tiap kegiatan sekali), masing-masing dengan predikat dan keterangan. Keterangan yang dikosongkan dibuat
  *   otomatis dari predikat saat dibaca (tidak disimpan), sehingga mengubah predikat langsung mengubah kalimatnya.
  * Presensi & Catatan: satu baris per siswa per semester. Kolom Tanggapan Orang Tua tidak disentuh.
  * Kenaikan: satu baris per siswa per tahun ajaran; hanya tampil di rapor semester 2 (keteranganKenaikan_).
  */
 
-var MAKS_EKSKUL = 5;
+/* Batas pengaman daftar kegiatan sekolah (bukan batas per siswa). */
+var MAKS_EKSKUL_SEKOLAH = 50;
 var PREDIKAT_EKSKUL = ['Sangat Baik', 'Baik', 'Cukup', 'Kurang'];
 var MAKS_HARI = 200;
 var MAKS_CATATAN = 500;
@@ -43,7 +44,7 @@ function cekDaftarEkskul_(daftar) {
     ada[n.toLowerCase()] = true;
     hasil.push(n);
   });
-  if (hasil.length > 30) salah.push('Paling banyak 30 kegiatan ekstrakurikuler.');
+  if (hasil.length > MAKS_EKSKUL_SEKOLAH) salah.push('Paling banyak ' + MAKS_EKSKUL_SEKOLAH + ' kegiatan ekstrakurikuler.');
   return { daftar: hasil, salah: salah };
 }
 
@@ -112,7 +113,7 @@ function bentukWali_(ss, k) {
     ket[s.id] = { peringatan: p, kenaikan: naik.teks };
   });
   return {
-    ok: true, tahunAjaran: k.ta, semester: k.sem, rombel: k.rombel, maksEkskul: MAKS_EKSKUL, predikat: PREDIKAT_EKSKUL,
+    ok: true, tahunAjaran: k.ta, semester: k.sem, rombel: k.rombel, maksEkskulSekolah: MAKS_EKSKUL_SEKOLAH, predikat: PREDIKAT_EKSKUL,
     ekskulSekolah: ekskulSekolah_(ss),
     siswa: k.siswa.map(function (s) { return { id: s.id, no: s.no, nama: s.nama }; }),
     ekskul: ekskul, presensi: presensi, kenaikan: kenaikan, cek: ket
@@ -167,7 +168,6 @@ function simpanEkskul_(npsn, req) {
     k.siswa.forEach(function (s) {
       var daftar = (Array.isArray(isian[s.id]) ? isian[s.id] : []).filter(function (e) { return e && teks_(e.kegiatan); });
       var ada = {}, awal = s.no + '. ' + s.nama + ' — ';
-      if (daftar.length > MAKS_EKSKUL) salah.push(awal + 'paling banyak ' + MAKS_EKSKUL + ' ekstrakurikuler.');
       daftar.forEach(function (e) {
         var keg = tawar[teks_(e.kegiatan).toLowerCase()], pred = predikatEkskul_(e.predikat), ket = teks_(e.keterangan);
         if (!keg) { salah.push(awal + '"' + teks_(e.kegiatan) + '" tidak ada di daftar ekstrakurikuler sekolah.'); return; }
