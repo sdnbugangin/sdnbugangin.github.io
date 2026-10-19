@@ -185,6 +185,16 @@ Pengamannya: setiap perubahan nilai dicatat di Log beserta waktunya, dan kepala 
   - Ekskul & Kehadiran (termasuk keputusan kenaikan di semester 2).
   - NISN ditulis sebagai teks agar nol di depan tidak hilang. Nama sheet yang lebih dari 31 karakter memakai kode mapel (IPAS, PJOK).
 
+### Sampul dan identitas
+
+- Tombol **Cetak sampul & identitas** di Cek & Cetak Rapor → Cetak Rapor. Satu siswa = 3 halaman A4, mengikuti SAMPUL CETAK lama:
+  1. **Halaman depan**: RAPOR PESERTA DIDIK SEKOLAH DASAR (SD), logo Tut Wuri Handayani (`logo-tutwuri.png`), nama, NISN/NIS, Kementerian.
+  2. **Identitas sekolah**: nama, NPSN, alamat, kode pos, desa, kecamatan, kabupaten, provinsi, website, email.
+  3. **Identitas peserta didik**: data diri, orang tua dan pekerjaannya, alamat orang tua, wali, kotak pas foto 3×4, dan tanda tangan kepala sekolah.
+- Kolom siswa tambahan untuk sampul: Pendidikan Sebelumnya, Pekerjaan Ayah/Ibu, Alamat Orang Tua, Pekerjaan Wali, Alamat Wali.
+- Profil sekolah mendapat baris **Website**. Spreadsheet lama dilengkapi otomatis (`profilLengkap_`).
+- Logo ditunggu sampai termuat sebelum jendela cetak dibuka.
+
 ### Kunci rapor
 
 - Di **Cek & Cetak Rapor**, rapor satu rombel pada satu semester bisa **dikunci** setelah final. Kunci disimpan di Pengaturan "Rapor Terkunci".
@@ -279,5 +289,5 @@ Aturan umum:
 | 2 | Akun sekolah (daftar, verifikasi email, masuk, lupa & ganti kata sandi) dan pembuatan spreadsheet sekolah otomatis | ✅ selesai (`index.html`, `apps-script/Kode.gs`, `Akun.gs`, `Sekolah.gs`, `Narasi.gs`) |
 | 3 | Data sekolah: profil, rombel & wali kelas, siswa (tempel langsung dari Excel/Dapodik), unduh salinan Excel | ✅ selesai (`apps-script/Data.gs`, halaman Data Sekolah & Siswa) |
 | 4 | Tujuan Pembelajaran ✅ (`Tp.gs`), input nilai ✅ (`Nilai.gs`), kokurikuler ✅ (`Kokurikuler.gs`), ekstrakurikuler, presensi, catatan, kenaikan ✅ (`WaliKelas.gs`) | ✅ selesai |
-| 5 | Cek kelengkapan ✅, leger ✅, cetak rapor ✅ (`Rapor.gs`), unduh Excel ✅, kunci rapor ✅ (`Kunci.gs`), uji beban ✅ (`Uji.gs`); sampul, transkrip, SKL | sedang dikerjakan |
+| 5 | Cek kelengkapan ✅, leger ✅, cetak rapor ✅ (`Rapor.gs`), unduh Excel ✅, kunci rapor ✅ (`Kunci.gs`), uji beban ✅ (`Uji.gs`), sampul ✅; transkrip, SKL | sedang dikerjakan |
 | 6 | Kenaikan kelas tahunan ✅ (`TahunAjaran.gs`), uji coba di SDN Bugangin, lalu dibuka untuk sekolah lain | |

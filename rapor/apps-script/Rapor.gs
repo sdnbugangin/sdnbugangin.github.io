@@ -88,7 +88,12 @@ function rekapRombel_(npsn, req) {
 
   // siswa + identitas
   var identitas = {};
-  bacaTabel_(ss, 'Siswa').forEach(function (r) { identitas[teks_(r['ID Siswa'])] = { nis: teks_(r.NIS), nisn: teks_(r.NISN) }; });
+  bacaTabel_(ss, 'Siswa').forEach(function (r) {
+    var s = siswaDariBaris_(r);
+    s.tanggalLahirPanjang = tanggalPanjang_(s.tanggalLahir);
+    s.jkPanjang = s.jk === 'L' ? 'Laki-laki' : s.jk === 'P' ? 'Perempuan' : s.jk;
+    identitas[teks_(r['ID Siswa'])] = s;
+  });
 
   // mapel, TP, dan nilai
   var mapel = mapelAktifKelas_(ss, k.ta, kelas);
@@ -127,6 +132,7 @@ function rekapRombel_(npsn, req) {
     var semuaLengkap = hasilMapel.length > 0 && nilaiAda.length === hasilMapel.length;
     return {
       id: s.id, no: s.no, nama: s.nama, nis: (identitas[s.id] || {}).nis || '', nisn: (identitas[s.id] || {}).nisn || '',
+      identitas: identitas[s.id] || {},
       mapel: hasilMapel, kokurikuler: hasilKok[s.id].teks, ekskul: ekskul,
       presensi: wali.presensi[s.id], kenaikan: naik,
       jumlah: semuaLengkap ? nilaiAda.reduce(function (a, b) { return a + b; }, 0) : null,
@@ -144,7 +150,10 @@ function rekapRombel_(npsn, req) {
     sekolah: {
       nama: profil['Nama Sekolah'] || '', npsn: profil.NPSN || '', alamat: [profil.Alamat, profil['Desa/Kelurahan'], profil.Kecamatan, profil['Kabupaten/Kota']].filter(String).join(', '),
       kepala: profil['Kepala Sekolah'] || '', nipKepala: profil['NIP Kepala Sekolah'] || '',
-      tempat: profil['Tempat Pembagian Rapor'] || '', tanggal: tanggalPanjang_(profil['Tanggal Pembagian Rapor'])
+      tempat: profil['Tempat Pembagian Rapor'] || '', tanggal: tanggalPanjang_(profil['Tanggal Pembagian Rapor']),
+      jalan: profil.Alamat || '', kodePos: profil['Kode Pos'] || '', desa: profil['Desa/Kelurahan'] || '', kecamatan: profil.Kecamatan || '',
+      kabupaten: profil['Kabupaten/Kota'] || '', provinsi: profil.Provinsi || '', website: profil.Website || '', email: profil.Email || '',
+      instansi: profil['Nama Instansi'] || ''
     },
     mapel: mapel.map(function (m) { return { kode: m.kode, nama: m.nama, jenis: m.jenis }; }),
     siswa: siswa, masalahUmum: masalahUmum,

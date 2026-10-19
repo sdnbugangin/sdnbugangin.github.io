@@ -150,6 +150,20 @@ table.leger td.j{text-align:center;font-weight:800}
 #area-cetak .putusan{border:0.75pt solid #000;padding:6pt 8pt;margin:10pt 0 0 auto;width:62%;break-inside:avoid}
 #area-cetak .ttd{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8pt;margin-top:14pt;text-align:center;break-inside:avoid}
 #area-cetak .ttd .nm{margin-top:52pt;font-weight:700;text-decoration:underline}
+#area-cetak .sampul{display:flex;flex-direction:column;align-items:center;text-align:center;min-height:262mm;padding-top:18mm}
+#area-cetak .sampul .judul{font-size:20pt;font-weight:700;line-height:1.5;letter-spacing:.06em}
+#area-cetak .sampul .kotak-nama{border:1pt solid #000;padding:6pt 10pt;min-width:110mm;font-size:13pt;font-weight:700;margin:4pt 0 14pt}
+#area-cetak .sampul .logo{width:55mm;height:auto;margin:16mm 0 14mm}
+#area-cetak .sampul .label{font-size:11pt;margin-top:10pt}
+#area-cetak .sampul .bawah{margin-top:auto;font-size:12pt;font-weight:700;line-height:1.5}
+#area-cetak .identitas{min-height:262mm}
+#area-cetak .identitas h1{margin-bottom:16pt}
+#area-cetak .identitas table.isi td{padding:3.5pt 4pt;vertical-align:top;font-size:10.5pt}
+#area-cetak .identitas table.isi td.n{width:6%}#area-cetak .identitas table.isi td.k{width:36%}#area-cetak .identitas table.isi td.t{width:2%}
+#area-cetak .identitas table.isi td.sub{padding-left:18pt}
+#area-cetak .identitas .ttd-ks{display:flex;justify-content:flex-end;gap:22mm;margin-top:18pt;align-items:flex-start}
+#area-cetak .identitas .foto{width:30mm;height:40mm;border:0.75pt solid #000;display:flex;align-items:center;justify-content:center;font-size:8.5pt;color:#444}
+#area-cetak .identitas .ttd-ks .nm{margin-top:52pt;font-weight:700;text-decoration:underline}
 #area-cetak .leger{page:leger;font-size:8.5pt}#area-cetak .leger th,#area-cetak .leger td{padding:2pt 3pt}
 </style>
 </head>
@@ -452,6 +466,7 @@ table.leger td.j{text-align:center;font-weight:800}
         <div class="panduan">Pilih siswa, lalu klik <b>Cetak / Simpan PDF</b>. Di jendela cetak pilih printer, atau pilih <b>Simpan sebagai PDF</b> untuk menyimpan berkasnya. Ukuran kertas A4, tegak.</div>
         <div class="toolbar">
           <button class="btn" type="button" id="ct-cetak-btn" style="width:auto">Cetak / Simpan PDF</button>
+          <button class="btn ghost small" type="button" id="ct-sampul-btn">Cetak sampul &amp; identitas</button>
           <button class="btn ghost small" type="button" id="ct-semua">Pilih semua</button>
           <button class="btn ghost small" type="button" id="ct-lengkap">Hanya yang lengkap</button>
           <span class="sub" id="ct-jumlah"></span>
@@ -622,7 +637,13 @@ const KOLOM = [
   { k:'ayah', judul:'Nama Ayah', w:180 },
   { k:'ibu', judul:'Nama Ibu', w:180 },
   { k:'wali', judul:'Nama Wali', w:180 },
-  { k:'alamat', judul:'Alamat', w:260 }
+  { k:'alamat', judul:'Alamat', w:260 },
+  { k:'pendidikanSebelumnya', judul:'Pendidikan Sebelumnya', w:170, ph:'mis. TK Pertiwi' },
+  { k:'pekerjaanAyah', judul:'Pekerjaan Ayah', w:150 },
+  { k:'pekerjaanIbu', judul:'Pekerjaan Ibu', w:150 },
+  { k:'alamatOrtu', judul:'Alamat Orang Tua', w:260 },
+  { k:'pekerjaanWali', judul:'Pekerjaan Wali', w:150 },
+  { k:'alamatWali', judul:'Alamat Wali', w:260 }
 ];
 /* "2016-03-15" → "15/03/2016" agar sama dengan kebiasaan guru; server menerima keduanya. */
 /* Kelas dengan satu rombel menyimpan nama rombel berupa nomor kelas ("5"); tampil sebagai "Kelas 5". */
@@ -1911,6 +1932,46 @@ function halamanRapor(s){
       '<div>' + esc(sekolah.tempat || '') + (sekolah.tanggal ? ', ' + esc(sekolah.tanggal) : '') + '<br>Wali Kelas<div class="nm">' + esc(R.rombel.wali || '') + '</div>' + (R.rombel.nip ? 'NIP. ' + esc(R.rombel.nip) : '') + '</div></div>' +
     '</div>';
 }
+/* Sampul rapor (3 halaman): sampul depan, identitas sekolah, identitas peserta didik. */
+function halamanSampul(s){
+  const S = CT.sekolah, I = s.identitas || {}, isi = v => esc(v || '') || '&nbsp;';
+  const judul = '<div class="judul">R A P O R<br>PESERTA DIDIK<br>SEKOLAH DASAR<br>(SD)</div>';
+  const baris = (n, k, v, sub) => '<tr><td class="n">' + (n || '') + '</td><td class="k' + (sub ? ' sub' : '') + '">' + k + '</td><td class="t">:</td><td>' + isi(v) + '</td></tr>';
+  const depan = '<div class="hal sampul">' + judul + '<img class="logo" src="logo-tutwuri.png" alt="Tut Wuri Handayani">' +
+    '<div class="label">Nama Peserta Didik</div><div class="kotak-nama">' + isi(s.nama) + '</div>' +
+    '<div class="label">NISN / NIS</div><div class="kotak-nama">' + esc(s.nisn || '-') + ' / ' + esc(s.nis || '-') + '</div>' +
+    '<div class="bawah">KEMENTERIAN PENDIDIKAN DASAR DAN MENENGAH<br>REPUBLIK INDONESIA</div></div>';
+  const sekolah = '<div class="hal sampul"><div class="judul" style="font-size:16pt">RAPOR<br>PESERTA DIDIK<br>SEKOLAH DASAR (SD)</div><div style="height:22mm"></div>' +
+    '<table class="isi" style="width:auto;min-width:150mm;text-align:left;font-size:11pt"><tbody>' +
+    [['Nama Sekolah', S.nama], ['NPSN', S.npsn], ['Alamat Sekolah', S.jalan], ['Kode Pos', S.kodePos], ['Desa / Kelurahan', S.desa], ['Kecamatan', S.kecamatan],
+     ['Kabupaten / Kota', S.kabupaten], ['Provinsi', S.provinsi], ['Website', S.website], ['E-mail', S.email]]
+      .map(([k, v]) => '<tr><td style="padding:5pt 6pt;width:42%">' + k + '</td><td style="padding:5pt 2pt">:</td><td style="padding:5pt 6pt">' + isi(v) + '</td></tr>').join('') +
+    '</tbody></table></div>';
+  const ttl = [I.tempatLahir, I.tanggalLahirPanjang].filter(Boolean).join(', ');
+  const ident = '<div class="hal identitas"><h1>IDENTITAS PESERTA DIDIK</h1><table class="isi"><tbody>' +
+    baris(1, 'Nama Peserta Didik', s.nama) + baris(2, 'NISN / NIS', (s.nisn || '-') + ' / ' + (s.nis || '-')) + baris(3, 'Tempat, Tanggal Lahir', ttl) +
+    baris(4, 'Jenis Kelamin', I.jkPanjang) + baris(5, 'Agama', I.agama) + baris(6, 'Pendidikan Sebelumnya', I.pendidikanSebelumnya) +
+    baris(7, 'Alamat Peserta Didik', I.alamat) +
+    baris(8, 'Nama Orang Tua', ' ') + baris('', 'a. Ayah', I.ayah, 1) + baris('', 'b. Ibu', I.ibu, 1) +
+    baris(9, 'Pekerjaan Orang Tua', ' ') + baris('', 'a. Ayah', I.pekerjaanAyah, 1) + baris('', 'b. Ibu', I.pekerjaanIbu, 1) +
+    baris(10, 'Alamat Orang Tua', I.alamatOrtu) +
+    baris(11, 'Wali Peserta Didik', ' ') + baris('', 'a. Nama', I.wali, 1) + baris('', 'b. Pekerjaan', I.pekerjaanWali, 1) + baris('', 'c. Alamat', I.alamatWali, 1) +
+    '</tbody></table><div class="ttd-ks"><div class="foto">Pas foto<br>3 × 4</div><div>' + esc(S.tempat || '') + (S.tanggal ? ', ' + esc(S.tanggal) : '') +
+    '<br>Kepala Sekolah<div class="nm">' + esc(S.kepala || '') + '</div>' + (S.nipKepala ? 'NIP. ' + esc(S.nipKepala) : '') + '</div></div></div>';
+  return depan + sekolah + ident;
+}
+$('#ct-sampul-btn').addEventListener('click', async () => {
+  const ids = new Set([...document.querySelectorAll('#ct-pilih input:checked')].map(x => x.value));
+  const siswa = CT.siswa.filter(s => ids.has(s.id));
+  if (!siswa.length) return pesan('#ct-msg', 'Pilih minimal satu siswa.', false);
+  areaCetak().innerHTML = siswa.map(halamanSampul).join('');
+  // logo harus sudah termuat sebelum jendela cetak dibuka, kalau tidak halaman depan tercetak tanpa logo
+  await Promise.all([...areaCetak().querySelectorAll('img')].map(i => i.decode().catch(() => {})));
+  document.title = 'Sampul Rapor ' + CT.rombel.label + ' ' + CT.tahunAjaran.replace('/', '-');
+  window.print();
+  document.title = 'Rapor SD';
+});
+
 function areaCetak(){
   let a = document.getElementById('area-cetak');
   if (!a) { a = document.createElement('div'); a.id = 'area-cetak'; document.body.appendChild(a); }
