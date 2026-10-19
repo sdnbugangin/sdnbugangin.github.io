@@ -354,3 +354,72 @@ test('aksi data wajib sesi yang sah', () => {
     assert.equal(salin(g.ctx.layani_({ aksi })).sesiHabis, true, aksi);
   }
 });
+
+/* ---------- mata pelajaran per kelas ---------- */
+
+const mapelDari = (h, kode) => h.mapel.find((m) => m.kode === kode);
+
+test('mapelSekolah: daftar mapel per kelas dengan status wajib/pilihan', () => {
+  const g = sekolahAktif();
+  const h = g.minta({ aksi: 'mapelSekolah' });
+  assert.equal(h.ok, true);
+  assert.deepEqual(h.mapel.map((m) => m.kode), ['PAB', 'PP', 'BIND', 'MTK', 'IPAS', 'SENI', 'PJOK', 'BING', 'KKA', 'MULOK1', 'MULOK2']);
+  assert.deepEqual(mapelDari(h, 'IPAS').kelas, { 3: true, 4: true, 5: true, 6: true });
+  assert.equal(mapelDari(h, 'MTK').pilihan, false);
+  assert.equal(mapelDari(h, 'BING').pilihan, true);
+  assert.deepEqual(mapelDari(h, 'KKA').kelas, { 5: false, 6: false });
+});
+
+test('simpanMapel: sekolah yang belum mengajar Bahasa Inggris & sudah mengajar KKA', () => {
+  const g = sekolahAktif();
+  const h = g.minta({ aksi: 'simpanMapel', mapel: [
+    { kode: 'BING', kelas: { 1: false, 2: false, 3: false, 4: false, 5: false, 6: false } },
+    { kode: 'KKA', kelas: { 5: true, 6: true } }
+  ] });
+  assert.equal(h.ok, true, h.pesan);
+  assert.deepEqual(mapelDari(h, 'BING').kelas, { 1: false, 2: false, 3: false, 4: false, 5: false, 6: false });
+  assert.deepEqual(mapelDari(h, 'KKA').kelas, { 5: true, 6: true });
+  const aktif5 = g.isi('Mapel Aktif').filter((r) => r[1] === 5 && r[6] === 'Ya').map((r) => r[2]);
+  assert.deepEqual(aktif5, ['PAB', 'PP', 'BIND', 'MTK', 'IPAS', 'SENI', 'PJOK', 'KKA']);
+});
+
+test('simpanMapel: mapel wajib tetap aktif walau dikirim tidak dicentang', () => {
+  const g = sekolahAktif();
+  const h = g.minta({ aksi: 'simpanMapel', mapel: [{ kode: 'MTK', kelas: { 1: false } }, { kode: 'IPAS', kelas: { 3: false } }] });
+  assert.equal(h.ok, true);
+  assert.equal(mapelDari(h, 'MTK').kelas[1], true);
+  assert.equal(mapelDari(h, 'IPAS').kelas[3], true);
+});
+
+test('simpanMapel: muatan lokal wajib diberi nama, bisa ditambah sampai 7', () => {
+  const g = sekolahAktif();
+  assert.match(g.minta({ aksi: 'simpanMapel', mapel: [{ kode: 'MULOK1', nama: '', kelas: { 4: true } }] }).pesan, /Beri nama muatan lokal/);
+  assert.match(g.minta({ aksi: 'simpanMapel', mapel: [{ kode: 'MULOK1', nama: 'Muatan Lokal 1', kelas: { 4: true } }] }).pesan, /Beri nama/);
+  const h = g.minta({ aksi: 'simpanMapel', mapel: [
+    { kode: 'MULOK1', nama: 'Bahasa Jawa', kelas: { 1: true, 2: true, 3: true, 4: true, 5: true, 6: true } },
+    { kode: 'MULOK3', nama: 'Baca Tulis Al-Quran', kelas: { 4: true, 5: true } }
+  ] });
+  assert.equal(h.ok, true, h.pesan);
+  assert.equal(mapelDari(h, 'MULOK1').nama, 'Bahasa Jawa');
+  assert.deepEqual(mapelDari(h, 'MULOK3').kelas, { 1: false, 2: false, 3: false, 4: true, 5: true, 6: false });
+  assert.deepEqual(h.mapel.map((m) => m.kode).slice(-3), ['MULOK1', 'MULOK2', 'MULOK3']);
+  assert.match(g.minta({ aksi: 'simpanMapel', mapel: [{ kode: 'MULOK8', nama: 'X', kelas: {} }] }).pesan, /tidak dikenal/);
+  assert.match(g.minta({ aksi: 'simpanMapel', mapel: [{ kode: 'MULOK2', nama: 'bahasa jawa', kelas: { 1: true } }] }).pesan, /dipakai dua kali/);
+});
+
+test('simpanMapel: mapel yang sudah punya nilai tidak bisa dinonaktifkan', () => {
+  const g = sekolahAktif();
+  const id = rombel(g, 5, '');
+  g.minta({ aksi: 'simpanSiswa', rombel: id, siswa: SISWA.slice(0, 1) });
+  const idSiswa = g.minta({ aksi: 'siswaRombel', rombel: id }).siswa[0].id;
+  g.ss.getSheetByName('Nilai').appendRow(['2026/2027', 1, idSiswa, 'BING', 'TP', 'TP1', 85, '']);
+  const h = g.minta({ aksi: 'simpanMapel', mapel: [{ kode: 'BING', kelas: { 3: false, 4: false, 5: false, 6: false } }] });
+  assert.equal(h.ok, false);
+  assert.match(h.pesan, /Bahasa Inggris kelas 5 sudah punya nilai/);
+  assert.equal(g.minta({ aksi: 'simpanMapel', mapel: [{ kode: 'BING', kelas: { 3: false, 4: false, 5: true, 6: false } }] }).ok, true);
+});
+
+test('aksi mapel wajib sesi', () => {
+  const g = sekolahAktif();
+  for (const aksi of ['mapelSekolah', 'simpanMapel']) assert.equal(salin(g.ctx.layani_({ aksi })).sesiHabis, true);
+});

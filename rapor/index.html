@@ -63,6 +63,14 @@ table.siswa input{width:100%;border:1px solid transparent;border-radius:8px;padd
 table.siswa input:hover{border-color:#eadfc7}table.siswa input:focus{border-color:var(--yellow);outline:none;background:#fffdf3}
 table.siswa .hapus{border:0;background:none;color:var(--bad);font-size:18px;line-height:1;cursor:pointer;padding:6px 10px;border-radius:8px}table.siswa .hapus:hover{background:#fde4e1}
 .pilih-seni{display:flex;gap:8px;flex-wrap:wrap}.pilih-seni label{display:flex;align-items:center;gap:8px;margin:0;font-weight:600;font-size:14px;padding:9px 12px;border:1px solid var(--line);border-radius:12px;background:#fff;cursor:pointer}.pilih-seni input{width:17px;height:17px;accent-color:var(--red)}
+table.mapel{border-collapse:collapse;width:100%;font-size:14px;min-width:560px}
+table.mapel th{background:var(--blue);color:#fff;padding:10px 8px;font-size:12.5px;text-align:center}table.mapel th:first-child{text-align:left}
+table.mapel td{border-bottom:1px solid #efe6d2;padding:8px;text-align:center;vertical-align:middle}table.mapel td:first-child{text-align:left}
+table.mapel input[type=checkbox]{width:20px;height:20px;accent-color:var(--red);cursor:pointer}table.mapel input[type=checkbox]:disabled{cursor:not-allowed;opacity:.55}
+table.mapel input[type=text]{width:100%;font:inherit;font-size:14px;padding:8px 10px;border:1px solid #d9cfb8;border-radius:10px;margin-top:4px}
+table.mapel .jenis{display:inline-block;font-size:11px;font-weight:800;padding:2px 7px;border-radius:999px;margin-left:6px;vertical-align:middle}
+.jenis.wajib{background:#eef3f8;color:var(--blue)}.jenis.pilihan{background:#fff3c0;color:#6b4b00}
+table.mapel .na{color:#c9bfa8}
 .back{display:inline-block;margin-bottom:6px;font-size:14px}
 footer{text-align:center;color:var(--muted);font-size:13px;line-height:1.7;padding:28px 16px 8px}
 </style>
@@ -186,6 +194,7 @@ footer{text-align:center;color:var(--muted);font-size:13px;line-height:1.7;paddi
     </div>
     <div class="tabs" role="tablist">
       <button type="button" data-tab="profil" class="on">Profil Sekolah</button>
+      <button type="button" data-tab="mapel">Mata Pelajaran</button>
       <button type="button" data-tab="rombel">Rombel &amp; Siswa</button>
     </div>
 
@@ -202,6 +211,17 @@ footer{text-align:center;color:var(--muted);font-size:13px;line-height:1.7;paddi
         <div class="toolbar"><button class="btn" type="submit" style="width:auto">Simpan profil</button></div>
         <div class="msg" id="p-msg"></div>
       </form>
+    </div>
+
+    <div id="p-mapel" class="hidden">
+      <div class="panduan">Centang mata pelajaran yang <b>benar-benar diajarkan</b> di tiap kelas. Hanya mapel yang dicentang yang muncul di input nilai dan di rapor.
+        Mapel yang belum diajarkan, misalnya Bahasa Inggris atau Koding dan Kecerdasan Artifisial, <b>tidak akan muncul sebagai baris kosong</b> di rapor. Mapel wajib selalu aktif.</div>
+      <div class="msg" id="m2-msg"></div>
+      <div class="tbl" style="margin-top:12px"><table class="mapel"><thead><tr><th>Mata pelajaran</th><th>Kelas 1</th><th>Kelas 2</th><th>Kelas 3</th><th>Kelas 4</th><th>Kelas 5</th><th>Kelas 6</th></tr></thead><tbody id="mapel-isi"></tbody></table></div>
+      <div class="toolbar">
+        <button class="btn" type="button" id="mp-simpan" style="width:auto">Simpan mata pelajaran</button>
+        <button class="btn add" type="button" id="mp-mulok">+ Tambah muatan lokal</button>
+      </div>
     </div>
 
     <div id="p-rombel" class="hidden">
@@ -366,9 +386,56 @@ $('#g-batal').addEventListener('click', () => { $('#f-ganti').reset(); bukaGanti
 /* ---------- data sekolah ---------- */
 function pilihTab(tab){
   document.querySelectorAll('[data-tab]').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
-  $('#p-profil').classList.toggle('hidden', tab !== 'profil');
-  $('#p-rombel').classList.toggle('hidden', tab !== 'rombel');
+  ['profil','mapel','rombel'].forEach(t => $('#p-' + t).classList.toggle('hidden', t !== tab));
+  if (tab === 'mapel' && !MAPEL) muatMapel();
 }
+
+/* ---------- mata pelajaran per kelas ---------- */
+let MAPEL = null, MAKS_MULOK = 7;
+async function muatMapel(){
+  $('#mapel-isi').innerHTML = '<tr><td colspan="7" class="sub">Memuat…</td></tr>';
+  const res = await api({ aksi:'mapelSekolah' });
+  if (res.sesiHabis) return;
+  if (!res.ok) { $('#mapel-isi').innerHTML = ''; return pesan('#m2-msg', res.pesan, false); }
+  MAPEL = res.mapel; MAKS_MULOK = res.maksMulok;
+  renderMapel();
+}
+const mulokDefault = m => /^Muatan Lokal \d+$/.test(m.nama);
+/* Nama muatan lokal di kotak isian: yang sedang diketik, atau nama tersimpan (nama bawaan "Muatan Lokal n" dikosongkan). */
+const namaMulok = m => m.namaBaru !== undefined ? m.namaBaru : (mulokDefault(m) ? '' : m.nama);
+function renderMapel(){
+  $('#mapel-isi').innerHTML = MAPEL.map((m, i) => '<tr><td><b>' + esc(m.nama) + '</b>' +
+    '<span class="jenis ' + (m.pilihan ? 'pilihan">Pilihan' : 'wajib">Wajib') + '</span>' +
+    (m.jenis === 'mulok' ? '<input type="text" data-mulok="' + i + '" maxlength="60" placeholder="Nama muatan lokal, misalnya Bahasa Jawa" value="' + esc(namaMulok(m)) + '" aria-label="Nama ' + esc(m.nama) + '">' : '') +
+    '</td>' + [1,2,3,4,5,6].map(k => k in m.kelas
+      ? '<td><input type="checkbox" data-i="' + i + '" data-k="' + k + '"' + (m.kelas[k] ? ' checked' : '') + (m.pilihan ? '' : ' disabled title="Mapel wajib"') +
+        ' aria-label="' + esc(m.nama) + ' kelas ' + k + '"></td>'
+      : '<td class="na" title="Tidak ada di kelas ini">—</td>').join('') + '</tr>').join('');
+  const jumlahMulok = MAPEL.filter(m => m.jenis === 'mulok').length;
+  $('#mp-mulok').classList.toggle('hidden', jumlahMulok >= MAKS_MULOK);
+}
+$('#mapel-isi').addEventListener('change', e => {
+  const t = e.target;
+  if (t.dataset.k) MAPEL[Number(t.dataset.i)].kelas[t.dataset.k] = t.checked;
+});
+$('#mapel-isi').addEventListener('input', e => {
+  const t = e.target;
+  if (t.dataset.mulok !== undefined) MAPEL[Number(t.dataset.mulok)].namaBaru = t.value;
+});
+$('#mp-mulok').addEventListener('click', () => {
+  const nomor = MAPEL.filter(m => m.jenis === 'mulok').map(m => Number(m.kode.replace('MULOK', ''))).reduce((a, b) => Math.max(a, b), 0) + 1;
+  MAPEL.push({ kode: 'MULOK' + nomor, nama: 'Muatan Lokal ' + nomor, jenis: 'mulok', pilihan: true, kelas: { 1:false, 2:false, 3:false, 4:false, 5:false, 6:false } });
+  renderMapel();
+  document.querySelector('[data-mulok="' + (MAPEL.length - 1) + '"]').focus();
+});
+$('#mp-simpan').addEventListener('click', e => sibuk(e.target, async () => {
+  const mapel = MAPEL.filter(m => m.pilihan).map(m => ({ kode: m.kode, kelas: m.kelas,
+    nama: m.jenis === 'mulok' ? namaMulok(m) : undefined }));
+  const res = await api({ aksi:'simpanMapel', mapel });
+  if (res.sesiHabis) return;
+  pesan('#m2-msg', res.pesan, res.ok, res.salah);
+  if (res.ok) { MAPEL = res.mapel; renderMapel(); }
+}));
 
 async function bukaData(tab){
   tampil('data');
@@ -378,7 +445,7 @@ async function bukaData(tab){
   const res = await api({ aksi:'dataSekolah' });
   if (res.sesiHabis) return;
   if (!res.ok) { $('#profil-isi').innerHTML = ''; return pesan('#p-msg', res.pesan, false); }
-  DATA = res;
+  DATA = res; MAPEL = null;
   $('#d-sub').textContent = 'Tahun ajaran ' + res.tahunAjaran + ' · Semester ' + res.semester;
   renderProfil();
   renderRombel();

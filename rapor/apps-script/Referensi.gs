@@ -63,6 +63,8 @@ var PILIHAN_SENI = ['Seni Musik', 'Seni Rupa', 'Seni Tari', 'Seni Teater'];
  *              "mulok" (diisi sekolah).
  * aktifBawaan: kelas yang langsung aktif untuk sekolah baru. Mapel yang tidak tercantum bisa
  *              diaktifkan sekolah sendiri.
+ * pilihan    : true = boleh diaktifkan/dinonaktifkan sekolah (mis. belum mengajarkan Bahasa Inggris).
+ *              Mapel lain wajib dan selalu aktif di kelas yang memuatnya.
  */
 var MAPEL_BAWAAN = [
   { kode: 'PAB', nama: 'Pendidikan Agama dan Budi Pekerti', jenis: 'agama', kelas: [1, 2, 3, 4, 5, 6], aktifBawaan: [1, 2, 3, 4, 5, 6] },
@@ -72,11 +74,24 @@ var MAPEL_BAWAAN = [
   { kode: 'IPAS', nama: 'Ilmu Pengetahuan Alam dan Sosial', jenis: 'umum', kelas: [3, 4, 5, 6], aktifBawaan: [3, 4, 5, 6] },
   { kode: 'SENI', nama: 'Seni dan Budaya', jenis: 'seni', kelas: [1, 2, 3, 4, 5, 6], aktifBawaan: [1, 2, 3, 4, 5, 6] },
   { kode: 'PJOK', nama: 'Pendidikan Jasmani, Olahraga, dan Kesehatan', jenis: 'umum', kelas: [1, 2, 3, 4, 5, 6], aktifBawaan: [1, 2, 3, 4, 5, 6] },
-  { kode: 'BING', nama: 'Bahasa Inggris', jenis: 'umum', kelas: [1, 2, 3, 4, 5, 6], aktifBawaan: [3, 4, 5, 6] },
-  { kode: 'KKA', nama: 'Koding dan Kecerdasan Artifisial', jenis: 'umum', kelas: [5, 6], aktifBawaan: [] },
-  { kode: 'MULOK1', nama: 'Muatan Lokal 1', jenis: 'mulok', kelas: [1, 2, 3, 4, 5, 6], aktifBawaan: [] },
-  { kode: 'MULOK2', nama: 'Muatan Lokal 2', jenis: 'mulok', kelas: [1, 2, 3, 4, 5, 6], aktifBawaan: [] }
+  { kode: 'BING', nama: 'Bahasa Inggris', jenis: 'umum', kelas: [1, 2, 3, 4, 5, 6], aktifBawaan: [3, 4, 5, 6], pilihan: true },
+  { kode: 'KKA', nama: 'Koding dan Kecerdasan Artifisial', jenis: 'umum', kelas: [5, 6], aktifBawaan: [], pilihan: true },
+  { kode: 'MULOK1', nama: 'Muatan Lokal 1', jenis: 'mulok', kelas: [1, 2, 3, 4, 5, 6], aktifBawaan: [], pilihan: true },
+  { kode: 'MULOK2', nama: 'Muatan Lokal 2', jenis: 'mulok', kelas: [1, 2, 3, 4, 5, 6], aktifBawaan: [], pilihan: true }
 ];
+
+/* Rapor Excel lama menyediakan sampai 7 muatan lokal. */
+var MAKS_MULOK = 7;
+
+/** Mapel bawaan berdasarkan kode; muatan lokal tambahan (MULOK3, MULOK4, …) mengikuti MULOK1. */
+function mapelBawaan_(kode) {
+  for (var i = 0; i < MAPEL_BAWAAN.length; i++) if (MAPEL_BAWAAN[i].kode === kode) return MAPEL_BAWAAN[i];
+  var m = /^MULOK(\d+)$/.exec(kode);
+  if (m && Number(m[1]) >= 1 && Number(m[1]) <= MAKS_MULOK) {
+    return { kode: kode, nama: 'Muatan Lokal ' + m[1], jenis: 'mulok', kelas: [1, 2, 3, 4, 5, 6], aktifBawaan: [], pilihan: true };
+  }
+  return null;
+}
 
 /* Capaian kokurikuler, urut dari tertinggi. */
 var LEVEL_KOKURIKULER = ['Mahir', 'Cakap', 'Berkembang'];

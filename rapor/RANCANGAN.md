@@ -100,6 +100,14 @@ Pengamannya: setiap perubahan nilai dicatat di Log beserta waktunya, dan kepala 
 - **Rombel hanya bisa dihapus jika sudah kosong.** Satu rombel maksimal 100 siswa.
 - **Lebih dari 1.000 baris tetap aman.** Baris tambahan sheet dibuat otomatis, lengkap dengan format teksnya.
 
+### Mata pelajaran per kelas
+
+- **Tab Mata Pelajaran** menampilkan tabel centang mapel × kelas 1–6. Hanya mapel yang dicentang yang muncul di input nilai dan di rapor, sehingga sekolah yang belum mengajarkan Bahasa Inggris atau KKA tidak mendapat baris kosong di rapor.
+- **Mapel wajib selalu aktif**: Agama, Pancasila, Bahasa Indonesia, Matematika, IPAS (kelas 3–6), Seni dan Budaya, dan PJOK.
+- **Mapel pilihan**: Bahasa Inggris (kelas 1–6), Koding dan Kecerdasan Artifisial (kelas 5–6), dan muatan lokal.
+- **Muatan lokal** bisa sampai 7, sama seperti rapor Excel lama. Muatan lokal yang aktif wajib diberi nama sungguhan (misalnya Bahasa Jawa), supaya rapor tidak tercetak "Muatan Lokal 1". Nama mapel tidak boleh dobel.
+- **Mapel yang sudah punya nilai** di suatu kelas tidak bisa dinonaktifkan, supaya nilai tidak hilang dari rapor diam-diam.
+
 ### Seni dan Budaya dengan lebih dari satu seni
 
 - **Seni yang diajarkan diatur per sekolah** di tab Profil (centang Musik, Rupa, Tari, dan/atau Teater). Seni yang masih dipilih siswa tidak bisa dihapus dari daftar.
