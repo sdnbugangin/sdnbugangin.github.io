@@ -231,6 +231,23 @@ Pengamannya: setiap perubahan nilai dicatat di Log beserta waktunya, dan kepala 
   - mengukur operasi sehari-hari dan mencatat hasilnya ke Log Pusat ("uji beban");
   - lalu menghapus sekolah uji itu.
 
+### Tahun ajaran baru
+
+Dari **Data Sekolah → Profil → Tahun ajaran baru**, sekali setahun, setelah rapor semester 2 dibagikan.
+
+- **Periksa kesiapan** (`taBaruPratinjau_`):
+  - semester harus 2 dan semua siswa sudah punya keputusan naik/tinggal (siswa yang belum disebut namanya);
+  - bila ada rombel yang rapor semester 2-nya belum dikunci, muncul peringatan;
+  - pratinjau menampilkan rombel tahun baru, asal siswa yang naik, dan daftar siswa lulus.
+- **Mulai** (`taBaruJalankan_`), wajib mengetik "MULAI 2027/2028":
+  1. **Cadangan** spreadsheet sekolah dibuat di "Rapor SD/Cadangan". Bila cadangan gagal, tidak ada yang diubah.
+  2. Rombel tahun baru disusun sama per kelas (nama, wali, NIP ikut).
+     - Siswa naik masuk kelas berikutnya dengan akhiran nama yang sama (4A → 5A). Bila tidak ada, ke satu-satunya rombel kelas itu, atau ke rombel urutan yang sama. Bila kelas itu belum punya rombel, rombel baru dibuat.
+     - Siswa tinggal tetap di rombelnya. Kelas 6 yang lulus diberi status "Lulus". Kelas 1 kosong.
+  3. Mapel Aktif, TP, dan subdimensi kokurikuler disalin ke tahun baru.
+  4. Nilai tahun lalu dipindah ke sheet **Arsip Nilai**, agar sheet Nilai tetap kecil dan cepat.
+  5. Pengaturan diubah ke tahun ajaran baru, semester 1. Tercatat di Log.
+
 ## 5. Pencegahan error (pelajaran dari rapor Excel lama)
 
 | Masalah di file lama | Penyebab | Penanganan di aplikasi baru |
@@ -263,4 +280,4 @@ Aturan umum:
 | 3 | Data sekolah: profil, rombel & wali kelas, siswa (tempel langsung dari Excel/Dapodik), unduh salinan Excel | ✅ selesai (`apps-script/Data.gs`, halaman Data Sekolah & Siswa) |
 | 4 | Tujuan Pembelajaran ✅ (`Tp.gs`), input nilai ✅ (`Nilai.gs`), kokurikuler ✅ (`Kokurikuler.gs`), ekstrakurikuler, presensi, catatan, kenaikan ✅ (`WaliKelas.gs`) | ✅ selesai |
 | 5 | Cek kelengkapan ✅, leger ✅, cetak rapor ✅ (`Rapor.gs`), unduh Excel ✅, kunci rapor ✅ (`Kunci.gs`), uji beban ✅ (`Uji.gs`); sampul, transkrip, SKL | sedang dikerjakan |
-| 6 | Kenaikan kelas tahunan, uji coba di SDN Bugangin, lalu dibuka untuk sekolah lain | |
+| 6 | Kenaikan kelas tahunan ✅ (`TahunAjaran.gs`), uji coba di SDN Bugangin, lalu dibuka untuk sekolah lain | |
