@@ -87,3 +87,52 @@ test('ujiBeban: berjalan sampai selesai lalu membersihkan sekolah uji', () => {
   assert.ok(g.pusat.getSheetByName('Log').data.some((r) => r[2] === 'uji beban' && /SELESAI/.test(r[3])), 'hasil tercatat di Log Pusat');
   console.log(g.Logger.isi.join('\n'));
 });
+
+/** Kelas 5A, 3 siswa, TP MTK, nilai tersimpan. */
+function siapKecil() {
+  const g = sekolahAktif();
+  const rb = g.minta({ aksi: 'simpanRombel', rombel: { kelas: 5, nama: 'A' } }).rombel.id;
+  g.minta({ aksi: 'simpanSiswa', rombel: rb, siswa: ['A', 'B', 'C'].map((n) => ({ nama: 'SISWA ' + n, jk: 'L', agama: 'Islam', seni: 'Musik' })) });
+  g.minta({ aksi: 'simpanTp', kelas: 5, semester: 1, mapel: 'MTK', varian: '', tp: [{ tp: 'satu', materi: 'satu' }, { tp: 'dua', materi: 'dua' }] });
+  const id = g.minta({ aksi: 'siswaRombel', rombel: rb }).siswa.map((s) => s.id);
+  const nilai = Object.fromEntries(id.map((x, i) => [x, { TP1: String(70 + i), TP2: String(80 + i), TES: String(75 + i) }]));
+  g.minta({ aksi: 'simpanNilai', rombel: rb, mapel: 'MTK', varian: '', nilai });
+  return { g, rb, id, nilai };
+}
+
+test('baca sekaligus: satu panggilan Sheets API, sheet yang sama tidak dibaca dua kali', () => {
+  const { g, rb } = siapKecil();
+  const a = g.Sheets.dipanggil, b = BEBAN.panggilBaca;
+  const h = g.minta({ aksi: 'nilaiRombel', rombel: rb, mapel: 'MTK' });
+  assert.equal(h.ok, true);
+  assert.equal(g.Sheets.dipanggil - a, 1, 'satu panggilan batchGet');
+  // selain batchGet hanya 1 baca: pemeriksaan sesi di Pusat (status akun dan sandi terbaru), sengaja tidak di-cache
+  assert.equal(BEBAN.panggilBaca - b - 1, 1, 'tidak ada baca sheet sekolah satu per satu');
+});
+
+test('baca sekaligus: tanggal "Diubah Pada" baris yang ikut ditulis ulang tidak bergeser', () => {
+  const { g, rb, id, nilai } = siapKecil();
+  const sh = g.ss.getSheetByName('Nilai');
+  const sebelum = sh.data.slice(1).map((r) => r[7] instanceof Date ? r[7].getTime() : r[7]);
+  g.jam.sekarang += 3600000;
+  // ubah baris pertama dan terakhir saja: baris di antaranya ikut ditulis ulang dari isi yang dibaca lewat API
+  nilai[id[0]].TP1 = '99'; nilai[id[2]].TES = '99';
+  assert.equal(g.minta({ aksi: 'simpanNilai', rombel: rb, mapel: 'MTK', varian: '', nilai }).ok, true);
+  const sesudah = sh.data.slice(1).map((r) => r[7] instanceof Date ? r[7].getTime() : r[7]);
+  const berubah = sesudah.map((t, i) => t !== sebelum[i]).filter(Boolean).length;
+  assert.equal(berubah, 2, 'hanya dua baris yang stempel waktunya baru');
+  assert.ok(sh.data.slice(1).every((r) => r[7] instanceof Date), 'tetap berupa tanggal, bukan angka seri');
+});
+
+test('baca sekaligus gagal atau tidak aktif: tetap berjalan dengan cara biasa', () => {
+  const { g, rb, id, nilai } = siapKecil();
+  g.Sheets.gagal = true;
+  nilai[id[1]].TP2 = '55';
+  assert.equal(g.minta({ aksi: 'simpanNilai', rombel: rb, mapel: 'MTK', varian: '', nilai }).ok, true, 'kuota habis');
+  g.Sheets.gagal = false;
+  const simpan = g.ctx.Sheets;
+  g.ctx.Sheets = undefined;
+  const h = g.minta({ aksi: 'nilaiRombel', rombel: rb, mapel: 'MTK' });
+  g.ctx.Sheets = simpan;
+  assert.equal(h.nilai[id[1]].TP2, 55, 'tanpa layanan Sheets');
+});

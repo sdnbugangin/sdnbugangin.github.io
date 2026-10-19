@@ -203,6 +203,19 @@ Pengamannya: setiap perubahan nilai dicatat di Log beserta waktunya, dan kepala 
 - Sekolah besar (6 kelas × 2 rombel × 32 siswa) mengisi ±14.700 baris Nilai per semester, atau ±29.500 per tahun.
 - **Penulisan hemat:** `tulisTabel_` membandingkan dengan isi yang dibaca di permintaan yang sama (`ISI_SHEET_`) dan hanya menulis rentang baris yang berubah. `gantiDiTempat_` mengganti baris di tempatnya, jadi baris lain tidak bergeser. Angka yang tidak berubah tidak disentuh, dan stempel waktunya tetap.
   - Hasilnya: simpan satu layar nilai menulis ±1.300 sel, bukan ±118.000 (satu angka berubah: 8 sel).
+- **Baca hemat:**
+  - setiap sheet dibaca paling banyak sekali per permintaan (`ISI_SHEET_`, termasuk baris judul);
+  - sheet yang diperlukan suatu aksi (`BACA_PER_AKSI_`) dibaca sekaligus dalam **satu** panggilan layanan lanjutan Google Sheets API (`bacaSekaligus_`); tanggal "Diubah Pada" dikembalikan dari nomor seri ke Date;
+  - ID spreadsheet sekolah diingat 10 menit di CacheService.
+  - Bila layanan Sheets API belum aktif atau kuotanya habis, aplikasi otomatis membaca dengan cara biasa.
+  - Hasilnya: membuka/menyimpan layar cukup 2 panggilan baca (sesi + baca sekaligus), sebelumnya 10–21.
+- Hasil uji beban pertama di server (sebelum baca hemat, sekolah 384 siswa dengan nilai 1 tahun):
+  - buka layar nilai 5,8 dtk;
+  - simpan nilai 7–8 dtk;
+  - rekap rapor 8,1 dtk;
+  - simpan ketidakhadiran 3,2 dtk.
+  
+  Kesimpulannya: yang lambat adalah banyaknya pembacaan sheet, bukan penulisan.
 - **`ujiBeban()` (Uji.gs)** dijalankan pengelola dari editor untuk mengukur waktu nyata di server Google:
   - membuat sekolah uji sementara berisi 384 siswa dengan nilai satu tahun;
   - mengukur operasi sehari-hari dan mencatat hasilnya ke Log Pusat ("uji beban");

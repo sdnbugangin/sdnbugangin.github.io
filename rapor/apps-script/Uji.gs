@@ -2,6 +2,7 @@
  * Aplikasi Rapor SD — uji beban di server Google yang sebenarnya.
  *
  * Cara pakai (pengelola): di editor Apps Script pilih fungsi "ujiBeban" lalu klik Jalankan. Selesai ±2–4 menit.
+ * Aktifkan dulu layanan lanjutan "Google Sheets API" (Layanan + → Google Sheets API → Tambahkan) agar baca sekaligus dipakai.
  * Yang dilakukan:
  *   1. membuat sekolah uji sementara (status "uji", tidak bisa dipakai masuk) di folder Data Sekolah;
  *   2. mengisi 6 kelas × 2 rombel × 32 siswa = 384 siswa, TP, dan nilai SATU TAHUN penuh (dua semester);
@@ -20,30 +21,45 @@ function ujiBeban() {
     catat('mulai: spreadsheet uji dibuat (' + detik_(mulaiSemua) + ' dtk)');
     isiSekolahUji_(npsn, catat);
 
+    siapkanPermintaan_('');
     var ss = bukaSekolah_(npsn), ta = aturSekolah_(ss).tahunAjaran;
     var rombel = daftarRombel_(ss, ta).filter(function (r) { return r.kelas === 5; })[0];
-    var ukur = function (nama, fn) {
-      ISI_SHEET_ = {};
+
+    // Rincian biaya dasar, agar jelas bagian mana yang lambat.
+    var t0 = new Date().getTime();
+    var ssBaru = SpreadsheetApp.openById(ss.getId());
+    catat('rincian: buka spreadsheet ' + detik_(t0) + ' dtk');
+    t0 = new Date().getTime(); ssBaru.getSheetByName('Pengaturan').getDataRange().getValues();
+    catat('rincian: baca 1 sheet kecil ' + detik_(t0) + ' dtk');
+    t0 = new Date().getTime(); var n = ssBaru.getSheetByName('Nilai').getDataRange().getValues().length;
+    catat('rincian: baca sheet Nilai ' + (n - 1) + ' baris ' + detik_(t0) + ' dtk');
+    ISI_SHEET_ = {}; t0 = new Date().getTime();
+    var api = bacaSekaligus_(ssBaru, BACA_PER_AKSI_.nilaiRombel);
+    catat(api ? 'rincian: baca 8 sheet sekaligus (Sheets API) ' + detik_(t0) + ' dtk'
+      : 'rincian: layanan Sheets API BELUM aktif (Layanan + → Google Sheets API) — memakai cara biasa');
+
+    var ukur = function (nama, aksi, fn) {
+      siapkanPermintaan_(aksi);
       var t = new Date().getTime(), h = fn();
       if (h && h.ok === false) throw new Error(nama + ': ' + h.pesan);
       catat(nama + ': ' + detik_(t) + ' dtk');
       return h;
     };
-    ukur('buka data sekolah', function () { return dataSekolah_(npsn); });
-    var layar = ukur('buka layar nilai MTK 5A', function () { return nilaiRombel_(npsn, { rombel: rombel.id, mapel: 'MTK', semester: 1 }); });
+    ukur('buka data sekolah', 'dataSekolah', function () { return dataSekolah_(npsn); });
+    var layar = ukur('buka layar nilai MTK 5A', 'nilaiRombel', function () { return nilaiRombel_(npsn, { rombel: rombel.id, mapel: 'MTK', semester: 1 }); });
     var nilai = {};
     layar.siswa.forEach(function (s, i) { nilai[s.id] = { TES: 80 }; layar.tp.forEach(function (t) { nilai[s.id][t.kode] = 60 + (i % 40); }); });
-    ukur('simpan nilai MTK 5A (32 siswa berubah)', function () { return simpanNilai_(npsn, { rombel: rombel.id, mapel: 'MTK', varian: '', semester: 1, nilai: nilai }); });
+    ukur('simpan nilai MTK 5A (32 siswa berubah)', 'simpanNilai', function () { return simpanNilai_(npsn, { rombel: rombel.id, mapel: 'MTK', varian: '', semester: 1, nilai: nilai }); });
     nilai[layar.siswa[0].id].TES = 81;
-    ukur('simpan nilai MTK 5A (1 angka berubah)', function () { return simpanNilai_(npsn, { rombel: rombel.id, mapel: 'MTK', varian: '', semester: 1, nilai: nilai }); });
-    ukur('buka kokurikuler 5A', function () { return kokRombel_(npsn, { rombel: rombel.id, semester: 1 }); });
-    ukur('buka wali kelas 5A', function () { return waliRombel_(npsn, { rombel: rombel.id, semester: 1 }); });
+    ukur('simpan nilai MTK 5A (1 angka berubah)', 'simpanNilai', function () { return simpanNilai_(npsn, { rombel: rombel.id, mapel: 'MTK', varian: '', semester: 1, nilai: nilai }); });
+    ukur('buka kokurikuler 5A', 'kokRombel', function () { return kokRombel_(npsn, { rombel: rombel.id, semester: 1 }); });
+    ukur('buka wali kelas 5A', 'waliRombel', function () { return waliRombel_(npsn, { rombel: rombel.id, semester: 1 }); });
     var presensi = {};
     layar.siswa.forEach(function (s) { presensi[s.id] = { sakit: 1, izin: 0, alpa: 0, catatan: 'Tingkatkan semangat belajar.' }; });
-    ukur('simpan ketidakhadiran 5A', function () { return simpanPresensi_(npsn, { rombel: rombel.id, semester: 1, presensi: presensi }); });
-    ukur('buka TP kelas 5', function () { return tpKelas_(npsn, 5, 1); });
-    ukur('cek & cetak rapor 5A (rekap)', function () { return rekapRombel_(npsn, { rombel: rombel.id, semester: 1 }); });
-    ukur('kunci lalu buka kunci 5A', function () {
+    ukur('simpan ketidakhadiran 5A', 'simpanPresensi', function () { return simpanPresensi_(npsn, { rombel: rombel.id, semester: 1, presensi: presensi }); });
+    ukur('buka TP kelas 5', 'tpKelas', function () { return tpKelas_(npsn, 5, 1); });
+    ukur('cek & cetak rapor 5A (rekap)', 'rekapRombel', function () { return rekapRombel_(npsn, { rombel: rombel.id, semester: 1 }); });
+    ukur('kunci lalu buka kunci 5A', 'kunciRapor', function () {
       kunciRapor_(npsn, { rombel: rombel.id, semester: 1 });
       return bukaKunciRapor_(npsn, { rombel: rombel.id, semester: 1, alasan: 'uji beban' });
     });

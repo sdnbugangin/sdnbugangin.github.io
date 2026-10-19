@@ -78,6 +78,7 @@ class Spreadsheet {
   constructor(id, nama) { this.id = id; this.nama = nama; this.sheets = [new Sheet('Sheet1')]; }
   getId() { return this.id; }
   getName() { return this.nama; }
+  getSpreadsheetTimeZone() { return 'Asia/Jakarta'; }
   getSheets() { return this.sheets.slice(); }
   getSheetByName(n) { return this.sheets.find((s) => s.nama === n) || null; }
   insertSheet(n) {
@@ -160,7 +161,7 @@ function buatGas() {
       computeHmacSha256Signature: (teks, kunci) =>
         [...crypto.createHmac('sha256', kunci).update(teks, 'utf8').digest()].map((b) => (b > 127 ? b - 256 : b)),
       getUuid: () => crypto.randomUUID(),
-      formatDate: (d) => d.toISOString().slice(0, 16).replace('T', ' ')
+      formatDate: (d, zona, pola) => (pola === 'Z' ? '+0700' : new Date(d.getTime() + 7 * 3600000).toISOString().slice(0, 16).replace('T', ' '))
     },
     ScriptApp: { getOAuthToken: () => 'token-tiruan' },
     Logger: { isi: [], log(t) { this.isi.push(String(t)); } },
@@ -173,6 +174,31 @@ function buatGas() {
           getBlob: () => ({ getBytes: () => [...Buffer.from('xlsx:' + (m && m[1]))] })
         };
       }
+    },
+    /* Layanan lanjutan Sheets API: batchGet seperti aslinya (UNFORMATTED_VALUE, tanggal → nomor seri WIB). */
+    Sheets: {
+      dipanggil: 0, gagal: false,
+      Spreadsheets: { Values: { batchGet: (id, opsi) => {
+        gas.Sheets.dipanggil++; BEBAN.panggilBaca++;
+        if (gas.Sheets.gagal) throw new Error('Quota exceeded');
+        const ss = berkas[id].ss;
+        return { valueRanges: opsi.ranges.map((r) => {
+          const m = r.match(/^'(.+)'!A1:([A-Z])$/);
+          const sh = ss.getSheetByName(m[1]); const lebar = m[2].charCodeAt(0) - 64;
+          const akhir = sh.getLastRow();
+          BEBAN.baca += akhir * lebar;
+          const values = sh.data.slice(0, akhir).map((row) => {
+            const out = Array.from({ length: lebar }, (_, j) => {
+              const v = row[j];
+              if (v instanceof Date) return (v.getTime() + 7 * 3600000) / 86400000 + 25569;
+              return v === undefined ? '' : v;
+            });
+            while (out.length && out[out.length - 1] === '') out.pop(); // API membuang sel kosong di ujung baris
+            return out;
+          });
+          return values.length ? { range: r, values } : { range: r };
+        }) };
+      } } }
     },
     ContentService: {
       MimeType: { JSON: 'json' },
@@ -189,7 +215,7 @@ function buatGas() {
     ...Object.entries(folder).filter(([, f]) => f.induk === 'akar' && !f.sampah).map(([, f]) => '📁 ' + f.nama),
     ...Object.entries(lokasi).filter(([id, l]) => l === 'akar' && !(berkas[id] && berkas[id].sampah)).map(([id]) => '📄 ' + id)
   ];
-  return { ctx, pusat, berkas, cache, surat, jam, folder, lokasi, isiAkar, MailApp: gas.MailApp, DriveApp: gas.DriveApp, Logger: gas.Logger };
+  return { ctx, pusat, berkas, cache, surat, jam, folder, lokasi, isiAkar, MailApp: gas.MailApp, DriveApp: gas.DriveApp, Logger: gas.Logger, Sheets: gas.Sheets };
 }
 
 /**

@@ -166,7 +166,7 @@ function doPost(e) {
 
 /** Memproses satu permintaan. Dipisah dari doPost agar bisa diuji tanpa ContentService. */
 function layani_(req) {
-  ISI_SHEET_ = {};
+  siapkanPermintaan_(req && req.aksi);
   try {
     switch (req.aksi) {
       case 'daftar': return daftar_(req.data || {});
