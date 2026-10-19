@@ -240,3 +240,65 @@ test('struktur mapel bawaan: IPAS mulai kelas 3, tiap kelas punya mapel inti', (
   for (let k = 1; k <= 6; k++) for (const m of ['PAB', 'PP', 'BIND', 'MTK', 'SENI', 'PJOK']) assert.ok(aktif(k).includes(m), m + ' kelas ' + k);
   for (const m of R('MAPEL_BAWAAN')) for (const k of m.aktifBawaan) assert.ok(m.kelas.includes(k), m.kode);
 });
+
+test('gabungDaftar_: daftar ala bahasa Indonesia', () => {
+  assert.equal(ctx.gabungDaftar_([]), '');
+  assert.equal(ctx.gabungDaftar_(['a']), 'a');
+  assert.equal(ctx.gabungDaftar_(['a', 'b']), 'a dan b');
+  assert.equal(ctx.gabungDaftar_(['a', 'b', 'c']), 'a, b, dan c');
+});
+
+const MUSIK = { nama: 'Seni Musik', isian: { tp: tp(['Memainkan alat musik ritmis', 92], ['Membaca notasi angka', 70]), akhir: [80] } };
+const RUPA = { nama: 'Seni Rupa', isian: { tp: tp(['Menggambar ilustrasi', 88], ['Membuat kolase', 75]), akhir: [90] } };
+
+test('seni ganda: nilai = rata-rata nilai tiap seni, deskripsi digabung satu kalimat', () => {
+  const h = ctx.hitungNilaiGabungan_([MUSIK, RUPA], { panggilan: 'Budi' });
+  const musik = hitung(MUSIK.isian), rupa = hitung(RUPA.isian);
+  assert.equal(h.nilai, Math.round((musik.nilai + rupa.nilai) / 2));
+  assert.equal(h.lengkap, true);
+  assert.equal(h.deskripsiTinggi, 'Ananda Budi menunjukkan penguasaan yang sangat baik dalam Memainkan alat musik ritmis dan Menggambar ilustrasi.');
+  assert.equal(h.deskripsiRendah, 'Ananda Budi perlu pendampingan dalam Membaca notasi angka dan Membuat kolase.');
+  assert.deepEqual(salin(h.rincian.map((r) => r.nama)), ['Seni Musik', 'Seni Rupa']);
+});
+
+test('seni ganda: tiga seni memakai "a, b, dan c"; satu seni sama dengan mapel biasa', () => {
+  const TARI = { nama: 'Seni Tari', isian: { tp: tp(['Gerak tari daerah', 85], ['Pola lantai', 60]), akhir: [70] } };
+  const h = ctx.hitungNilaiGabungan_([MUSIK, RUPA, TARI], {});
+  assert.equal(h.deskripsiTinggi, 'Menunjukkan penguasaan yang sangat baik dalam Memainkan alat musik ritmis, Menggambar ilustrasi, dan Gerak tari daerah.');
+  const satu = ctx.hitungNilaiGabungan_([MUSIK], { panggilan: 'Ani' });
+  const biasa = hitung(MUSIK.isian, { panggilan: 'Ani' });
+  assert.equal(satu.nilai, biasa.nilai);
+  assert.equal(satu.deskripsiTinggi, biasa.deskripsiTinggi);
+  assert.equal(satu.deskripsiRendah, biasa.deskripsiRendah);
+});
+
+test('seni ganda: seni yang belum dinilai membuat rapor belum lengkap, dengan nama senimya', () => {
+  const kosong = { nama: 'Seni Rupa', isian: { tp: [], akhir: [] } };
+  const h = ctx.hitungNilaiGabungan_([MUSIK, kosong], {});
+  assert.equal(h.lengkap, false);
+  assert.equal(h.nilai, hitung(MUSIK.isian).nilai, 'nilai sementara dari seni yang sudah dinilai');
+  assert.match(h.peringatan.join(' '), /Seni Rupa: Belum ada nilai/);
+  assert.match(h.deskripsiTinggi, /Memainkan alat musik ritmis\.$/);
+  const tanpa = ctx.hitungNilaiGabungan_([], {});
+  assert.equal(tanpa.nilai, null);
+  assert.match(tanpa.peringatan[0], /Belum ada pilihan/);
+});
+
+test('seni ganda: TP yang tidak punya "terendah" tidak ikut kalimat perlu pendampingan', () => {
+  const rata = { nama: 'Seni Rupa', isian: { tp: tp(['Menggambar ilustrasi', 85], ['Membuat kolase', 85]), akhir: [85] } };
+  const h = ctx.hitungNilaiGabungan_([MUSIK, rata], {});
+  assert.equal(h.deskripsiRendah, 'Perlu pendampingan dalam Membaca notasi angka.');
+});
+
+test('seni ganda mode predikat: kalimat berbeda menjadi anak kalimat', () => {
+  const h = ctx.hitungNilaiGabungan_([MUSIK, RUPA], { panggilan: 'Sari', deskripsi: { mode: 'predikat', pakaiPanggilan: true } });
+  assert.equal(h.deskripsiTinggi, 'Ananda Sari menunjukkan penguasaan yang sangat baik dalam Memainkan alat musik ritmis dan Menggambar ilustrasi.');
+  assert.equal(h.deskripsiRendah, 'Ananda Sari menunjukkan penguasaan yang cukup dalam Membaca notasi angka dan menunjukkan penguasaan yang baik dalam Membuat kolase.');
+});
+
+test('cekDaftarSiswa_: seni ganda diperiksa satu per satu', () => {
+  assert.deepEqual(salin(ctx.cekDaftarSiswa_([{ nama: 'Ani', jk: 'P', agama: 'Islam', seni: 'Seni Musik, Seni Rupa' }])), []);
+  const salah = ctx.cekDaftarSiswa_([{ nama: 'Ani', jk: 'P', agama: 'Islam', seni: 'Seni Musik, Lukis' }], { seniDitawarkan: ['Seni Musik', 'Seni Rupa'] });
+  assert.equal(salah.length, 1);
+  assert.match(salah[0], /seni pilihan "Lukis" tidak ditawarkan/);
+});

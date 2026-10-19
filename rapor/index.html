@@ -62,6 +62,7 @@ table.siswa td:nth-child(1),table.siswa th:nth-child(1){left:0}table.siswa td:nt
 table.siswa input{width:100%;border:1px solid transparent;border-radius:8px;padding:7px 8px;font:inherit;font-size:13px;background:transparent;color:var(--ink)}
 table.siswa input:hover{border-color:#eadfc7}table.siswa input:focus{border-color:var(--yellow);outline:none;background:#fffdf3}
 table.siswa .hapus{border:0;background:none;color:var(--bad);font-size:18px;line-height:1;cursor:pointer;padding:6px 10px;border-radius:8px}table.siswa .hapus:hover{background:#fde4e1}
+.pilih-seni{display:flex;gap:8px;flex-wrap:wrap}.pilih-seni label{display:flex;align-items:center;gap:8px;margin:0;font-weight:600;font-size:14px;padding:9px 12px;border:1px solid var(--line);border-radius:12px;background:#fff;cursor:pointer}.pilih-seni input{width:17px;height:17px;accent-color:var(--red)}
 .back{display:inline-block;margin-bottom:6px;font-size:14px}
 footer{text-align:center;color:var(--muted);font-size:13px;line-height:1.7;padding:28px 16px 8px}
 </style>
@@ -195,6 +196,9 @@ footer{text-align:center;color:var(--muted);font-size:13px;line-height:1.7;paddi
           <div><label for="p-semester">Semester yang sedang diisi</label>
             <select id="p-semester"><option value="1">Semester 1 (Ganjil): rapor tanpa keterangan naik/lulus</option><option value="2">Semester 2 (Genap): rapor dengan keterangan naik/lulus</option></select></div>
         </div>
+        <div class="field" style="margin-top:14px"><label>Seni yang diajarkan sekolah</label>
+          <div class="pilih-seni" id="p-seni"></div>
+          <div class="hint">Centang semua seni yang diajarkan. Jika siswa mengikuti lebih dari satu seni, nilai dan deskripsinya digabung menjadi satu baris "Seni dan Budaya" di rapor.</div></div>
         <div class="toolbar"><button class="btn" type="submit" style="width:auto">Simpan profil</button></div>
         <div class="msg" id="p-msg"></div>
       </form>
@@ -224,7 +228,13 @@ footer{text-align:center;color:var(--muted);font-size:13px;line-height:1.7;paddi
       <div><button class="link back" type="button" id="s-kembali">← Rombel &amp; Siswa</button><h2 id="s-judul">Siswa</h2><div class="sub" id="s-sub"></div></div>
     </div>
     <div class="panduan"><b>Bisa langsung tempel dari Excel atau Dapodik.</b> Susun kolom di Excel sesuai urutan tabel di bawah, blok datanya, salin (Ctrl+C), klik kotak <i>Nama Lengkap</i> di baris pertama, lalu tempel (Ctrl+V).
-      Baris judul ikut tersalin? Tidak apa-apa, dilewati otomatis. Nama panggilan diisi dari kata pertama nama jika dikosongkan. Kolom bertanda * wajib.</div>
+      Baris judul ikut tersalin? Tidak apa-apa, dilewati otomatis. Nama panggilan diisi dari kata pertama nama jika dikosongkan. Kolom bertanda * wajib.
+      Siswa mengikuti lebih dari satu seni? Tulis dipisah koma, misalnya <i>Musik, Rupa</i>.</div>
+    <div class="toolbar" id="s-seni-semua">
+      <span class="sub" style="color:var(--ink);font-weight:700">Seni untuk semua siswa:</span>
+      <span class="pilih-seni" id="s-seni-pilih"></span>
+      <button class="btn ghost small" type="button" id="s-seni-terapkan">Terapkan ke semua baris</button>
+    </div>
     <div class="toolbar">
       <button class="btn add" type="button" id="s-tambah">+ Tambah baris</button>
       <button class="btn" type="button" id="s-simpan" style="width:auto">Simpan daftar siswa</button>
@@ -249,7 +259,8 @@ const ls = { get:k=>{try{return localStorage.getItem(k)||''}catch(e){return ''}}
 const KUNCI_SESI = 'rapor-sesi';
 const VIEWS = ['masuk','daftar','lupa','reset','verifikasi','beranda','data','siswa'];
 let TOKEN_RESET = '';
-let DATA = null, ROMBEL = null, SISWA = [], UBAH = false;
+let DATA = null, ROMBEL = null, SISWA = [], UBAH = false, SENI_SEKOLAH = [];
+const SEMUA_SENI = ['Seni Musik', 'Seni Rupa', 'Seni Tari', 'Seni Teater'];
 const KOLOM = [
   { k:'nama', judul:'Nama Lengkap *', w:230 },
   { k:'panggilan', judul:'Nama Panggilan', w:120 },
@@ -257,7 +268,7 @@ const KOLOM = [
   { k:'nisn', judul:'NISN', w:120 },
   { k:'jk', judul:'L/P *', w:60, list:'dl-jk' },
   { k:'agama', judul:'Agama *', w:120, list:'dl-agama' },
-  { k:'seni', judul:'Seni Pilihan', w:130, list:'dl-seni' },
+  { k:'seni', judul:'Seni Pilihan', w:190, list:'dl-seni', ph:'Musik, Rupa' },
   { k:'tempatLahir', judul:'Tempat Lahir', w:130 },
   { k:'tanggalLahir', judul:'Tanggal Lahir', w:115, ph:'dd/mm/yyyy' },
   { k:'ayah', judul:'Nama Ayah', w:180 },
@@ -382,16 +393,21 @@ function renderProfil(){
       (p.tetap ? '<div class="hint">Tidak bisa diubah (identitas akun).</div>' : p.ket ? '<div class="hint">' + esc(p.ket) + '</div>' : '') + '</div>';
   }).join('');
   $('#p-semester').value = String(DATA.semester);
+  $('#p-seni').innerHTML = SEMUA_SENI.map(x => '<label><input type="checkbox" value="' + esc(x) + '"' + (DATA.seni.includes(x) ? ' checked' : '') + '> ' + esc(x) + '</label>').join('');
   $('#p-msg').textContent = '';
 }
 
 $('#f-profil').addEventListener('submit', e => { e.preventDefault(); kirim(e.target, async () => {
   const profil = {};
   document.querySelectorAll('#profil-isi input:not([disabled])').forEach(i => { profil[i.dataset.kunci] = i.value; });
-  const res = await api({ aksi:'simpanProfil', profil, semester: Number($('#p-semester').value) });
+  const seni = [...document.querySelectorAll('#p-seni input:checked')].map(i => i.value);
+  const res = await api({ aksi:'simpanProfil', profil, semester: Number($('#p-semester').value), seni });
   if (res.sesiHabis) return;
   pesan('#p-msg', res.pesan, res.ok, res.salah);
-  if (res.ok) { DATA.semester = Number($('#p-semester').value); $('#d-sub').textContent = 'Tahun ajaran ' + DATA.tahunAjaran + ' · Semester ' + DATA.semester; }
+  if (res.ok) {
+    DATA.seni = seni; DATA.semester = Number($('#p-semester').value);
+    $('#d-sub').textContent = 'Tahun ajaran ' + DATA.tahunAjaran + ' · Semester ' + DATA.semester;
+  }
 }); });
 
 function renderRombel(){
@@ -471,7 +487,11 @@ async function bukaSiswa(id){
   ROMBEL = res.rombel;
   $('#s-judul').textContent = 'Siswa ' + labelRombel(res.rombel);
   $('#s-sub').textContent = 'Kelas ' + res.rombel.kelas + (res.rombel.wali ? ' · Wali kelas: ' + res.rombel.wali : '') + ' · Tahun ajaran ' + (DATA ? DATA.tahunAjaran : '');
+  SENI_SEKOLAH = res.seni;
   $('#dl-seni').innerHTML = res.seni.map(s => '<option value="' + esc(s) + '">').join('');
+  // Satu seni saja: terisi otomatis oleh server, tidak perlu alat ini.
+  $('#s-seni-semua').classList.toggle('hidden', res.seni.length < 2);
+  $('#s-seni-pilih').innerHTML = res.seni.map(x => '<label><input type="checkbox" value="' + esc(x) + '"> ' + esc(x) + '</label>').join('');
   SISWA = res.siswa.map(s => ({ ...s, tanggalLahir: tglTampil(s.tanggalLahir) }));
   if (!SISWA.length) SISWA = Array.from({ length: 5 }, () => ({}));
   UBAH = false;
@@ -522,6 +542,16 @@ $('#s-body').addEventListener('paste', e => {
   });
   UBAH = true; renderTabel();
   pesan('#s-msg', baris.length + ' baris ditempel. Periksa lalu klik Simpan daftar siswa.', true);
+});
+
+$('#s-seni-terapkan').addEventListener('click', () => {
+  const pilih = [...document.querySelectorAll('#s-seni-pilih input:checked')].map(i => i.value);
+  if (!pilih.length) return pesan('#s-msg', 'Centang dulu seni yang diikuti semua siswa.', false);
+  const isi = SISWA.filter(s => !barisKosong(s));
+  if (!isi.length) return pesan('#s-msg', 'Isi dulu daftar siswanya.', false);
+  isi.forEach(s => { s.seni = pilih.join(', '); });
+  UBAH = true; renderTabel();
+  pesan('#s-msg', 'Seni ' + pilih.join(' dan ') + ' diterapkan ke ' + isi.length + ' siswa. Klik Simpan daftar siswa.', true);
 });
 
 $('#s-tambah').addEventListener('click', () => {

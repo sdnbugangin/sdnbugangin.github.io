@@ -100,6 +100,15 @@ Pengamannya: setiap perubahan nilai dicatat di Log beserta waktunya, dan kepala 
 - **Rombel hanya bisa dihapus jika sudah kosong.** Satu rombel maksimal 100 siswa.
 - **Lebih dari 1.000 baris tetap aman.** Baris tambahan sheet dibuat otomatis, lengkap dengan format teksnya.
 
+### Seni dan Budaya dengan lebih dari satu seni
+
+- **Seni yang diajarkan diatur per sekolah** di tab Profil (centang Musik, Rupa, Tari, dan/atau Teater). Seni yang masih dipilih siswa tidak bisa dihapus dari daftar.
+- **Seni pilihan diatur per siswa** dan boleh lebih dari satu: `Musik, Rupa`. Ada tombol "Terapkan ke semua baris" untuk sekolah yang semua siswanya mengikuti seni yang sama. Sekolah yang hanya mengajarkan satu seni tidak perlu mengisi apa pun, karena seninya terisi otomatis.
+- **Setiap seni punya TP dan nilai sendiri.** Di rapor tetap tampil sebagai **satu baris "Seni dan Budaya"** (`hitungNilaiGabungan_` di `Hitung.gs`):
+  - nilai = rata-rata nilai akhir tiap seni (sama seperti rapor Excel lama);
+  - deskripsi = TP tertinggi/terendah tiap seni digabung dalam satu kalimat, misalnya *"Ananda Budi menunjukkan penguasaan yang sangat baik dalam memainkan alat musik ritmis dan menggambar ilustrasi."* Rapor lama mengulang kalimat pembukanya untuk setiap seni;
+  - seni yang belum dinilai membuat rapor siswa itu "belum lengkap", dengan nama seninya di peringatan.
+
 ## 5. Pencegahan error (pelajaran dari rapor Excel lama)
 
 | Masalah di file lama | Penyebab | Penanganan di aplikasi baru |

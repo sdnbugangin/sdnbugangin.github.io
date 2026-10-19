@@ -49,14 +49,35 @@ function normalisasiJk_(v) {
   return teks_(v);
 }
 
+/**
+ * Seni pilihan siswa. Boleh lebih dari satu, dipisah koma, "dan", "&", "/" atau ";".
+ * "rupa dan musik" → "Seni Musik, Seni Rupa" (urut sesuai daftar seni sekolah, tanpa dobel).
+ * Seni yang tidak dikenal dibiarkan apa adanya agar dilaporkan oleh cekDaftarSiswa_.
+ */
 function normalisasiSeni_(v, ditawarkan) {
-  var s = teks_(v).toLowerCase();
-  if (!s) return '';
-  for (var i = 0; i < ditawarkan.length; i++) {
-    var d = ditawarkan[i].toLowerCase();
-    if (s === d || 'seni ' + s === d) return ditawarkan[i];
-  }
-  return teks_(v);
+  var bagian = teks_(v).split(/\s*(?:,|;|\/|&|\bdan\b)\s*/i).map(teks_).filter(String);
+  var kenal = [], asing = [];
+  bagian.forEach(function (b) {
+    var s = b.toLowerCase(), cocok = null;
+    for (var i = 0; i < ditawarkan.length; i++) {
+      var d = ditawarkan[i].toLowerCase();
+      if (s === d || 'seni ' + s === d) cocok = ditawarkan[i];
+    }
+    if (cocok) { if (kenal.indexOf(cocok) < 0) kenal.push(cocok); }
+    else if (asing.indexOf(b) < 0) asing.push(b);
+  });
+  kenal.sort(function (a, b) { return ditawarkan.indexOf(a) - ditawarkan.indexOf(b); });
+  return kenal.concat(asing).join(', ');
+}
+
+/** Memeriksa daftar seni yang diajarkan sekolah. Hasil: { salah[], seni[] } urut sesuai PILIHAN_SENI. */
+function cekSeniSekolah_(daftar) {
+  var seni = PILIHAN_SENI.filter(function (x) { return (daftar || []).indexOf(x) >= 0; });
+  var asing = (daftar || []).filter(function (x) { return PILIHAN_SENI.indexOf(x) < 0; });
+  var salah = [];
+  if (asing.length) salah.push('Seni tidak dikenal: ' + asing.join(', ') + '.');
+  if (!seni.length) salah.push('Pilih minimal satu seni yang diajarkan sekolah.');
+  return { salah: salah, seni: seni };
 }
 
 /** "MUHAMMAD rizki" → "Muhammad". Dipakai bila nama panggilan dikosongkan. */
@@ -242,22 +263,42 @@ function daftarRombel_(ss, tahunAjaran) {
     .sort(function (a, b) { return a.kelas - b.kelas || (a.nama < b.nama ? -1 : a.nama > b.nama ? 1 : 0); });
 }
 
-function simpanProfil_(npsn, isian, semester) {
+function simpanProfil_(npsn, isian, semester, seni) {
   var ss = bukaSekolah_(npsn);
   return denganKunci_(function () {
     var rows = bacaTabel_(ss, 'Profil Sekolah');
     var cek = cekProfil_(isian, rows.map(function (r) { return teks_(r.Kunci); }));
     var sem = Number(semester);
     if (semester !== undefined && sem !== 1 && sem !== 2) cek.salah.push('Semester harus 1 atau 2.');
+    var cekSeni = null;
+    if (seni !== undefined) {
+      cekSeni = cekSeniSekolah_(Array.isArray(seni) ? seni : []);
+      cek.salah = cek.salah.concat(cekSeni.salah);
+      // Seni yang masih dipilih siswa tahun ini tidak boleh dihapus dari daftar sekolah.
+      var atur = aturSekolah_(ss), pakai = {}; // seni → jumlah siswa yang memilihnya tahun ini
+      bacaTabel_(ss, 'Anggota Rombel').forEach(function (a) {
+        if (teks_(a['Tahun Ajaran']) !== atur.tahunAjaran) return;
+        pecahSeni_(teks_(a['Seni Pilihan'])).forEach(function (x) { pakai[x] = (pakai[x] || 0) + 1; });
+      });
+      Object.keys(pakai).forEach(function (x) {
+        if (cekSeni.seni.indexOf(x) < 0 && !cekSeni.salah.length) {
+          cek.salah.push(x + ' masih dipilih ' + pakai[x] + ' siswa. Ubah dulu seni pilihan siswa tersebut.');
+        }
+      });
+    }
     if (cek.salah.length) return { ok: false, salah: cek.salah, pesan: cek.salah[0] };
     rows.forEach(function (r) { if (teks_(r.Kunci) in cek.bersih) r.Nilai = cek.bersih[teks_(r.Kunci)]; });
     tulisTabel_(ss, 'Profil Sekolah', rows);
-    if (sem === 1 || sem === 2) {
-      var atur = bacaTabel_(ss, 'Pengaturan');
-      atur.forEach(function (r) { if (teks_(r.Kunci) === 'Semester') r.Nilai = sem; });
-      tulisTabel_(ss, 'Pengaturan', atur);
+    if (sem === 1 || sem === 2 || cekSeni) {
+      var pengaturan = bacaTabel_(ss, 'Pengaturan');
+      pengaturan.forEach(function (r) {
+        if (teks_(r.Kunci) === 'Semester' && (sem === 1 || sem === 2)) r.Nilai = sem;
+        if (teks_(r.Kunci) === 'Seni Ditawarkan' && cekSeni) r.Nilai = cekSeni.seni.join(', ');
+      });
+      tulisTabel_(ss, 'Pengaturan', pengaturan);
     }
-    catatSekolah_(ss, 'ubah profil', Object.keys(cek.bersih).join(', ') + (sem ? '; semester ' + sem : ''));
+    catatSekolah_(ss, 'ubah profil', Object.keys(cek.bersih).join(', ') + (sem ? '; semester ' + sem : '') +
+      (cekSeni ? '; seni ' + cekSeni.seni.join(', ') : ''));
     return { ok: true, pesan: 'Profil sekolah tersimpan.' };
   });
 }
@@ -353,6 +394,7 @@ function simpanSiswa_(npsn, rombelId, daftar) {
     var salah = [];
     var bersih = daftar.map(function (d, i) {
       var n = normalisasiSiswa_(d, atur.seni, tahun);
+      if (!n.siswa.seni && atur.seni.length === 1) n.siswa.seni = atur.seni[0]; // sekolah dengan satu seni: terisi otomatis
       n.salah.forEach(function (x) { salah.push('Baris ' + (i + 1) + (n.siswa.nama ? ' (' + n.siswa.nama + ')' : '') + ': ' + x); });
       return n.siswa;
     });

@@ -102,6 +102,24 @@ test('cekProfil_ dan cekRombel_ menolak isian yang salah', () => {
   assert.match(c.cekRombel_({ kelas: 5, nama: '5B', nip: '123' }, []).salah[0], /18 digit/);
 });
 
+test('normalisasiSeni_: seni ganda dengan berbagai pemisah, urut dan tanpa dobel', () => {
+  const c = g0.ctx;
+  const semua = ['Seni Musik', 'Seni Rupa', 'Seni Tari', 'Seni Teater'];
+  assert.equal(c.normalisasiSeni_('musik, rupa', semua), 'Seni Musik, Seni Rupa');
+  assert.equal(c.normalisasiSeni_('Rupa dan Musik', semua), 'Seni Musik, Seni Rupa');
+  assert.equal(c.normalisasiSeni_('tari / musik & MUSIK; teater', semua), 'Seni Musik, Seni Tari, Seni Teater');
+  assert.equal(c.normalisasiSeni_('Musik, Lukis', semua), 'Seni Musik, Lukis');
+  assert.equal(c.normalisasiSeni_('Seni Tari', semua), 'Seni Tari');
+  assert.equal(c.normalisasiSeni_('', semua), '');
+});
+
+test('cekSeniSekolah_: minimal satu, hanya seni yang dikenal', () => {
+  const c = g0.ctx;
+  assert.deepEqual(salin(c.cekSeniSekolah_(['Seni Rupa', 'Seni Musik'])), { salah: [], seni: ['Seni Musik', 'Seni Rupa'] });
+  assert.match(c.cekSeniSekolah_([]).salah[0], /minimal satu/);
+  assert.match(c.cekSeniSekolah_(['Seni Lukis']).salah[0], /tidak dikenal/);
+});
+
 /* ---------- profil ---------- */
 
 test('dataSekolah: ringkasan awal sekolah baru', () => {
@@ -133,6 +151,28 @@ test('simpanProfil: tersimpan, NPSN/email tidak bisa diubah, semester bisa digan
   assert.equal(d.semester, 2);
   assert.equal(g.minta({ aksi: 'simpanProfil', profil: {}, semester: 3 }).ok, false);
   assert.match(g.isi('Log').at(-1)[1], /ubah profil/);
+});
+
+test('simpanProfil: seni yang diajarkan sekolah bisa diatur, yang masih dipakai siswa tidak bisa dihapus', () => {
+  const g = sekolahAktif();
+  assert.equal(g.minta({ aksi: 'simpanProfil', profil: {}, seni: ['Seni Rupa', 'Seni Musik'] }).ok, true);
+  assert.deepEqual(g.minta({ aksi: 'dataSekolah' }).seni, ['Seni Musik', 'Seni Rupa']);
+  assert.match(g.minta({ aksi: 'simpanProfil', profil: {}, seni: [] }).pesan, /minimal satu/);
+  const id = rombel(g, 5, '');
+  assert.equal(g.minta({ aksi: 'simpanSiswa', rombel: id, siswa: [{ ...SISWA[0], seni: 'musik, rupa' }] }).ok, true);
+  assert.equal(g.minta({ aksi: 'siswaRombel', rombel: id }).siswa[0].seni, 'Seni Musik, Seni Rupa');
+  assert.match(g.minta({ aksi: 'simpanProfil', profil: {}, seni: ['Seni Musik'] }).pesan, /Seni Rupa masih dipilih 1 siswa/);
+  assert.match(g.minta({ aksi: 'simpanSiswa', rombel: id, siswa: [{ ...SISWA[0], seni: 'tari' }] }).pesan, /"tari" tidak ditawarkan/);
+});
+
+test('simpanSiswa: sekolah dengan satu seni mengisi seni siswa otomatis', () => {
+  const g = sekolahAktif();
+  g.minta({ aksi: 'simpanProfil', profil: {}, seni: ['Seni Rupa'] });
+  const id = rombel(g, 5, '');
+  const h = g.minta({ aksi: 'simpanSiswa', rombel: id, siswa: [{ nama: 'Ani', jk: 'P', agama: 'Islam' }] });
+  assert.equal(h.ok, true);
+  assert.doesNotMatch(h.pesan, /belum memilih seni/);
+  assert.equal(g.minta({ aksi: 'siswaRombel', rombel: id }).siswa[0].seni, 'Seni Rupa');
 });
 
 /* ---------- rombel ---------- */
