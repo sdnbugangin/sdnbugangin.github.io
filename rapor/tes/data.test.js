@@ -423,3 +423,40 @@ test('aksi mapel wajib sesi', () => {
   const g = sekolahAktif();
   for (const aksi of ['mapelSekolah', 'simpanMapel']) assert.equal(salin(g.ctx.layani_({ aksi })).sesiHabis, true);
 });
+
+/* ---------- jumlah siswa rombel & nomor absen ---------- */
+
+test('rombel: jumlah siswa disimpan dan diperiksa', () => {
+  const g = sekolahAktif();
+  const h = g.minta({ aksi: 'simpanRombel', rombel: { kelas: 5, nama: '', target: '30' } });
+  assert.equal(h.ok, true);
+  assert.equal(g.minta({ aksi: 'dataSekolah' }).rombel[0].target, 30);
+  assert.match(g.minta({ aksi: 'simpanRombel', rombel: { kelas: 4, nama: '', target: 'tiga puluh' } }).pesan, /Jumlah siswa harus angka/);
+  assert.match(g.minta({ aksi: 'simpanRombel', rombel: { kelas: 4, nama: '', target: 101 } }).pesan, /Jumlah siswa harus angka/);
+  assert.equal(g.minta({ aksi: 'simpanRombel', rombel: { id: h.rombel.id, kelas: 5, nama: '', target: '' } }).ok, true);
+  assert.equal(g.minta({ aksi: 'dataSekolah' }).rombel[0].target, 0);
+});
+
+test('simpanSiswa: jumlah siswa ikut tersimpan, kekurangan dilaporkan, kelebihan ditolak', () => {
+  const g = sekolahAktif();
+  const id = rombel(g, 5, '');
+  const h = g.minta({ aksi: 'simpanSiswa', rombel: id, siswa: SISWA.slice(0, 2), jumlah: 3 });
+  assert.equal(h.ok, true);
+  assert.equal(h.target, 3);
+  assert.match(h.pesan, /masih kurang 1 siswa dari jumlah siswa rombel \(3\)/);
+  assert.equal(g.minta({ aksi: 'siswaRombel', rombel: id }).rombel.target, 3);
+  assert.match(g.minta({ aksi: 'simpanSiswa', rombel: id, siswa: SISWA, jumlah: 2 }).pesan, /lebih banyak dari jumlah siswa rombel \(2\)/);
+  const pas = g.minta({ aksi: 'simpanSiswa', rombel: id, siswa: g.minta({ aksi: 'siswaRombel', rombel: id }).siswa.concat([SISWA[2]]) });
+  assert.equal(pas.ok, true);
+  assert.doesNotMatch(pas.pesan, /kurang/);
+  assert.deepEqual(g.isi('Anggota Rombel').map((r) => r[3]), [1, 2, 3], 'nomor absen 1..n sesuai urutan');
+});
+
+test('spreadsheet versi lama tanpa kolom Jumlah Siswa dilengkapi otomatis', () => {
+  const g = sekolahAktif();
+  const sh = g.ss.getSheetByName('Rombel');
+  sh.data[0] = sh.data[0].slice(0, 6); // judul seperti spreadsheet yang dibuat sebelum kolom ini ada
+  g.minta({ aksi: 'simpanRombel', rombel: { kelas: 5, nama: '', target: 28 } });
+  assert.equal(sh.data[0][6], 'Jumlah Siswa');
+  assert.equal(g.minta({ aksi: 'dataSekolah' }).rombel[0].target, 28);
+});

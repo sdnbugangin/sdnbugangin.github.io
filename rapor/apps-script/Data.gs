@@ -153,7 +153,16 @@ function cekRombel_(d, rombelLain) {
   }
   if (teks_(d.wali).length > 100) salah.push('Nama wali kelas terlalu panjang.');
   if (nip && !/^\d{18}$/.test(nip)) salah.push('NIP wali kelas harus 18 digit angka (atau kosongkan).');
-  return { salah: salah, rombel: { id: d.id, kelas: kelas, nama: nama, wali: teks_(d.wali), nip: nip } };
+  var target = cekJumlahSiswa_(d.target);
+  if (target === null) salah.push('Jumlah siswa harus angka 1 sampai ' + MAKS_SISWA_ROMBEL + ' (atau kosongkan).');
+  return { salah: salah, rombel: { id: d.id, kelas: kelas, nama: nama, wali: teks_(d.wali), nip: nip, target: target || 0 } };
+}
+
+/** Jumlah siswa rombel dari isian: kosong → 0 (belum ditentukan), 1–100 → angka, selain itu → null (salah). */
+function cekJumlahSiswa_(v) {
+  if (v === undefined || v === null || teks_(v) === '' || Number(v) === 0) return 0;
+  var n = Number(teks_(v));
+  return n >= 1 && n <= MAKS_SISWA_ROMBEL && Math.floor(n) === n ? n : null;
 }
 
 /** Nama rombel untuk pesan: kelas dengan satu rombel (nama = nomor kelas) disebut "Kelas 5". */
@@ -198,6 +207,12 @@ function bacaTabel_(ss, nama) {
 function tulisTabel_(ss, nama, data) {
   var st = strukturSheet_(nama);
   var sh = sheetSekolah_(ss, nama);
+  // Spreadsheet yang dibuat versi lama belum punya kolom baru (mis. Jumlah Siswa): judulnya dilengkapi di sini.
+  var judul = sh.getRange(1, 1, 1, st.kolom.length).getValues()[0];
+  if (judul.join('|') !== st.kolom.join('|')) {
+    sh.getRange(1, 1, 1, st.kolom.length).setValues([st.kolom])
+      .setFontWeight('bold').setBackground('#12314f').setFontColor('#ffffff');
+  }
   var lama = Math.max(sh.getLastRow() - 1, 0);
   var perlu = data.length + 1;
   if (sh.getMaxRows() < perlu) {
@@ -258,7 +273,10 @@ function dataSekolah_(npsn) {
 function daftarRombel_(ss, tahunAjaran) {
   return bacaTabel_(ss, 'Rombel').filter(function (r) { return teks_(r['Tahun Ajaran']) === tahunAjaran; })
     .map(function (r) {
-      return { id: teks_(r['ID Rombel']), kelas: Number(r.Kelas), nama: teks_(r['Nama Rombel']), wali: teks_(r['Wali Kelas']), nip: teks_(r['NIP Wali Kelas']) };
+      return {
+        id: teks_(r['ID Rombel']), kelas: Number(r.Kelas), nama: teks_(r['Nama Rombel']), wali: teks_(r['Wali Kelas']),
+        nip: teks_(r['NIP Wali Kelas']), target: Number(r['Jumlah Siswa']) || 0
+      };
     })
     .sort(function (a, b) { return a.kelas - b.kelas || (a.nama < b.nama ? -1 : a.nama > b.nama ? 1 : 0); });
 }
@@ -317,11 +335,13 @@ function simpanRombel_(npsn, d) {
       var lama = semua.filter(function (x) { return teks_(x['ID Rombel']) === r.id && teks_(x['Tahun Ajaran']) === ta; })[0];
       if (!lama) return { ok: false, pesan: 'Rombel tidak ditemukan. Muat ulang halaman.' };
       lama.Kelas = r.kelas; lama['Nama Rombel'] = r.nama; lama['Wali Kelas'] = r.wali; lama['NIP Wali Kelas'] = r.nip;
+      lama['Jumlah Siswa'] = r.target || '';
     } else {
       var dipakai = {};
       semua.forEach(function (x) { dipakai[teks_(x['ID Rombel'])] = true; });
       r.id = idBaru_('R', dipakai);
-      semua.push({ 'ID Rombel': r.id, 'Tahun Ajaran': ta, Kelas: r.kelas, 'Nama Rombel': r.nama, 'Wali Kelas': r.wali, 'NIP Wali Kelas': r.nip });
+      semua.push({ 'ID Rombel': r.id, 'Tahun Ajaran': ta, Kelas: r.kelas, 'Nama Rombel': r.nama, 'Wali Kelas': r.wali, 'NIP Wali Kelas': r.nip,
+        'Jumlah Siswa': r.target || '' });
     }
     tulisTabel_(ss, 'Rombel', semua);
     catatSekolah_(ss, d.id ? 'ubah rombel' : 'tambah rombel', r.nama + ' (kelas ' + r.kelas + ')');
@@ -379,10 +399,15 @@ function siswaRombel_(npsn, rombelId) {
  * Menyimpan daftar siswa satu rombel (urutan daftar = nomor urut).
  * Siswa yang dihapus dari daftar hanya keluar dari rombel ini; datanya tetap tersimpan.
  */
-function simpanSiswa_(npsn, rombelId, daftar) {
+function simpanSiswa_(npsn, rombelId, daftar, jumlah) {
   var ss = bukaSekolah_(npsn);
   if (!Array.isArray(daftar)) return { ok: false, pesan: 'Daftar siswa tidak valid.' };
   if (daftar.length > MAKS_SISWA_ROMBEL) return { ok: false, pesan: 'Satu rombel maksimal ' + MAKS_SISWA_ROMBEL + ' siswa.' };
+  var target = jumlah === undefined ? undefined : cekJumlahSiswa_(jumlah);
+  if (target === null) return { ok: false, pesan: 'Jumlah siswa harus angka 1 sampai ' + MAKS_SISWA_ROMBEL + '.' };
+  if (target && daftar.length > target) {
+    return { ok: false, pesan: 'Siswa yang diisi (' + daftar.length + ') lebih banyak dari jumlah siswa rombel (' + target + '). Periksa daftar atau perbarui jumlah siswa.' };
+  }
   return denganKunci_(function () {
     var atur = aturSekolah_(ss);
     var ta = atur.tahunAjaran;
@@ -465,12 +490,22 @@ function simpanSiswa_(npsn, rombelId, daftar) {
       sisa.push({ 'Tahun Ajaran': ta, 'ID Rombel': rombelId, 'ID Siswa': s.id, 'No Urut': i + 1, 'Seni Pilihan': s.seni });
     });
     tulisTabel_(ss, 'Anggota Rombel', sisa);
-    catatSekolah_(ss, 'simpan siswa', rombel.nama + ': ' + bersih.length + ' siswa');
+    if (target !== undefined && target !== rombel.target) {
+      var semuaRombel = bacaTabel_(ss, 'Rombel');
+      semuaRombel.forEach(function (r) {
+        if (teks_(r['ID Rombel']) === rombelId && teks_(r['Tahun Ajaran']) === ta) r['Jumlah Siswa'] = target || '';
+      });
+      tulisTabel_(ss, 'Rombel', semuaRombel);
+      rombel.target = target;
+    }
+    catatSekolah_(ss, 'simpan siswa', rombel.nama + ': ' + bersih.length + ' siswa' + (rombel.target ? ' dari ' + rombel.target : ''));
 
     var tanpaSeni = bersih.filter(function (s) { return !s.seni; }).length;
+    var kurang = rombel.target ? rombel.target - bersih.length : 0;
     return {
-      ok: true, siswa: bersih,
+      ok: true, siswa: bersih, target: rombel.target,
       pesan: bersih.length + ' siswa ' + labelRombel_(rombel) + ' tersimpan.' +
+        (kurang > 0 ? ' Catatan: masih kurang ' + kurang + ' siswa dari jumlah siswa rombel (' + rombel.target + ').' : '') +
         (tanpaSeni ? ' Catatan: ' + tanpaSeni + ' siswa belum memilih seni (wajib diisi sebelum cetak rapor).' : '')
     };
   });
