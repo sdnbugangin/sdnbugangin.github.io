@@ -25,6 +25,8 @@ function ujiBeban() {
     var ss = bukaSekolah_(npsn), ta = aturSekolah_(ss).tahunAjaran;
     var rombel = daftarRombel_(ss, ta).filter(function (r) { return r.kelas === 5; })[0];
 
+    // Uji selalu mencoba ulang Sheets API (penolakan lama yang diingat 1 jam dihapus dulu).
+    CacheService.getScriptCache().remove('sheetsapi:mati');
     // Rincian biaya dasar, agar jelas bagian mana yang lambat.
     var t0 = new Date().getTime();
     var ssBaru = SpreadsheetApp.openById(ss.getId());
