@@ -121,6 +121,10 @@ function isiSpreadsheetSekolah_(ss, d, tanggal) {
   tulisBaris_(ss, 'Mapel Aktif', mapel);
 
   tulisBaris_(ss, 'Master Narasi', NARASI_BAWAAN);
+  // TP bawaan dari sekolah sumber (lihat Tp.gs) langsung terpasang; sekolah tetap bebas mengubahnya.
+  tulisBaris_(ss, 'Tujuan Pembelajaran', (d.tp || []).map(function (t) {
+    return [ta.tahunAjaran, t.semester, t.kelas, t.mapel, t.varian, t.kode, t.materi, t.tp];
+  }));
   tulisBaris_(ss, 'Log', [[tanggal || new Date(), 'dibuat', 'Spreadsheet sekolah dibuat otomatis saat akun diaktifkan.']]);
 }
 

@@ -2,11 +2,11 @@
  * Aplikasi Rapor SD (Kurikulum Merdeka) — backend Google Apps Script.
  * Melayani halaman sdnbugangin.github.io/rapor/ untuk semua sekolah yang mendaftar.
  *
- * Proyek Apps Script ini berisi berkas: Kode.gs, Akun.gs, Sekolah.gs, Data.gs, Hitung.gs, Referensi.gs, Narasi.gs.
+ * Proyek Apps Script ini berisi berkas: Kode.gs, Akun.gs, Sekolah.gs, Data.gs, Tp.gs, Hitung.gs, Referensi.gs, Narasi.gs.
  *
  * Cara pasang (sekali saja, dengan akun Google PENGELOLA, bukan akun pribadi):
  * 1. Buat Google Sheet baru, beri nama "Rapor SD - Pusat".
- * 2. Menu Ekstensi → Apps Script. Buat ketujuh berkas di atas (tombol + → Skrip) dan tempel isinya.
+ * 2. Menu Ekstensi → Apps Script. Buat kedelapan berkas di atas (tombol + → Skrip) dan tempel isinya.
  * 3. Pilih fungsi "siapkan" di toolbar, klik Jalankan, lalu izinkan akses.
  * 4. Deploy → Deployment baru → Jenis: Aplikasi web.
  *    Jalankan sebagai: Saya. Yang memiliki akses: Siapa saja. Klik Deploy.
@@ -54,7 +54,8 @@ function siapkan() {
     ['Nama Aplikasi', 'Rapor SD', 'Nama yang tampil di email.'],
     ['Folder Utama', '', 'ID folder "' + FOLDER_UTAMA + '" di Google Drive. Semua hasil aplikasi ada di dalamnya. Diisi otomatis.'],
     ['Folder Data Sekolah', '', 'ID subfolder tempat spreadsheet sekolah disimpan. Diisi otomatis.'],
-    ['Pendaftaran Dibuka', 'Ya', 'Tidak = sekolah baru tidak bisa mendaftar (sekolah terdaftar tetap bisa masuk).']
+    ['Pendaftaran Dibuka', 'Ya', 'Tidak = sekolah baru tidak bisa mendaftar (sekolah terdaftar tetap bisa masuk).'],
+    ['NPSN Sumber TP Bawaan', '', 'NPSN sekolah yang TP-nya dipakai sebagai TP bawaan: disalin ke sekolah baru dan bisa diambil sekolah lain lewat tombol "Pakai TP bawaan".']
   ];
   var ada = atur.getDataRange().getValues().map(function (r) { return r[0]; });
   bawaan.forEach(function (b) { if (ada.indexOf(b[0]) < 0) atur.appendRow(b); });
@@ -91,7 +92,8 @@ function pengaturanPusat_() {
   return {
     alamat: alamat.charAt(alamat.length - 1) === '/' ? alamat : alamat + '/',
     namaAplikasi: nilai['Nama Aplikasi'] || 'Rapor SD',
-    daftarDibuka: String(nilai['Pendaftaran Dibuka'] || 'Ya').toLowerCase() !== 'tidak'
+    daftarDibuka: String(nilai['Pendaftaran Dibuka'] || 'Ya').toLowerCase() !== 'tidak',
+    sumberTp: String(nilai['NPSN Sumber TP Bawaan'] || '').trim().toUpperCase()
   };
 }
 
@@ -187,6 +189,10 @@ function layani_(req) {
       case 'mapelSekolah': return mapelSekolah_(sesi.npsn);
       case 'simpanMapel': return simpanMapel_(sesi.npsn, req.mapel);
       case 'unduhExcel': return unduhExcel_(sesi.npsn);
+      case 'tpKelas': return tpKelas_(sesi.npsn, req.kelas, req.semester);
+      case 'simpanTp': return simpanTp_(sesi.npsn, req);
+      case 'tpBawaan': return tpBawaan_(sesi.npsn, req.kelas, req.semester, req.mapel, req.varian);
+      case 'tpEkspor': return tpEkspor_(sesi.npsn, req.kelas);
       default: return { ok: false, pesan: 'Aksi tidak dikenal.' };
     }
   } catch (err) {

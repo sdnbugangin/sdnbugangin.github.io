@@ -122,6 +122,23 @@ Pengamannya: setiap perubahan nilai dicatat di Log beserta waktunya, dan kepala 
   - deskripsi = TP tertinggi/terendah tiap seni digabung dalam satu kalimat, misalnya *"Ananda Budi menunjukkan penguasaan yang sangat baik dalam memainkan alat musik ritmis dan menggambar ilustrasi."* Rapor lama mengulang kalimat pembukanya untuk setiap seni;
   - seni yang belum dinilai membuat rapor siswa itu "belum lengkap", dengan nama seninya di peringatan.
 
+### Tujuan Pembelajaran (TP)
+
+- **Disusun per kelas, mapel, dan semester**, dan dipakai semua rombel di kelas itu. Agama punya TP per agama, Seni per seni. Maksimal 40 TP per mapel per semester.
+- **Tiap TP punya dua isian:**
+  - Tujuan Pembelajaran, maksimal **100 karakter** (batas e-Rapor), dihitung langsung saat diketik;
+  - Lingkup materi (opsional) untuk kalimat deskripsi rapor; jika kosong, teks TP yang dipakai.
+- **Kode TP tetap** (TP1, TP2, …) dan dirujuk oleh nilai, jadi mengubah urutan atau teks TP tidak memindahkan nilai. TP yang sudah punya nilai tidak bisa dihapus.
+- **TP bawaan:** isi Pengaturan Pusat **"NPSN Sumber TP Bawaan"** dengan NPSN sekolah tempat TP disusun.
+  - Sekolah yang mendaftar setelahnya langsung mendapat salinan TP itu.
+  - Sekolah lain bisa mengambilnya per mapel dengan tombol **Pakai TP bawaan**.
+  - Salinan di tiap sekolah bebas diubah tanpa mengubah sumbernya.
+- **Unduh format e-Rapor:** tombol "Unduh TP kelas ini" membuat satu berkas `f_tp (…).xlsx` per mapel, berisi semester 1 dan 2, dalam satu ZIP.
+  - Isinya sama dengan template impor TP e-Rapor Kemendikdasmen: judul, kode mapel di C2, "SD", kolom NO/TINGKAT/FASE/SEMESTER/TP, daftar pilihan, dan batas 100 karakter.
+  - Berkas dibuat di browser dengan ExcelJS dan JSZip (cdnjs).
+  - Kode mapel e-Rapor ada di `KODE_ERAPOR` (`Referensi.gs`); yang belum diketahui (Agama per agama, Pancasila, PJOK, KKA, Mulok) diberi peringatan dan sel C2-nya dikosongkan.
+  - Agama: satu berkas per agama. Seni: semua seni digabung dalam berkas "Seni Budaya".
+
 ## 5. Pencegahan error (pelajaran dari rapor Excel lama)
 
 | Masalah di file lama | Penyebab | Penanganan di aplikasi baru |
@@ -152,6 +169,6 @@ Aturan umum:
 | 1 | Mesin hitung + data referensi + uji otomatis | ✅ selesai (`apps-script/Hitung.gs`, `Referensi.gs`, `tes/`) |
 | 2 | Akun sekolah (daftar, verifikasi email, masuk, lupa & ganti kata sandi) dan pembuatan spreadsheet sekolah otomatis | ✅ selesai (`index.html`, `apps-script/Kode.gs`, `Akun.gs`, `Sekolah.gs`, `Narasi.gs`) |
 | 3 | Data sekolah: profil, rombel & wali kelas, siswa (tempel langsung dari Excel/Dapodik), unduh salinan Excel | ✅ selesai (`apps-script/Data.gs`, halaman Data Sekolah & Siswa) |
-| 4 | Halaman input nilai, TP, kokurikuler, ekstrakurikuler, presensi | berikutnya |
+| 4 | Tujuan Pembelajaran (✅ selesai, `apps-script/Tp.gs`); input nilai, kokurikuler, ekstrakurikuler, presensi | sedang dikerjakan |
 | 5 | Cek kelengkapan, rekap/leger, cetak rapor PDF (sampul, rapor, transkrip, SKL), kunci rapor | |
 | 6 | Kenaikan kelas tahunan, uji coba di SDN Bugangin, lalu dibuka untuk sekolah lain | |

@@ -235,7 +235,7 @@ function verifikasi_(token) {
   if (t.kedaluwarsa) return { ok: false, pesan: 'Tautan aktivasi sudah kedaluwarsa. Silakan daftar ulang.' };
 
   // Spreadsheet dibuat di luar kunci (butuh beberapa detik), lalu dicatat di dalam kunci.
-  var id = buatSpreadsheetSekolah_({ npsn: s.npsn, nama: s.nama, email: s.email });
+  var id = buatSpreadsheetSekolah_({ npsn: s.npsn, nama: s.nama, email: s.email, tp: tpSumber_() });
   var hasil = denganKunci_(function () {
     var segar = cariSekolah_('npsn', t.npsn);
     if (segar && segar.status === STATUS.aktif) return 'sudah';

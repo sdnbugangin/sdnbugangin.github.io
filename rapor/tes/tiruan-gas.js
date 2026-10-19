@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 
-const BERKAS_GS = ['Referensi.gs', 'Narasi.gs', 'Hitung.gs', 'Kode.gs', 'Akun.gs', 'Sekolah.gs', 'Data.gs'];
+const BERKAS_GS = ['Referensi.gs', 'Narasi.gs', 'Hitung.gs', 'Kode.gs', 'Akun.gs', 'Sekolah.gs', 'Data.gs', 'Tp.gs'];
 const MAKS_BARIS = 1000;
 
 function tanpaEfek(target) {
@@ -185,4 +185,25 @@ function buatGas() {
   return { ctx, pusat, berkas, cache, surat, jam, folder, lokasi, isiAkar, MailApp: gas.MailApp, DriveApp: gas.DriveApp };
 }
 
-module.exports = { buatGas, BERKAS_GS };
+/**
+ * Sekolah yang sudah daftar, aktif, dan masuk. g.minta(req) mengirim permintaan dengan sesi sekolah itu.
+ * Bila g sudah ada (mis. untuk sekolah kedua di Pusat yang sama), sekolah baru didaftarkan di g itu.
+ */
+function sekolahAktif(data, g) {
+  data = data || { npsn: '20321653', nama: 'SD N BUGANGIN', email: 'sdnbugangin@gmail.com', sandi: 'rapor2026', ulangi: 'rapor2026', setuju: true };
+  if (!g) { g = buatGas(); g.ctx.siapkan(); }
+  const panggil = (req) => JSON.parse(JSON.stringify(g.ctx.layani_(req)));
+  panggil({ aksi: 'daftar', data });
+  const token = g.surat.at(-1).htmlBody.match(/\?verifikasi=([0-9a-f]+)/)[1];
+  panggil({ aksi: 'verifikasi', token });
+  const { sesi } = panggil({ aksi: 'masuk', email: data.email, sandi: data.sandi });
+  const id = g.pusat.getSheetByName('Sekolah').data.find((r) => r[0] === data.npsn)[6];
+  return {
+    ...g,
+    minta: (req) => panggil({ sesi, ...req }),
+    ss: g.berkas[id].ss,
+    isi(nama) { return this.ss.getSheetByName(nama).data.slice(1).filter((r) => r.some((x) => x !== '' && x !== undefined)); }
+  };
+}
+
+module.exports = { buatGas, sekolahAktif, BERKAS_GS };
