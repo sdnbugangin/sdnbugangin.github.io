@@ -183,7 +183,7 @@ function layani_(req) {
       case 'simpanRombel': return simpanRombel_(sesi.npsn, req.rombel || {});
       case 'hapusRombel': return hapusRombel_(sesi.npsn, req.id);
       case 'siswaRombel': return siswaRombel_(sesi.npsn, req.rombel);
-      case 'simpanSiswa': return simpanSiswa_(sesi.npsn, req.rombel, req.siswa);
+      case 'simpanSiswa': return simpanSiswa_(sesi.npsn, req.rombel, req.siswa, req.jumlah);
       case 'mapelSekolah': return mapelSekolah_(sesi.npsn);
       case 'simpanMapel': return simpanMapel_(sesi.npsn, req.mapel);
       case 'unduhExcel': return unduhExcel_(sesi.npsn);

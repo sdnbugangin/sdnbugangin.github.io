@@ -12,7 +12,7 @@ var STRUKTUR_SEKOLAH = [
   { nama: 'Profil Sekolah', kolom: ['Kunci', 'Nilai', 'Keterangan'], teks: ['Nilai'] },
   { nama: 'Pengaturan', kolom: ['Kunci', 'Nilai', 'Keterangan'], teks: ['Nilai'] },
   { nama: 'KKTP', kolom: ['Batas Bawah', 'Predikat', 'Kalimat Deskripsi'] },
-  { nama: 'Rombel', kolom: ['ID Rombel', 'Tahun Ajaran', 'Kelas', 'Nama Rombel', 'Wali Kelas', 'NIP Wali Kelas'],
+  { nama: 'Rombel', kolom: ['ID Rombel', 'Tahun Ajaran', 'Kelas', 'Nama Rombel', 'Wali Kelas', 'NIP Wali Kelas', 'Jumlah Siswa'],
     teks: ['ID Rombel', 'Tahun Ajaran', 'NIP Wali Kelas'] },
   { nama: 'Siswa', kolom: ['ID Siswa', 'NIS', 'NISN', 'Nama Lengkap', 'Nama Panggilan', 'Jenis Kelamin', 'Agama',
     'Tempat Lahir', 'Tanggal Lahir', 'Nama Ayah', 'Nama Ibu', 'Nama Wali', 'Alamat', 'Status', 'Keterangan Status'],

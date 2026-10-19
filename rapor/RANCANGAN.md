@@ -98,6 +98,11 @@ Pengamannya: setiap perubahan nilai dicatat di Log beserta waktunya, dan kepala 
 - **NISN/NIS unik di satu sekolah.** Siswa tidak bisa berada di dua rombel pada tahun ajaran yang sama.
 - **Siswa yang dihapus dari rombel tidak dihapus datanya.** Jika siswa itu ditempel di rombel lain dengan NISN (atau NIS) yang sama, ia disambungkan ke data lamanya sehingga tidak ada siswa dobel.
 - **Rombel hanya bisa dihapus jika sudah kosong.** Satu rombel maksimal 100 siswa.
+- **Jumlah siswa per rombel** diisi sekali (di form rombel atau di halaman siswa).
+  - Tabel siswa langsung disiapkan sebanyak itu (tombol "Siapkan baris"), tanpa klik "Tambah baris" berulang.
+  - Penghitung menampilkan "Terisi 28 dari 30 siswa (kurang 2)" di halaman siswa dan di kartu rombel.
+  - Siswa yang diisi melebihi jumlah itu ditolak.
+- **No. Absen = urutan baris di tabel** (disimpan sebagai No Urut). Tombol "Urutkan nama A–Z" menyusun ulang nomor absen. Nomor ini dipakai di presensi, leger, dan rapor.
 - **Lebih dari 1.000 baris tetap aman.** Baris tambahan sheet dibuat otomatis, lengkap dengan format teksnya.
 
 ### Mata pelajaran per kelas

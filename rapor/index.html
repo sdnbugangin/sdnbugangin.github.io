@@ -55,10 +55,11 @@ input:disabled{background:#f5f2ea;color:var(--muted)}
 table.siswa{border-collapse:collapse;font-size:13px}
 table.siswa th{position:sticky;top:0;background:var(--blue);color:#fff;text-align:left;padding:9px 8px;font-size:12px;white-space:nowrap;z-index:1}
 table.siswa td{border-bottom:1px solid #efe6d2;padding:2px}
-table.siswa td.no{text-align:center;color:var(--muted);min-width:38px;width:38px;font-size:12px}
+table.siswa td.no{text-align:center;color:var(--ink);font-weight:700;min-width:64px;width:64px;font-size:13px}
 /* No dan Nama tetap terlihat saat tabel digeser ke kanan */
 table.siswa td:nth-child(-n+2){position:sticky;background:#fff;z-index:1}table.siswa th:nth-child(-n+2){position:sticky;z-index:2}
-table.siswa td:nth-child(1),table.siswa th:nth-child(1){left:0}table.siswa td:nth-child(2),table.siswa th:nth-child(2){left:38px;box-shadow:2px 0 0 #efe6d2}
+table.siswa td:nth-child(1),table.siswa th:nth-child(1){left:0}table.siswa td:nth-child(1),table.siswa th:nth-child(1){min-width:64px;width:64px;max-width:64px;white-space:normal;text-align:center}
+table.siswa td:nth-child(2),table.siswa th:nth-child(2){left:64px;box-shadow:2px 0 0 #efe6d2}
 table.siswa input{width:100%;border:1px solid transparent;border-radius:8px;padding:7px 8px;font:inherit;font-size:13px;background:transparent;color:var(--ink)}
 table.siswa input:hover{border-color:#eadfc7}table.siswa input:focus{border-color:var(--yellow);outline:none;background:#fffdf3}
 table.siswa .hapus{border:0;background:none;color:var(--bad);font-size:18px;line-height:1;cursor:pointer;padding:6px 10px;border-radius:8px}table.siswa .hapus:hover{background:#fde4e1}
@@ -71,6 +72,7 @@ table.mapel input[type=text]{width:100%;font:inherit;font-size:14px;padding:8px 
 table.mapel .jenis{display:inline-block;font-size:11px;font-weight:800;padding:2px 7px;border-radius:999px;margin-left:6px;vertical-align:middle}
 .jenis.wajib{background:#eef3f8;color:var(--blue)}.jenis.pilihan{background:#fff3c0;color:#6b4b00}
 table.mapel .na{color:#c9bfa8}
+.jml{font-weight:700}.jml.pas{color:var(--ok)}.jml.kurang{color:var(--bad)}
 .back{display:inline-block;margin-bottom:6px;font-size:14px}
 footer{text-align:center;color:var(--muted);font-size:13px;line-height:1.7;padding:28px 16px 8px}
 </style>
@@ -233,6 +235,8 @@ footer{text-align:center;color:var(--muted);font-size:13px;line-height:1.7;paddi
             <div class="hint">Hanya diisi jika kelas ini punya lebih dari satu rombel. Cukup ketik A, B, C… (otomatis menjadi <span id="rf-contoh">5A, 5B</span>).</div></div>
           <div><label for="rf-wali">Wali kelas</label><input id="rf-wali" type="text" maxlength="100" placeholder="Nama lengkap dengan gelar"></div>
           <div><label for="rf-nip">NIP wali kelas</label><input id="rf-nip" type="text" inputmode="numeric" maxlength="24" placeholder="Kosongkan jika tidak ada"></div>
+          <div><label for="rf-target">Jumlah siswa</label><input id="rf-target" type="number" min="1" max="100" inputmode="numeric" placeholder="Misalnya 28">
+            <div class="hint">Tabel siswa langsung disiapkan sebanyak ini, dan dipakai untuk memeriksa apakah semua siswa sudah terisi.</div></div>
           <div class="aksi"><button class="btn small" type="submit">Simpan rombel</button><button class="btn ghost small" type="button" id="rf-batal">Batal</button></div>
         </form>
         <div class="msg" id="rf-msg"></div>
@@ -254,6 +258,12 @@ footer{text-align:center;color:var(--muted);font-size:13px;line-height:1.7;paddi
       <span class="sub" style="color:var(--ink);font-weight:700">Seni untuk semua siswa:</span>
       <span class="pilih-seni" id="s-seni-pilih"></span>
       <button class="btn ghost small" type="button" id="s-seni-terapkan">Terapkan ke semua baris</button>
+    </div>
+    <div class="toolbar">
+      <label for="s-target" style="margin:0">Jumlah siswa rombel ini</label>
+      <input id="s-target" type="number" min="1" max="100" inputmode="numeric" style="width:90px;font:inherit;font-size:15px;padding:9px 10px;border:1px solid #d9cfb8;border-radius:12px">
+      <button class="btn ghost small" type="button" id="s-siapkan">Siapkan baris</button>
+      <button class="btn ghost small" type="button" id="s-urut" title="Urutkan nama A–Z; nomor absen mengikuti urutan baru">Urutkan nama A–Z</button>
     </div>
     <div class="toolbar">
       <button class="btn add" type="button" id="s-tambah">+ Tambah baris</button>
@@ -279,7 +289,7 @@ const ls = { get:k=>{try{return localStorage.getItem(k)||''}catch(e){return ''}}
 const KUNCI_SESI = 'rapor-sesi';
 const VIEWS = ['masuk','daftar','lupa','reset','verifikasi','beranda','data','siswa'];
 let TOKEN_RESET = '';
-let DATA = null, ROMBEL = null, SISWA = [], UBAH = false, SENI_SEKOLAH = [];
+let DATA = null, ROMBEL = null, SISWA = [], UBAH = false, SENI_SEKOLAH = [], TARGET = 0;
 const SEMUA_SENI = ['Seni Musik', 'Seni Rupa', 'Seni Tari', 'Seni Teater'];
 const KOLOM = [
   { k:'nama', judul:'Nama Lengkap *', w:230 },
@@ -288,7 +298,7 @@ const KOLOM = [
   { k:'nisn', judul:'NISN', w:120 },
   { k:'jk', judul:'L/P *', w:60, list:'dl-jk' },
   { k:'agama', judul:'Agama *', w:120, list:'dl-agama' },
-  { k:'seni', judul:'Seni Pilihan', w:190, list:'dl-seni', ph:'Musik, Rupa' },
+  { k:'seni', judul:'Seni Pilihan', w:190, list:'dl-seni' },
   { k:'tempatLahir', judul:'Tempat Lahir', w:130 },
   { k:'tanggalLahir', judul:'Tanggal Lahir', w:115, ph:'dd/mm/yyyy' },
   { k:'ayah', judul:'Nama Ayah', w:180 },
@@ -477,13 +487,20 @@ $('#f-profil').addEventListener('submit', e => { e.preventDefault(); kirim(e.tar
   }
 }); });
 
+/* "28 dari 30 siswa" dengan warna: hijau bila pas, merah bila belum/lebih; tanpa target cukup "28 siswa". */
+function teksJumlah(isi, target){
+  if (!target) return isi + ' siswa';
+  const cls = isi === target ? 'pas' : 'kurang';
+  return '<span class="jml ' + cls + '">' + isi + ' dari ' + target + ' siswa' + (isi < target ? ' (kurang ' + (target - isi) + ')' : '') + '</span>';
+}
+
 function renderRombel(){
   let html = '';
   for (let k = 1; k <= 6; k++) {
     const isi = DATA.rombel.filter(r => r.kelas === k);
     html += '<div class="kelas"><h3>Kelas ' + k + '</h3><div class="rombels">' +
       isi.map(r => '<div class="rombel"><b>' + esc(labelRombel(r)) + '</b><div class="sub">' +
-        (r.wali ? 'Wali kelas: ' + esc(r.wali) : '<i>Wali kelas belum diisi</i>') + '<br>' + r.jumlah + ' siswa</div>' +
+        (r.wali ? 'Wali kelas: ' + esc(r.wali) : '<i>Wali kelas belum diisi</i>') + '<br>' + teksJumlah(r.jumlah, r.target) + '</div>' +
         '<div class="aksi"><button class="btn small" type="button" data-siswa="' + esc(r.id) + '">Data siswa</button>' +
         '<button class="btn ghost small" type="button" data-ubah="' + esc(r.id) + '">Ubah</button>' +
         (r.jumlah ? '' : '<button class="btn danger small" type="button" data-hapus="' + esc(r.id) + '">Hapus</button>') + '</div></div>').join('') +
@@ -502,6 +519,7 @@ function formRombel(r, kelas){
   contohRombel();
   $('#rf-wali').value = r ? r.wali : '';
   $('#rf-nip').value = r ? r.nip : '';
+  $('#rf-target').value = r && r.target ? r.target : '';
   $('#rf-msg').textContent = '';
   $('#rf-wrap').scrollIntoView({ behavior:'smooth', block:'start' });
   $('#rf-nama').focus();
@@ -528,7 +546,7 @@ $('#daftar-rombel').addEventListener('click', async e => {
 
 $('#f-rombel').addEventListener('submit', e => { e.preventDefault(); kirim(e.target, async () => {
   const rombel = { id: $('#rf-wrap').dataset.id || undefined, kelas: Number($('#rf-kelas').value),
-    nama: $('#rf-nama').value, wali: $('#rf-wali').value, nip: $('#rf-nip').value };
+    nama: $('#rf-nama').value, wali: $('#rf-wali').value, nip: $('#rf-nip').value, target: $('#rf-target').value };
   const res = await api({ aksi:'simpanRombel', rombel });
   if (res.sesiHabis) return;
   if (!res.ok) return pesan('#rf-msg', res.pesan, false, res.salah);
@@ -559,14 +577,16 @@ async function bukaSiswa(id){
   // Satu seni saja: terisi otomatis oleh server, tidak perlu alat ini.
   $('#s-seni-semua').classList.toggle('hidden', res.seni.length < 2);
   $('#s-seni-pilih').innerHTML = res.seni.map(x => '<label><input type="checkbox" value="' + esc(x) + '"> ' + esc(x) + '</label>').join('');
+  TARGET = res.rombel.target || 0;
+  $('#s-target').value = TARGET || '';
   SISWA = res.siswa.map(s => ({ ...s, tanggalLahir: tglTampil(s.tanggalLahir) }));
-  if (!SISWA.length) SISWA = Array.from({ length: 5 }, () => ({}));
+  isiBarisKosong(TARGET || (SISWA.length ? 0 : 5));
   UBAH = false;
   renderTabel();
 }
 
 function renderTabel(){
-  $('#s-head').innerHTML = '<th>No</th>' + KOLOM.map(c => '<th style="min-width:' + c.w + 'px">' + esc(c.judul) + '</th>').join('') + '<th></th>';
+  $('#s-head').innerHTML = '<th title="Nomor absen/presensi, mengikuti urutan baris">No. Absen</th>' + KOLOM.map(c => '<th style="min-width:' + c.w + 'px">' + esc(c.judul) + '</th>').join('') + '<th></th>';
   $('#s-body').innerHTML = SISWA.map((s, i) => '<tr><td class="no">' + (i + 1) + '</td>' +
     KOLOM.map(c => '<td><input data-i="' + i + '" data-k="' + c.k + '" value="' + esc(s[c.k]) + '"' +
       (c.list ? ' list="' + c.list + '"' : '') + (c.ph ? ' placeholder="' + c.ph + '"' : '') + ' aria-label="' + esc(c.judul) + ' baris ' + (i + 1) + '"></td>').join('') +
@@ -575,7 +595,16 @@ function renderTabel(){
 }
 
 const barisKosong = s => KOLOM.every(c => !String(s[c.k] || '').trim());
-function hitungJumlah(){ $('#s-jumlah').textContent = SISWA.filter(s => !barisKosong(s)).length + ' siswa' + (UBAH ? ' · belum disimpan' : ''); }
+function hitungJumlah(){
+  const isi = SISWA.filter(s => !barisKosong(s)).length;
+  $('#s-jumlah').innerHTML = 'Terisi ' + teksJumlah(isi, TARGET) + (UBAH ? ' · <b>belum disimpan</b>' : '');
+}
+/* Menambah baris kosong di akhir sampai jumlah baris = n (baris berisi tidak pernah dibuang). */
+function isiBarisKosong(n){
+  while (SISWA.length < n) SISWA.push({});
+  while (SISWA.length > Math.max(n, 1) && barisKosong(SISWA[SISWA.length - 1])) SISWA.pop();
+  if (!SISWA.length) SISWA.push({});
+}
 
 $('#s-body').addEventListener('input', e => {
   const t = e.target;
@@ -621,6 +650,28 @@ $('#s-seni-terapkan').addEventListener('click', () => {
   pesan('#s-msg', 'Seni ' + pilih.join(' dan ') + ' diterapkan ke ' + isi.length + ' siswa. Klik Simpan daftar siswa.', true);
 });
 
+$('#s-siapkan').addEventListener('click', () => {
+  const n = Number($('#s-target').value);
+  if (!(n >= 1 && n <= 100 && Math.floor(n) === n)) return pesan('#s-msg', 'Isi jumlah siswa dengan angka 1 sampai 100.', false);
+  const isi = SISWA.filter(s => !barisKosong(s)).length;
+  if (isi > n) return pesan('#s-msg', 'Sudah ada ' + isi + ' siswa terisi, lebih banyak dari ' + n + '. Hapus dulu baris yang tidak perlu.', false);
+  TARGET = n;
+  SISWA = SISWA.filter(s => !barisKosong(s));
+  isiBarisKosong(n);
+  UBAH = true; renderTabel();
+  pesan('#s-msg', n + ' baris siap diisi. Nomor absen mengikuti urutan baris.', true);
+});
+
+$('#s-urut').addEventListener('click', () => {
+  const isi = SISWA.filter(s => !barisKosong(s));
+  if (!isi.length) return;
+  isi.sort((a, b) => String(a.nama || '').localeCompare(String(b.nama || ''), 'id', { sensitivity: 'base' }));
+  SISWA = isi;
+  isiBarisKosong(TARGET);
+  UBAH = true; renderTabel();
+  pesan('#s-msg', 'Nama diurutkan A–Z. Nomor absen mengikuti urutan baru setelah disimpan.', true);
+});
+
 $('#s-tambah').addEventListener('click', () => {
   SISWA.push({}); renderTabel();
   const inp = document.querySelectorAll('#s-body tr:last-child input')[0];
@@ -631,15 +682,15 @@ $('#s-simpan').addEventListener('click', e => sibuk(e.target, async () => {
   // Baris kosong dibuang dulu agar nomor baris di pesan kesalahan sama dengan nomor di tabel.
   SISWA = SISWA.filter(s => !barisKosong(s));
   renderTabel();
-  const res = await api({ aksi:'simpanSiswa', rombel: ROMBEL.id, siswa: SISWA });
+  const res = await api({ aksi:'simpanSiswa', rombel: ROMBEL.id, siswa: SISWA, jumlah: TARGET || '' });
   if (res.sesiHabis) return;
   pesan('#s-msg', res.pesan, res.ok, res.salah);
-  if (!SISWA.length) SISWA.push({});
-  if (!res.ok) return renderTabel();
+  if (!res.ok) { isiBarisKosong(TARGET); return renderTabel(); }
   SISWA = res.siswa.map(s => ({ ...s, tanggalLahir: tglTampil(s.tanggalLahir) }));
+  isiBarisKosong(TARGET); // baris yang belum terisi tetap terlihat sampai jumlah siswa terpenuhi
   UBAH = false; renderTabel();
   const r = DATA && DATA.rombel.find(x => x.id === ROMBEL.id);
-  if (r) r.jumlah = res.siswa.length;
+  if (r) { r.jumlah = res.siswa.length; r.target = res.target; }
 }));
 
 $('#s-kembali').addEventListener('click', () => {
