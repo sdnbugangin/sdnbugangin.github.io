@@ -33,6 +33,7 @@ var STRUKTUR_SEKOLAH = [
   { nama: 'Presensi & Catatan', kolom: ['Tahun Ajaran', 'Semester', 'ID Siswa', 'Sakit', 'Izin', 'Tanpa Keterangan',
     'Catatan Wali Kelas', 'Tanggapan Orang Tua'], teks: ['Tahun Ajaran', 'ID Siswa'] },
   { nama: 'Kenaikan', kolom: ['Tahun Ajaran', 'ID Siswa', 'Keputusan'], teks: ['Tahun Ajaran', 'ID Siswa'] },
+  { nama: 'Kelulusan', kolom: ['Tahun Ajaran', 'ID Siswa', 'Kunci', 'Nilai'], teks: ['Tahun Ajaran', 'ID Siswa', 'Kunci', 'Nilai'] },
   { nama: 'Log', kolom: ['Waktu', 'Aksi', 'Rincian'] }
 ];
 

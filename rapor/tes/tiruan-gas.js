@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 
-const BERKAS_GS = ['Referensi.gs', 'Narasi.gs', 'Hitung.gs', 'Kode.gs', 'Akun.gs', 'Sekolah.gs', 'Data.gs', 'Tp.gs', 'Nilai.gs', 'Kokurikuler.gs', 'WaliKelas.gs', 'Rapor.gs', 'Kunci.gs', 'TahunAjaran.gs', 'Uji.gs'];
+const BERKAS_GS = ['Referensi.gs', 'Narasi.gs', 'Hitung.gs', 'Kode.gs', 'Akun.gs', 'Sekolah.gs', 'Data.gs', 'Tp.gs', 'Nilai.gs', 'Kokurikuler.gs', 'WaliKelas.gs', 'Rapor.gs', 'Kunci.gs', 'TahunAjaran.gs', 'Kelulusan.gs', 'Uji.gs'];
 const MAKS_BARIS = 1000;
 /* Penghitung sel yang dibaca/ditulis, untuk uji beban (mirip biaya panggilan Sheets yang sebenarnya). */
 const BEBAN = { baca: 0, tulis: 0, panggilBaca: 0, panggilTulis: 0 };

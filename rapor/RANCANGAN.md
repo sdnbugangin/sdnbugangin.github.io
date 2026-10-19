@@ -195,6 +195,29 @@ Pengamannya: setiap perubahan nilai dicatat di Log beserta waktunya, dan kepala 
 - Profil sekolah mendapat baris **Website**. Spreadsheet lama dilengkapi otomatis (`profilLengkap_`).
 - Logo ditunggu sampai termuat sebelum jendela cetak dibuka.
 
+### Transkrip nilai dan SKL kelas 6
+
+- Menu **Transkrip & SKL**. Nilai tiap mapel = rata-rata **nilai rapor tercetak**, ditulis **2 desimal**, dari:
+  - kelas 5 semester 1 dan 2 (tahun ajaran lalu, termasuk Arsip Nilai);
+  - kelas 6 semester 1 dan 2;
+  - **praktik** bila diisi.
+- Rata-rata = rata-rata nilai mapel. Hanya dihitung bila semua mapel bernilai.
+- Nilai dari aplikasi tampil samar. Setiap angka bisa diisi atau ditimpa manual (misalnya tahun pertama memakai aplikasi); bila dikosongkan, kembali ke nilai aplikasi.
+- **Mapel di transkrip mengikuti urutan master**: Agama (nama sesuai agama siswa), Pendidikan Pancasila, Bahasa Indonesia, Matematika, IPAS, PJOK, Seni dan Budaya, lalu "Muatan Lokal: …".
+  - Bahasa Inggris dan KKA hanya muncul bila **dicentang** sekolah (kebijakan dinas) dan diajarkan di kelas 6.
+- **Penomoran**: nomor transkrip dan nomor SKL diisi untuk siswa pertama, lalu siswa berikutnya otomatis +1 dengan nol di depan dipertahankan (060, 061, …). Urutannya mengikuti rombel lalu nomor absen; siswa tidak lulus dilewati.
+- **Pengaturan surat**:
+  - kop baris 1, tempat surat, dan logo pemda (kiri) dan logo sekolah (kanan) berlaku lintas tahun;
+  - nomor SK kelulusan, tanggal kelulusan, dan tanggal transkrip per tahun ajaran;
+  - logo diperkecil di peramban dan disimpan di sheet **Kelulusan** (≤ 48.000 karakter per sel).
+- **Cetak**: A4, margin 2 cm, Arial 12, sama dengan master Word.
+  - Kop: 12/16/10 pt dengan garis ganda.
+  - Identitas menjorok 0,75 cm, titik dua di 7 cm.
+  - Tabel 1,04/11,43/4,43 cm, kotak foto 2,3 × 3 cm, dan tanda tangan kepala sekolah.
+  - Hasil cetak dicek dengan menumpangkannya pada render master.
+- **SKL** mengikuti sheet SKL file lama: kalimat "Yang bertanda tangan…", "dinyatakan LULUS… berdasarkan Keputusan Kepala… Nomor…", tabel nilai, dan masa berlaku sampai ijazah terbit.
+- **Unduh Excel** dengan kolom yang sama dengan berkas input mail merge (Nomor Transkrip, NPSN, Nama Siswa, …, Jumlah, Rata-Rata, Agama Siswa), ditambah Nomor SKL dan sheet Nilai Rinci.
+
 ### Kunci rapor
 
 - Di **Cek & Cetak Rapor**, rapor satu rombel pada satu semester bisa **dikunci** setelah final. Kunci disimpan di Pengaturan "Rapor Terkunci".
@@ -289,5 +312,5 @@ Aturan umum:
 | 2 | Akun sekolah (daftar, verifikasi email, masuk, lupa & ganti kata sandi) dan pembuatan spreadsheet sekolah otomatis | ✅ selesai (`index.html`, `apps-script/Kode.gs`, `Akun.gs`, `Sekolah.gs`, `Narasi.gs`) |
 | 3 | Data sekolah: profil, rombel & wali kelas, siswa (tempel langsung dari Excel/Dapodik), unduh salinan Excel | ✅ selesai (`apps-script/Data.gs`, halaman Data Sekolah & Siswa) |
 | 4 | Tujuan Pembelajaran ✅ (`Tp.gs`), input nilai ✅ (`Nilai.gs`), kokurikuler ✅ (`Kokurikuler.gs`), ekstrakurikuler, presensi, catatan, kenaikan ✅ (`WaliKelas.gs`) | ✅ selesai |
-| 5 | Cek kelengkapan ✅, leger ✅, cetak rapor ✅ (`Rapor.gs`), unduh Excel ✅, kunci rapor ✅ (`Kunci.gs`), uji beban ✅ (`Uji.gs`), sampul ✅; transkrip, SKL | sedang dikerjakan |
+| 5 | Cek kelengkapan ✅, leger ✅, cetak rapor ✅ (`Rapor.gs`), unduh Excel ✅, kunci rapor ✅ (`Kunci.gs`), uji beban ✅ (`Uji.gs`), sampul ✅, transkrip & SKL ✅ (`Kelulusan.gs`) | ✅ selesai |
 | 6 | Kenaikan kelas tahunan ✅ (`TahunAjaran.gs`), uji coba di SDN Bugangin, lalu dibuka untuk sekolah lain | |
