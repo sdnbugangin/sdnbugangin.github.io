@@ -157,3 +157,30 @@ test('kunci per sekolah: sekolah lain tidak menunggu, sekolah yang sama menunggu
   assert.equal(g.cache.has('kunci:20321653'), false, 'kunci dilepas setelah selesai');
   assert.equal(id.length, 3);
 });
+
+test('baca sekaligus: layanan dengan ID lain tetap ditemukan; tanpa layanan memakai REST; REST ditolak diingat 1 jam', () => {
+  const { g, rb } = siapKecil();
+  const simpan = g.ctx.Sheets;
+  // ID lain
+  g.ctx.SheetsKu = simpan; g.ctx.Sheets = undefined;
+  assert.equal(g.minta({ aksi: 'nilaiRombel', rombel: rb, mapel: 'MTK' }).ok, true);
+  assert.equal(g.ctx.CARA_BACA_SEKALIGUS_, 'layanan Sheets (ID: SheetsKu)');
+  delete g.ctx.SheetsKu;
+  // tanpa layanan → REST
+  const r0 = g.rest.dipanggil;
+  assert.equal(g.minta({ aksi: 'nilaiRombel', rombel: rb, mapel: 'MTK' }).ok, true);
+  assert.equal(g.rest.dipanggil - r0, 1);
+  assert.equal(g.ctx.CARA_BACA_SEKALIGUS_, 'Sheets API lewat UrlFetch');
+  // REST ditolak → cara biasa, alasan tercatat, tidak dicoba lagi selama 1 jam
+  g.rest.kode = 403;
+  const h = g.minta({ aksi: 'nilaiRombel', rombel: rb, mapel: 'MTK' });
+  assert.equal(h.ok, true, 'tetap berhasil dengan cara biasa');
+  assert.match(g.ctx.GALAT_BACA_SEKALIGUS_, /HTTP 403 .*disabled/);
+  const r1 = g.rest.dipanggil;
+  assert.equal(g.minta({ aksi: 'nilaiRombel', rombel: rb, mapel: 'MTK' }).ok, true);
+  assert.equal(g.rest.dipanggil, r1, 'tidak mencoba REST lagi');
+  g.jam.sekarang += 3600 * 1000 + 1; g.rest.kode = 200;
+  g.minta({ aksi: 'nilaiRombel', rombel: rb, mapel: 'MTK' });
+  assert.equal(g.rest.dipanggil, r1 + 1, 'dicoba lagi setelah 1 jam');
+  g.ctx.Sheets = simpan;
+});

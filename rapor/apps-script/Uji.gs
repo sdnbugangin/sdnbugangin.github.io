@@ -25,6 +25,8 @@ function ujiBeban() {
     var ss = bukaSekolah_(npsn), ta = aturSekolah_(ss).tahunAjaran;
     var rombel = daftarRombel_(ss, ta).filter(function (r) { return r.kelas === 5; })[0];
 
+    // Uji selalu mencoba ulang Sheets API (penolakan lama yang diingat 1 jam dihapus dulu).
+    CacheService.getScriptCache().remove('sheetsapi:mati');
     // Rincian biaya dasar, agar jelas bagian mana yang lambat.
     var t0 = new Date().getTime();
     var ssBaru = SpreadsheetApp.openById(ss.getId());
@@ -35,7 +37,7 @@ function ujiBeban() {
     catat('rincian: baca sheet Nilai ' + (n - 1) + ' baris ' + detik_(t0) + ' dtk');
     ISI_SHEET_ = {}; t0 = new Date().getTime();
     var api = bacaSekaligus_(ssBaru, BACA_PER_AKSI_.nilaiRombel);
-    catat(api ? 'rincian: baca 8 sheet sekaligus (Sheets API) ' + detik_(t0) + ' dtk'
+    catat(api ? 'rincian: baca 8 sheet sekaligus (' + CARA_BACA_SEKALIGUS_ + ') ' + detik_(t0) + ' dtk'
       : 'rincian: baca sekaligus TIDAK dipakai — ' + GALAT_BACA_SEKALIGUS_ + '. Memakai cara biasa.');
 
     var ukur = function (nama, aksi, fn) {

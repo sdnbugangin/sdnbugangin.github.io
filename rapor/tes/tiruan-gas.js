@@ -110,6 +110,27 @@ function buatGas() {
     return objekFolder(id);
   };
   const pusat = new Spreadsheet('pusat', 'Rapor SD - Pusat');
+  /* Isi batchGet dari data tiruan (dipakai layanan Sheets dan REST lewat UrlFetch). */
+  const batchTiruan = (id, ranges) => {
+    const ss = berkas[id].ss;
+    return { valueRanges: ranges.map((r) => {
+      const m = r.match(/^'(.+)'!A1:([A-Z])$/);
+      const sh = ss.getSheetByName(m[1]); const lebar = m[2].charCodeAt(0) - 64;
+      const akhir = sh.getLastRow();
+      BEBAN.baca += akhir * lebar;
+      const values = sh.data.slice(0, akhir).map((row) => {
+        const out = Array.from({ length: lebar }, (_, j) => {
+          const v = row[j];
+          if (v instanceof Date) return (v.getTime() + 7 * 3600000) / 86400000 + 25569;
+          return v === undefined ? '' : v;
+        });
+        while (out.length && out[out.length - 1] === '') out.pop(); // API membuang sel kosong di ujung baris
+        return out;
+      });
+      return values.length ? { range: r, values } : { range: r };
+    }) };
+  };
+  const rest = { dipanggil: 0, kode: 200 };
   const jam = { sekarang: Date.UTC(2026, 9, 18, 3, 0, 0) };
 
   const NativeDate = Date;
@@ -168,6 +189,14 @@ function buatGas() {
     Logger: { isi: [], log(t) { this.isi.push(String(t)); } },
     UrlFetchApp: {
       fetch: (url, o) => {
+        const api = url.match(/^https:\/\/sheets\.googleapis\.com\/v4\/spreadsheets\/([^/]+)\/values:batchGet\?(.*)$/);
+        if (api) {
+          rest.dipanggil++; BEBAN.panggilBaca++;
+          const ranges = api[2].split('&').filter((x) => x.startsWith('ranges=')).map((x) => decodeURIComponent(x.slice(7)));
+          const ok = rest.kode === 200 && o.headers.Authorization === 'Bearer token-tiruan';
+          const isi = ok ? JSON.stringify(batchTiruan(decodeURIComponent(api[1]), ranges)) : '{"error":{"code":403,"message":"Google Sheets API has not been used in project 123 before or it is disabled."}}';
+          return { getResponseCode: () => (ok ? 200 : rest.kode), getContentText: () => isi };
+        }
         const m = url.match(/spreadsheets\/d\/([^/]+)\/export\?format=xlsx$/);
         const ada = m && berkas[m[1]] && o.headers.Authorization === 'Bearer token-tiruan';
         return {
@@ -182,23 +211,7 @@ function buatGas() {
       Spreadsheets: { Values: { batchGet: (id, opsi) => {
         gas.Sheets.dipanggil++; BEBAN.panggilBaca++;
         if (gas.Sheets.gagal) throw new Error('Quota exceeded');
-        const ss = berkas[id].ss;
-        return { valueRanges: opsi.ranges.map((r) => {
-          const m = r.match(/^'(.+)'!A1:([A-Z])$/);
-          const sh = ss.getSheetByName(m[1]); const lebar = m[2].charCodeAt(0) - 64;
-          const akhir = sh.getLastRow();
-          BEBAN.baca += akhir * lebar;
-          const values = sh.data.slice(0, akhir).map((row) => {
-            const out = Array.from({ length: lebar }, (_, j) => {
-              const v = row[j];
-              if (v instanceof Date) return (v.getTime() + 7 * 3600000) / 86400000 + 25569;
-              return v === undefined ? '' : v;
-            });
-            while (out.length && out[out.length - 1] === '') out.pop(); // API membuang sel kosong di ujung baris
-            return out;
-          });
-          return values.length ? { range: r, values } : { range: r };
-        }) };
+        return batchTiruan(id, opsi.ranges);
       } } }
     },
     ContentService: {
@@ -216,7 +229,7 @@ function buatGas() {
     ...Object.entries(folder).filter(([, f]) => f.induk === 'akar' && !f.sampah).map(([, f]) => '📁 ' + f.nama),
     ...Object.entries(lokasi).filter(([id, l]) => l === 'akar' && !(berkas[id] && berkas[id].sampah)).map(([id]) => '📄 ' + id)
   ];
-  return { ctx, pusat, berkas, cache, surat, jam, folder, lokasi, isiAkar, MailApp: gas.MailApp, DriveApp: gas.DriveApp, Logger: gas.Logger, Sheets: gas.Sheets };
+  return { ctx, pusat, berkas, cache, surat, jam, folder, lokasi, isiAkar, MailApp: gas.MailApp, DriveApp: gas.DriveApp, Logger: gas.Logger, Sheets: gas.Sheets, rest };
 }
 
 /**

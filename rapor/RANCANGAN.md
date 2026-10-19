@@ -207,7 +207,8 @@ Pengamannya: setiap perubahan nilai dicatat di Log beserta waktunya, dan kepala 
   - setiap sheet dibaca paling banyak sekali per permintaan (`ISI_SHEET_`, termasuk baris judul);
   - sheet yang diperlukan suatu aksi (`BACA_PER_AKSI_`) dibaca sekaligus dalam **satu** panggilan layanan lanjutan Google Sheets API (`bacaSekaligus_`); tanggal "Diubah Pada" dikembalikan dari nomor seri ke Date;
   - ID spreadsheet sekolah diingat 10 menit di CacheService.
-  - Bila layanan Sheets API belum aktif atau kuotanya habis, aplikasi otomatis membaca dengan cara biasa.
+  - Layanan lanjutan dicari dengan ID apa pun (`layananSheets_`). Bila tidak ada, `ambilBatch_` memanggil REST `values:batchGet` lewat UrlFetch dengan token skrip. Penolakan REST (403/404/400) diingat 1 jam.
+  - Bila semuanya tidak bisa dipakai, atau kuota habis, aplikasi otomatis membaca dengan cara biasa.
   - Hasilnya: membuka/menyimpan layar cukup 2 panggilan baca (sesi + baca sekaligus), sebelumnya 10–21.
 - Hasil uji beban pertama di server (sebelum baca hemat, sekolah 384 siswa dengan nilai 1 tahun):
   - buka layar nilai 5,8 dtk;
@@ -224,6 +225,7 @@ Pengamannya: setiap perubahan nilai dicatat di Log beserta waktunya, dan kepala 
 - Uji beban kedua (baca hemat tanpa Sheets API, 384 siswa, 1 tahun):
   - buka layar nilai 4,8 dtk; simpan nilai 5,0–5,3 dtk; rekap 5,8 dtk; buka kokurikuler 2,3 dtk.
   - Rinciannya: baca 1 sheet kecil 0,2 dtk; baca sheet Nilai 29.480 baris 2,1 dtk.
+- Uji beban ketiga (layanan Sheets tidak terdeteksi): hasilnya mirip uji kedua, dengan variasi server ±1 dtk.
 - **`ujiBeban()` (Uji.gs)** dijalankan pengelola dari editor untuk mengukur waktu nyata di server Google:
   - membuat sekolah uji sementara berisi 384 siswa dengan nilai satu tahun;
   - mengukur operasi sehari-hari dan mencatat hasilnya ke Log Pusat ("uji beban");
