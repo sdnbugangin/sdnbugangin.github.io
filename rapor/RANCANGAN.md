@@ -185,6 +185,29 @@ Pengamannya: setiap perubahan nilai dicatat di Log beserta waktunya, dan kepala 
   - Ekskul & Kehadiran (termasuk keputusan kenaikan di semester 2).
   - NISN ditulis sebagai teks agar nol di depan tidak hilang. Nama sheet yang lebih dari 31 karakter memakai kode mapel (IPAS, PJOK).
 
+### Kunci rapor
+
+- Di **Cek & Cetak Rapor**, rapor satu rombel pada satu semester bisa **dikunci** setelah final. Kunci disimpan di Pengaturan "Rapor Terkunci".
+- **Selama terkunci, yang ditolak server:**
+  - nilai, capaian kokurikuler, ekstrakurikuler, ketidakhadiran & catatan rombel itu;
+  - keputusan kenaikan (bila semester 2 terkunci);
+  - data siswa (bila semester berjalan terkunci);
+  - hal yang berlaku sekelas: TP, subdimensi kokurikuler, dan mapel aktif kelas itu;
+  - narasi yang dipakai kelas itu.
+- Halaman isian tetap bisa dibuka, tetapi hanya untuk melihat (ada penanda 🔒).
+- **Buka kunci** wajib disertai alasan. Kunci dan buka kunci tercatat di Log sekolah.
+- Karena satu akun dipakai bersama, kunci melindungi dari salah ubah, bukan dari niat jahat.
+
+### Kinerja (uji beban)
+
+- Sekolah besar (6 kelas × 2 rombel × 32 siswa) mengisi ±14.700 baris Nilai per semester, atau ±29.500 per tahun.
+- **Penulisan hemat:** `tulisTabel_` membandingkan dengan isi yang dibaca di permintaan yang sama (`ISI_SHEET_`) dan hanya menulis rentang baris yang berubah. `gantiDiTempat_` mengganti baris di tempatnya, jadi baris lain tidak bergeser. Angka yang tidak berubah tidak disentuh, dan stempel waktunya tetap.
+  - Hasilnya: simpan satu layar nilai menulis ±1.300 sel, bukan ±118.000 (satu angka berubah: 8 sel).
+- **`ujiBeban()` (Uji.gs)** dijalankan pengelola dari editor untuk mengukur waktu nyata di server Google:
+  - membuat sekolah uji sementara berisi 384 siswa dengan nilai satu tahun;
+  - mengukur operasi sehari-hari dan mencatat hasilnya ke Log Pusat ("uji beban");
+  - lalu menghapus sekolah uji itu.
+
 ## 5. Pencegahan error (pelajaran dari rapor Excel lama)
 
 | Masalah di file lama | Penyebab | Penanganan di aplikasi baru |
@@ -216,5 +239,5 @@ Aturan umum:
 | 2 | Akun sekolah (daftar, verifikasi email, masuk, lupa & ganti kata sandi) dan pembuatan spreadsheet sekolah otomatis | ✅ selesai (`index.html`, `apps-script/Kode.gs`, `Akun.gs`, `Sekolah.gs`, `Narasi.gs`) |
 | 3 | Data sekolah: profil, rombel & wali kelas, siswa (tempel langsung dari Excel/Dapodik), unduh salinan Excel | ✅ selesai (`apps-script/Data.gs`, halaman Data Sekolah & Siswa) |
 | 4 | Tujuan Pembelajaran ✅ (`Tp.gs`), input nilai ✅ (`Nilai.gs`), kokurikuler ✅ (`Kokurikuler.gs`), ekstrakurikuler, presensi, catatan, kenaikan ✅ (`WaliKelas.gs`) | ✅ selesai |
-| 5 | Cek kelengkapan ✅, leger ✅, cetak rapor ✅ (`Rapor.gs`); sampul, transkrip, SKL, kunci rapor | sedang dikerjakan |
+| 5 | Cek kelengkapan ✅, leger ✅, cetak rapor ✅ (`Rapor.gs`), unduh Excel ✅, kunci rapor ✅ (`Kunci.gs`), uji beban ✅ (`Uji.gs`); sampul, transkrip, SKL | sedang dikerjakan |
 | 6 | Kenaikan kelas tahunan, uji coba di SDN Bugangin, lalu dibuka untuk sekolah lain | |

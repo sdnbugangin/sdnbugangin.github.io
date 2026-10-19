@@ -187,9 +187,20 @@ function sheetSekolah_(ss, nama) {
 }
 
 /** Isi sheet sebagai daftar objek berkunci nama kolom. Baris kosong dilewati. */
+/*
+ * Isi sheet yang terakhir dibaca/ditulis dalam permintaan ini (dikosongkan di awal setiap permintaan oleh layani_).
+ * tulisTabel_ memakainya untuk menulis hanya baris yang berubah, bukan seluruh sheet.
+ */
+var ISI_SHEET_ = {};
+
+function kunciIsi_(ss, nama) { return ss.getId() + '|' + nama; }
+
 function bacaTabel_(ss, nama) {
   var kolom = strukturSheet_(nama).kolom;
   var rows = sheetSekolah_(ss, nama).getDataRange().getValues();
+  ISI_SHEET_[kunciIsi_(ss, nama)] = rows.slice(1).map(function (r) {
+    return kolom.map(function (k, j) { return r[j] === undefined || r[j] === null ? '' : r[j]; });
+  });
   var hasil = [];
   for (var i = 1; i < rows.length; i++) {
     var kosong = true, o = {};
@@ -204,6 +215,22 @@ function bacaTabel_(ss, nama) {
 }
 
 /** Menulis ulang seluruh isi sheet (di bawah judul) dari daftar objek. */
+/** Sama untuk keperluan menulis: angka 85 dan teks "85", tanggal yang sama, kosong dan null. */
+function samaSel_(a, b) {
+  if (a instanceof Date || b instanceof Date) return String(a && a.getTime ? a.getTime() : a) === String(b && b.getTime ? b.getTime() : b);
+  return String(a === null || a === undefined ? '' : a) === String(b === null || b === undefined ? '' : b);
+}
+
+function samaBaris_(a, b) {
+  if (!a || !b || a.length !== b.length) return false;
+  for (var j = 0; j < a.length; j++) if (!samaSel_(a[j], b[j])) return false;
+  return true;
+}
+
+/**
+ * Menulis seluruh isi tabel (tanpa baris judul). Hanya rentang baris yang berbeda dari isi lama yang ditulis:
+ * simpan nilai satu mapel di sekolah besar menulis puluhan baris, bukan belasan ribu.
+ */
 function tulisTabel_(ss, nama, data) {
   var st = strukturSheet_(nama);
   var sh = sheetSekolah_(ss, nama);
@@ -213,19 +240,49 @@ function tulisTabel_(ss, nama, data) {
     sh.getRange(1, 1, 1, st.kolom.length).setValues([st.kolom])
       .setFontWeight('bold').setBackground('#12314f').setFontColor('#ffffff');
   }
-  var lama = Math.max(sh.getLastRow() - 1, 0);
-  var perlu = data.length + 1;
+  var baru = data.map(function (o) {
+    return st.kolom.map(function (k) { return o[k] === undefined || o[k] === null ? '' : o[k]; });
+  });
+  var kunci = kunciIsi_(ss, nama);
+  var lama = ISI_SHEET_[kunci];
+  var jumlahLama = Math.max(sh.getLastRow() - 1, 0);
+  if (!lama || lama.length !== jumlahLama) {
+    // Belum dibaca di permintaan ini (atau sheet berubah di luar aplikasi): baca dulu agar perbandingan benar.
+    lama = jumlahLama ? sh.getRange(2, 1, jumlahLama, st.kolom.length).getValues() : [];
+  }
+  var perlu = baru.length + 1;
   if (sh.getMaxRows() < perlu) {
     var awal = sh.getMaxRows() + 1;
     sh.insertRowsAfter(sh.getMaxRows(), perlu - sh.getMaxRows() + 200);
     formatTeks_(sh, st, awal);
   }
-  if (data.length) {
-    sh.getRange(2, 1, data.length, st.kolom.length).setValues(data.map(function (o) {
-      return st.kolom.map(function (k) { return o[k] === undefined || o[k] === null ? '' : o[k]; });
-    }));
+  var mulai = 0;
+  while (mulai < baru.length && mulai < lama.length && samaBaris_(baru[mulai], lama[mulai])) mulai++;
+  var akhir = baru.length - 1; // baris terakhir yang perlu ditulis
+  if (baru.length === lama.length) {
+    while (akhir >= mulai && samaBaris_(baru[akhir], lama[akhir])) akhir--;
   }
-  if (lama > data.length) sh.getRange(data.length + 2, 1, lama - data.length, st.kolom.length).clearContent();
+  if (akhir >= mulai) sh.getRange(mulai + 2, 1, akhir - mulai + 1, st.kolom.length).setValues(baru.slice(mulai, akhir + 1));
+  if (lama.length > baru.length) sh.getRange(baru.length + 2, 1, lama.length - baru.length, st.kolom.length).clearContent();
+  ISI_SHEET_[kunci] = baru;
+}
+
+/**
+ * Mengganti baris dalam satu lingkup (mis. satu layar nilai) tanpa menggeser baris lain:
+ * baris lama yang kuncinya masih ada diganti di tempat, yang hilang dihapus, yang baru ditambah di akhir.
+ * Dengan begitu tulisTabel_ hanya menulis bagian kecil sheet.
+ */
+function gantiDiTempat_(semua, diLingkup, kunci, baru) {
+  var per = {}, urut = [];
+  baru.forEach(function (o) { var k = kunci(o); if (!(k in per)) urut.push(k); per[k] = o; });
+  var hasil = [], dipakai = {};
+  semua.forEach(function (r) {
+    if (!diLingkup(r)) { hasil.push(r); return; }
+    var k = kunci(r);
+    if (k in per && !dipakai[k]) { hasil.push(per[k]); dipakai[k] = true; }
+  });
+  urut.forEach(function (k) { if (!dipakai[k]) hasil.push(per[k]); });
+  return hasil;
 }
 
 function bacaKunciNilai_(ss, nama) {
@@ -414,6 +471,8 @@ function simpanSiswa_(npsn, rombelId, daftar, jumlah) {
     rombelId = teks_(rombelId);
     var rombel = daftarRombel_(ss, ta).filter(function (r) { return r.id === rombelId; })[0];
     if (!rombel) return { ok: false, pesan: 'Rombel tidak ditemukan. Muat ulang halaman.' };
+    // Data siswa (nama, agama, seni) ikut tercetak di rapor: dikunci bila rapor semester berjalan sudah final.
+    cekTerkunci_(ss, ta, atur.semester, rombel);
 
     var tahun = new Date().getFullYear();
     var salah = [];
@@ -611,6 +670,7 @@ function simpanMapel_(npsn, isian) {
     var baris = semua.filter(function (r) { return teks_(r['Tahun Ajaran']) === ta; });
     var cek = cekMapel_(kelompokMapel_(baris), isian, mapelBernilai_(ss, ta));
     if (cek.salah.length) return { ok: false, salah: cek.salah, pesan: cek.salah[0] };
+    var berubah = {};
     cek.mapel.forEach(function (m) {
       Object.keys(m.kelas).forEach(function (k) {
         var r = baris.filter(function (x) { return teks_(x['Kode Mapel']) === m.kode && Number(x.Kelas) === Number(k); })[0];
@@ -618,10 +678,12 @@ function simpanMapel_(npsn, isian) {
           r = { 'Tahun Ajaran': ta, Kelas: Number(k), 'Kode Mapel': m.kode, Jenis: m.jenis, Urutan: m.urutan };
           semua.push(r);
         }
+        if (teks_(r['Nama di Rapor']) !== m.nama || teks_(r.Aktif) !== (m.kelas[k] ? 'Ya' : 'Tidak')) berubah[Number(k)] = true;
         r['Nama di Rapor'] = m.nama;
         r.Aktif = m.kelas[k] ? 'Ya' : 'Tidak';
       });
     });
+    Object.keys(berubah).forEach(function (k) { cekKelasTerkunci_(ss, ta, 0, Number(k)); });
     tulisTabel_(ss, 'Mapel Aktif', semua);
     catatSekolah_(ss, 'ubah mapel', cek.mapel.filter(function (m) { return m.pilihan; }).map(function (m) {
       return m.nama + ': ' + Object.keys(m.kelas).filter(function (k) { return m.kelas[k]; }).join(',');
