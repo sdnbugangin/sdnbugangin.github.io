@@ -79,6 +79,14 @@ table.mapel .na{color:#c9bfa8}
 .mapel-pil button.kosong .n{color:var(--bad);opacity:1}.mapel-pil button.on.kosong .n{color:#ffd0cc}
 table.siswa.tp{width:100%}table.tp td.kar{font-size:12px;text-align:center;min-width:72px;color:var(--muted)}table.tp td.kar.lebih{color:var(--bad);font-weight:800}
 table.tp .dinilai{display:block;font-size:11px;color:var(--ok);font-weight:700;padding:0 8px 4px}
+table.nilai{width:100%}
+table.nilai td.angka input{width:62px;text-align:center;font-weight:600}
+table.nilai td.angka input.salah{border-color:var(--bad);background:#fde4e1;color:var(--bad)}
+table.nilai th.tp{text-align:center;min-width:66px;cursor:help}table.nilai th.sas{text-align:center;background:#1f4f7a;min-width:66px}
+table.nilai td.na{text-align:center;font-weight:800;font-size:15px;min-width:56px}table.nilai td.pr{min-width:96px;font-size:12.5px}
+table.nilai td.ket{min-width:340px;font-size:12.5px;line-height:1.45;color:var(--ink)}table.nilai td.ket .w{color:#9a6c00}
+table.nilai.tanpa-deskripsi .ds{display:none}
+table.nilai tr.basi td.na,table.nilai tr.basi td.pr,table.nilai tr.basi td.ket{opacity:.45}
 .back{display:inline-block;margin-bottom:6px;font-size:14px}
 footer{text-align:center;color:var(--muted);font-size:13px;line-height:1.7;padding:28px 16px 8px}
 </style>
@@ -171,7 +179,7 @@ footer{text-align:center;color:var(--muted);font-size:13px;line-height:1.7;paddi
     <div class="menu">
       <button class="tile" type="button" id="t-data"><b>Data Sekolah &amp; Siswa</b><span>Profil sekolah, rombel kelas 1–6, wali kelas, dan daftar siswa.</span><div class="tag on">Buka →</div></button>
       <button class="tile" type="button" id="t-tp"><b>Tujuan Pembelajaran</b><span>Daftar TP per kelas, mapel, dan semester. Bisa diunduh dalam format impor e-Rapor.</span><div class="tag on">Buka →</div></button>
-      <div class="tile"><b>Input Nilai</b><span>Sumatif lingkup materi dan sumatif akhir semester per rombel dan mapel.</span><div class="tag">Segera hadir</div></div>
+      <button class="tile" type="button" id="t-nilai"><b>Input Nilai</b><span>Sumatif lingkup materi dan sumatif akhir semester per rombel dan mapel, lengkap dengan nilai rapor dan deskripsinya.</span><div class="tag on">Buka →</div></button>
       <div class="tile"><b>Kokurikuler &amp; Ekstrakurikuler</b><span>Capaian dimensi profil, ekstrakurikuler, presensi, dan catatan wali kelas.</span><div class="tag">Segera hadir</div></div>
       <div class="tile"><b>Cek &amp; Cetak Rapor</b><span>Pemeriksaan kelengkapan, leger, dan cetak rapor PDF.</span><div class="tag">Segera hadir</div></div>
     </div>
@@ -193,6 +201,34 @@ footer{text-align:center;color:var(--muted);font-size:13px;line-height:1.7;paddi
         </form>
       </div>
       <div class="msg" id="g-msg"></div>
+    </div>
+  </section>
+
+  <!-- INPUT NILAI -->
+  <section id="v-nilai" class="hidden">
+    <div class="bar">
+      <div><button class="link back" type="button" data-ke="beranda">← Beranda</button><h2>Input Nilai</h2><div class="sub" id="nl-sub"></div></div>
+    </div>
+    <div class="card">
+      <div class="grid2">
+        <div><label for="nl-rombel">Rombel</label><select id="nl-rombel"></select></div>
+        <div><label for="nl-semester">Semester</label><select id="nl-semester"><option value="1">Semester 1 (Ganjil)</option><option value="2">Semester 2 (Genap)</option></select></div>
+        <div id="nl-varian-wrap" class="hidden"><label for="nl-varian" id="nl-varian-label">Agama</label><select id="nl-varian"></select></div>
+      </div>
+    </div>
+    <div class="mapel-pil" id="nl-mapel" role="tablist" aria-label="Mata pelajaran"></div>
+    <div class="msg" id="nl-info"></div>
+    <div id="nl-editor" class="hidden">
+      <details class="panduan" id="nl-tp-daftar"><summary><b>Daftar TP</b> (klik untuk melihat)</summary><ol id="nl-tp-ol" style="margin:8px 0 0;padding-left:20px"></ol></details>
+      <div class="panduan" style="margin-top:10px">Isi angka 0–100 (koma desimal boleh, misalnya 85,5). Kosongkan jika belum dinilai. <b>Enter</b> pindah ke siswa berikutnya.
+        Bisa tempel satu blok angka dari Excel mulai dari kotak yang dipilih. Sumatif akhir semester: isi <b>Tes</b> dan/atau <b>Praktik</b> (keduanya dirata-rata).</div>
+      <div class="toolbar">
+        <button class="btn" type="button" id="nl-simpan" style="width:auto">Simpan nilai</button>
+        <label class="show" style="margin:0"><input type="checkbox" id="nl-deskripsi" checked> Tampilkan deskripsi rapor</label>
+        <span class="sub" id="nl-status"></span>
+      </div>
+      <div class="msg" id="nl-msg"></div>
+      <div class="tbl"><table class="siswa nilai"><thead><tr id="nl-head"></tr></thead><tbody id="nl-body"></tbody></table></div>
     </div>
   </section>
 
@@ -323,7 +359,7 @@ const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const ls = { get:k=>{try{return localStorage.getItem(k)||''}catch(e){return ''}}, set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}, del:k=>{try{localStorage.removeItem(k)}catch(e){}} };
 const KUNCI_SESI = 'rapor-sesi';
-const VIEWS = ['masuk','daftar','lupa','reset','verifikasi','beranda','data','siswa','tp'];
+const VIEWS = ['masuk','daftar','lupa','reset','verifikasi','beranda','data','siswa','tp','nilai'];
 let TOKEN_RESET = '';
 let DATA = null, ROMBEL = null, SISWA = [], UBAH = false, SENI_SEKOLAH = [], TARGET = 0;
 const SEMUA_SENI = ['Seni Musik', 'Seni Rupa', 'Seni Tari', 'Seni Teater'];
@@ -734,12 +770,174 @@ $('#s-kembali').addEventListener('click', () => {
   UBAH = false;
   tampil('data'); pilihTab('rombel'); renderRombel();
 });
-window.addEventListener('beforeunload', e => { if (UBAH || TP_UBAH) { e.preventDefault(); e.returnValue = ''; } });
+window.addEventListener('beforeunload', e => { if (UBAH || TP_UBAH || NL_UBAH) { e.preventDefault(); e.returnValue = ''; } });
 
 document.querySelectorAll('[data-tab]').forEach(b => b.addEventListener('click', () => pilihTab(b.dataset.tab)));
 document.querySelectorAll('[data-ke="beranda"]').forEach(b => b.addEventListener('click', () => tampil('beranda')));
 $('#t-data').addEventListener('click', () => bukaData('profil'));
 $('#t-tp').addEventListener('click', () => bukaTp());
+$('#t-nilai').addEventListener('click', () => bukaNilai());
+
+/* ---------- input nilai ---------- */
+let NL = null, NL_ISI = {}, NL_UBAH = false, NL_BASI = {};
+const KOLOM_SAS = [{ k:'TES', judul:'Tes' }, { k:'PRAKTIK', judul:'Praktik' }];
+/* Pemeriksaan cepat di layar; server tetap memeriksa ulang dengan aturan yang sama (bacaNilai_). */
+function angkaSah(v){
+  const t = String(v ?? '').trim();
+  if (t === '' || t === '-') return true;
+  const b = t.replace(',', '.');
+  return /^\d+(\.\d+)?$/.test(b) && Number(b) <= 100;
+}
+function tinggalkanNilai(){ return !NL_UBAH || confirm('Nilai yang diubah belum disimpan. Tinggalkan?'); }
+
+async function bukaNilai(){
+  tampil('nilai');
+  if (!DATA) {
+    const d = await api({ aksi:'dataSekolah' });
+    if (d.sesiHabis) return;
+    if (!d.ok) return pesan('#nl-info', d.pesan, false);
+    DATA = d;
+  }
+  if (!DATA.rombel.length) {
+    $('#nl-rombel').innerHTML = ''; $('#nl-editor').classList.add('hidden'); $('#nl-mapel').innerHTML = '';
+    return pesan('#nl-info', 'Belum ada rombel. Buat dulu di Data Sekolah & Siswa → Rombel & Siswa.', false);
+  }
+  const pilih = $('#nl-rombel').value;
+  $('#nl-rombel').innerHTML = DATA.rombel.map(r => '<option value="' + esc(r.id) + '">' + esc(labelRombel(r)) + (r.wali ? ' — ' + esc(r.wali) : '') + '</option>').join('');
+  if (pilih && DATA.rombel.some(r => r.id === pilih)) $('#nl-rombel').value = pilih;
+  $('#nl-semester').value = String(NL ? NL.semester : DATA.semester);
+  await muatNilai({});
+}
+
+async function muatNilai(opsi){
+  $('#nl-info').textContent = '';
+  $('#nl-msg').textContent = '';
+  const res = await api({ aksi:'nilaiRombel', rombel: $('#nl-rombel').value, semester: Number($('#nl-semester').value),
+    mapel: opsi.mapel !== undefined ? opsi.mapel : (NL ? NL.mapel.kode : ''), varian: opsi.varian });
+  if (res.sesiHabis) return;
+  if (!res.ok) { $('#nl-editor').classList.add('hidden'); return pesan('#nl-info', res.pesan, false); }
+  NL = res; NL_UBAH = false; NL_BASI = {};
+  NL_ISI = {};
+  res.siswa.forEach(s => { NL_ISI[s.id] = {}; Object.entries(res.nilai[s.id] || {}).forEach(([k, v]) => { NL_ISI[s.id][k] = String(v).replace('.', ','); }); });
+  $('#nl-sub').textContent = 'Tahun ajaran ' + res.tahunAjaran + ' · ' + labelRombel(res.rombel) + ' · Semester ' + res.semester;
+  $('#nl-mapel').innerHTML = res.mapelKelas.map(m => '<button type="button" role="tab" data-mapel="' + esc(m.kode) + '"' + (m.kode === res.mapel.kode ? ' class="on"' : '') + '>' + esc(m.nama) + '</button>').join('');
+  const adaVarian = res.mapel.jenis === 'agama' || res.mapel.jenis === 'seni';
+  $('#nl-varian-wrap').classList.toggle('hidden', !adaVarian);
+  $('#nl-varian-label').textContent = res.mapel.jenis === 'agama' ? 'Agama' : 'Seni';
+  $('#nl-varian').innerHTML = res.varianAda.map(v => '<option value="' + esc(v) + '">' + esc(v) + '</option>').join('');
+  $('#nl-varian').value = res.varian;
+  if (!res.siswa.length) {
+    $('#nl-editor').classList.add('hidden');
+    return pesan('#nl-info', !res.jumlahRombel ? 'Rombel ini belum punya siswa. Isi dulu di Data Sekolah & Siswa → Rombel & Siswa.'
+      : 'Belum ada siswa rombel ini yang ' + (res.mapel.jenis === 'agama' ? 'agamanya diisi' : 'memilih seni') + '. Lengkapi di Data Sekolah & Siswa.', false);
+  }
+  if (!res.tp.length) {
+    $('#nl-editor').classList.add('hidden');
+    return pesan('#nl-info', 'Belum ada Tujuan Pembelajaran ' + res.mapel.nama + (res.varian ? ' (' + res.varian + ')' : '') + ' kelas ' + res.rombel.kelas + ' semester ' + res.semester + '. Susun dulu di menu Tujuan Pembelajaran.', false);
+  }
+  $('#nl-tp-ol').innerHTML = res.tp.map(t => '<li><b>' + esc(t.kode) + '</b> — ' + esc(t.tp) + (t.materi ? ' <span class="sub">(' + esc(t.materi) + ')</span>' : '') + '</li>').join('');
+  $('#nl-editor').classList.remove('hidden');
+  renderNilai();
+}
+
+function renderNilai(){
+  $('#nl-head').innerHTML = '<th title="Nomor absen">No. Absen</th><th style="min-width:200px">Nama</th>' +
+    NL.tp.map(t => '<th class="tp" title="' + esc(t.kode + ': ' + t.tp) + '">' + esc(t.kode) + '</th>').join('') +
+    KOLOM_SAS.map(c => '<th class="sas" title="Sumatif akhir semester">SAS ' + c.judul + '</th>').join('') +
+    '<th>Nilai</th><th>Predikat</th><th class="ds">Deskripsi rapor / catatan</th>';
+  const kolom = NL.tp.map(t => t.kode).concat(KOLOM_SAS.map(c => c.k));
+  $('#nl-body').innerHTML = NL.siswa.map((s, i) => {
+    const h = NL.hasil[s.id] || {}, isi = NL_ISI[s.id] || {};
+    const ket = [h.deskripsiTinggi, h.deskripsiRendah].filter(Boolean).map(esc).join('<br>') +
+      (h.peringatan && h.peringatan.length ? '<div class="w">⚠ ' + h.peringatan.map(esc).join('<br>⚠ ') + '</div>' : '');
+    return '<tr class="' + (NL_BASI[s.id] ? 'basi' : '') + '"><td class="no">' + s.no + '</td><td>' + esc(s.nama) + '</td>' +
+      kolom.map((k, j) => '<td class="angka"><input inputmode="decimal" data-s="' + i + '" data-c="' + j + '" data-k="' + k + '" value="' + esc(isi[k] || '') + '"' +
+        (angkaSah(isi[k]) ? '' : ' class="salah"') + ' aria-label="' + esc(k + ' ' + s.nama) + '"></td>').join('') +
+      '<td class="na">' + (h.nilai ?? '–') + '</td><td class="pr">' + esc(h.predikat || '') + '</td><td class="ket ds">' + ket + '</td></tr>';
+  }).join('');
+  $('table.nilai').classList.toggle('tanpa-deskripsi', !$('#nl-deskripsi').checked);
+  statusNilai();
+}
+function statusNilai(){
+  const lengkap = NL.siswa.filter(s => (NL.hasil[s.id] || {}).lengkap).length;
+  $('#nl-status').innerHTML = 'Lengkap ' + teksJumlah(lengkap, NL.siswa.length) + (NL_UBAH ? ' · <b>belum disimpan</b>' : '');
+}
+
+$('#nl-body').addEventListener('input', e => {
+  const t = e.target;
+  if (!t.dataset.k) return;
+  const s = NL.siswa[Number(t.dataset.s)];
+  NL_ISI[s.id][t.dataset.k] = t.value;
+  t.classList.toggle('salah', !angkaSah(t.value));
+  NL_UBAH = true;
+  if (!NL_BASI[s.id]) { NL_BASI[s.id] = true; t.closest('tr').classList.add('basi'); }
+  statusNilai();
+});
+$('#nl-body').addEventListener('keydown', e => {
+  const t = e.target;
+  if (!t.dataset.k || e.key !== 'Enter') return;
+  e.preventDefault();
+  const bawah = document.querySelector('#nl-body input[data-s="' + (Number(t.dataset.s) + 1) + '"][data-c="' + t.dataset.c + '"]');
+  if (bawah) { bawah.focus(); bawah.select(); }
+});
+/* Tempel blok angka dari Excel mulai dari kotak yang dipilih (ke kanan = TP berikutnya, ke bawah = siswa berikutnya). */
+$('#nl-body').addEventListener('paste', e => {
+  const t = e.target;
+  if (!t.dataset.k) return;
+  const teks = (e.clipboardData || window.clipboardData).getData('text');
+  if (!/[\t\n]/.test(teks.replace(/\s+$/, ''))) return;
+  e.preventDefault();
+  const kolom = NL.tp.map(x => x.kode).concat(KOLOM_SAS.map(c => c.k));
+  const baris = teks.replace(/\r/g, '').replace(/\n+$/, '').split('\n').map(r => r.split('\t'));
+  const s0 = Number(t.dataset.s), c0 = Number(t.dataset.c);
+  let n = 0;
+  baris.forEach((r, bi) => {
+    const s = NL.siswa[s0 + bi];
+    if (!s) return;
+    r.forEach((v, ci) => { const k = kolom[c0 + ci]; if (k) { NL_ISI[s.id][k] = v.trim(); n++; } });
+    NL_BASI[s.id] = true;
+  });
+  NL_UBAH = true; renderNilai();
+  const lebih = s0 + baris.length - NL.siswa.length;
+  pesan('#nl-msg', n + ' angka ditempel.' + (lebih > 0 ? ' ' + lebih + ' baris terakhir diabaikan karena melebihi jumlah siswa.' : '') + ' Periksa lalu klik Simpan nilai.', lebih <= 0);
+});
+
+$('#nl-simpan').addEventListener('click', e => sibuk(e.target, async () => {
+  const salah = document.querySelectorAll('#nl-body input.salah').length;
+  if (salah) return pesan('#nl-msg', salah + ' kotak berisi angka yang tidak valid (ditandai merah). Perbaiki dulu.', false);
+  const res = await api({ aksi:'simpanNilai', rombel: NL.rombel.id, semester: NL.semester, mapel: NL.mapel.kode, varian: NL.varian, nilai: NL_ISI });
+  if (res.sesiHabis) return;
+  pesan('#nl-msg', res.pesan, res.ok, res.salah);
+  if (!res.ok) return;
+  NL.hasil = res.hasil; NL_UBAH = false; NL_BASI = {};
+  NL_ISI = {};
+  res.siswa.forEach(s => { NL_ISI[s.id] = {}; Object.entries(res.nilai[s.id] || {}).forEach(([k, v]) => { NL_ISI[s.id][k] = String(v).replace('.', ','); }); });
+  renderNilai();
+}));
+$('#nl-deskripsi').addEventListener('change', e => $('table.nilai').classList.toggle('tanpa-deskripsi', !e.target.checked));
+$('#nl-mapel').addEventListener('click', e => {
+  const b = e.target.closest('[data-mapel]');
+  if (!b || b.dataset.mapel === NL.mapel.kode || !tinggalkanNilai()) return;
+  muatNilai({ mapel: b.dataset.mapel });
+});
+$('#nl-varian').addEventListener('change', e => {
+  if (!tinggalkanNilai()) { e.target.value = NL.varian; return; }
+  muatNilai({ varian: e.target.value });
+});
+['nl-rombel', 'nl-semester'].forEach(id => {
+  let sebelum = '';
+  $('#' + id).addEventListener('focus', e => { sebelum = e.target.value; });
+  $('#' + id).addEventListener('change', e => {
+    if (!tinggalkanNilai()) { e.target.value = sebelum; return; }
+    // pindah ke rombel kelas lain: mapel yang sedang dipilih belum tentu ada di sana, jadi mulai dari mapel pertama
+    const baru = DATA.rombel.find(r => r.id === $('#nl-rombel').value);
+    muatNilai(id === 'nl-rombel' && NL && baru && baru.kelas !== NL.rombel.kelas ? { mapel: '' } : {});
+  });
+});
+document.querySelector('#v-nilai [data-ke="beranda"]').addEventListener('click', e => {
+  if (!tinggalkanNilai()) { tampil('nilai'); return; }
+  NL_UBAH = false;
+});
 
 /* ---------- tujuan pembelajaran ---------- */
 let TPD = null, TP_MAPEL = '', TP_VARIAN = '', TP_LIST = [], TP_UBAH = false;
