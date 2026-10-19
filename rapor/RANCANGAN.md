@@ -178,6 +178,12 @@ Pengamannya: setiap perubahan nilai dicatat di Log beserta waktunya, dan kepala 
 - **Cetak** dilakukan dari peramban (A4 tegak; leger A4 mendatar) lewat dialog cetak, yang juga bisa **Simpan sebagai PDF**. Cara ini dipilih karena guru tidak punya akses ke Drive pengelola, sehingga PDF di Drive tidak berguna bagi sekolah.
   - Format mengikuti RAPOR CETAK lama: identitas, tabel muatan pelajaran (muatan lokal dikelompokkan a., b., …), kokurikuler, ekstrakurikuler, ketidakhadiran & catatan, tanggapan orang tua, keputusan (semester 2), dan tanda tangan.
   - Mencetak rapor yang belum lengkap tetap bisa, tetapi harus dikonfirmasi dulu.
+- **Unduh Excel** (satu berkas per rombel per semester) untuk disalin ke e-Rapor. Isinya:
+  - Daftar Siswa dan Rekap Nilai (leger);
+  - satu sheet per mapel: nilai akhir, **TP tertinggi dan TP terendah** tiap siswa (kode + isi TP, seni satu per seni, agama sesuai agama siswa) yang dicentang guru di e-Rapor, deskripsi capaian, dan catatan bila belum lengkap;
+  - Kokurikuler;
+  - Ekskul & Kehadiran (termasuk keputusan kenaikan di semester 2).
+  - NISN ditulis sebagai teks agar nol di depan tidak hilang. Nama sheet yang lebih dari 31 karakter memakai kode mapel (IPAS, PJOK).
 
 ## 5. Pencegahan error (pelajaran dari rapor Excel lama)
 

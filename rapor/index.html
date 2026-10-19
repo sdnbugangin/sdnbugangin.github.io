@@ -423,6 +423,7 @@ table.leger td.j{text-align:center;font-weight:800}
         <button type="button" data-ct="cek" class="on">Kelengkapan</button>
         <button type="button" data-ct="leger">Leger</button>
         <button type="button" data-ct="cetak">Cetak Rapor</button>
+        <button type="button" data-ct="excel">Unduh Excel</button>
       </div>
       <div id="ct-cek">
         <div class="toolbar"><span class="sub" id="ct-siap"></span><button class="btn ghost small" type="button" id="ct-segar">Periksa ulang</button></div>
@@ -431,6 +432,17 @@ table.leger td.j{text-align:center;font-weight:800}
       <div id="ct-leger" class="hidden">
         <div class="toolbar"><button class="btn ghost small" type="button" id="ct-cetak-leger">Cetak leger</button><span class="sub">Nilai bercetak miring masih sementara (belum lengkap). Peringkat hanya untuk siswa yang nilainya lengkap.</span></div>
         <div class="tbl"><table class="siswa leger" style="width:100%"><thead><tr id="ct-leger-head"></tr></thead><tbody id="ct-leger-body"></tbody></table></div>
+      </div>
+      <div id="ct-excel" class="hidden">
+        <div class="panduan">Satu berkas Excel untuk rombel dan semester ini, untuk disalin ke <b>e-Rapor</b>. Isinya:
+          <ul style="margin:6px 0 0;padding-left:18px">
+            <li><b>Daftar Siswa</b> — nomor absen, NISN, NIS, nama.</li>
+            <li><b>Rekap Nilai</b> — nilai akhir semua mapel, jumlah, rata-rata, peringkat.</li>
+            <li><b>Satu sheet per mapel</b> — nilai akhir, <b>TP tertinggi</b> dan <b>TP terendah</b> tiap siswa (kode dan isi TP, untuk dicentang di e-Rapor), serta deskripsi capaian.</li>
+            <li><b>Kokurikuler</b> serta <b>Ekskul &amp; Kehadiran</b> — deskripsi kokurikuler, ekstrakurikuler, ketidakhadiran, catatan wali kelas, dan keputusan naik kelas (semester 2).</li>
+          </ul></div>
+        <div class="toolbar"><button class="btn" type="button" id="ct-excel-btn" style="width:auto">Unduh Excel</button></div>
+        <div class="msg" id="ct-excel-msg"></div>
       </div>
       <div id="ct-cetak" class="hidden">
         <div class="panduan">Pilih siswa, lalu klik <b>Cetak / Simpan PDF</b>. Di jendela cetak pilih printer, atau pilih <b>Simpan sebagai PDF</b> untuk menyimpan berkasnya. Ukuran kertas A4, tegak.</div>
@@ -1650,7 +1662,7 @@ async function muatCetak(){
 }
 function renderCetak(){
   document.querySelectorAll('[data-ct]').forEach(b => b.classList.toggle('on', b.dataset.ct === CT_TAB));
-  ['cek', 'leger', 'cetak'].forEach(t => $('#ct-' + t).classList.toggle('hidden', t !== CT_TAB));
+  ['cek', 'leger', 'cetak', 'excel'].forEach(t => $('#ct-' + t).classList.toggle('hidden', t !== CT_TAB));
   const n = CT.siswa.length;
   $('#ct-siap').innerHTML = 'Siap cetak ' + teksJumlah(CT.siap, n);
   $('#ct-cek-body').innerHTML = CT.siswa.map(s => '<tr><td class="no">' + s.no + '</td><td>' + esc(s.nama) + '</td>' +
@@ -1678,6 +1690,80 @@ $('#ct-lengkap').addEventListener('click', () => {
 document.querySelectorAll('[data-ct]').forEach(b => b.addEventListener('click', () => { CT_TAB = b.dataset.ct; renderCetak(); }));
 $('#ct-segar').addEventListener('click', e => sibuk(e.target, muatCetak));
 ['ct-rombel', 'ct-semester'].forEach(id => $('#' + id).addEventListener('change', () => muatCetak()));
+
+/* ---------- unduh excel rapor ---------- */
+async function excelRapor(R){
+  const wb = new ExcelJS.Workbook();
+  wb.creator = 'Rapor SD';
+  const judul = R.rombel.label + ' · Semester ' + R.semester + ' · Tahun Ajaran ' + R.tahunAjaran + ' · ' + R.sekolah.nama;
+  /* kolom: [{ h: judul, w: lebar, teks: true (format teks, untuk NISN), bungkus: true }] */
+  const sheet = (nama, kolom, baris) => {
+    const ws = wb.addWorksheet(nama.replace(/[\\\/?*\[\]:]/g, ' ').slice(0, 31), { views: [{ state: 'frozen', ySplit: 2, xSplit: Math.min(3, kolom.length) }] });
+    ws.mergeCells(1, 1, 1, Math.max(kolom.length, 1));
+    ws.getCell(1, 1).value = nama + ' — ' + judul;
+    ws.getCell(1, 1).font = { bold: true, size: 12 };
+    ws.getRow(2).values = kolom.map(k => k.h);
+    ws.getRow(2).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    ws.getRow(2).alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+    kolom.forEach((k, i) => {
+      ws.getCell(2, i + 1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF12314F' } };
+      ws.getColumn(i + 1).width = k.w || 12;
+      if (k.teks) ws.getColumn(i + 1).numFmt = '@';
+    });
+    baris.forEach(r => {
+      const row = ws.addRow(r.map((v, i) => kolom[i] && kolom[i].teks && v !== '' && v !== null && v !== undefined ? String(v) : (v ?? '')));
+      row.alignment = { vertical: 'top', wrapText: true };
+    });
+    ws.eachRow((row, i) => { if (i >= 2) row.eachCell({ includeEmpty: true }, c => { c.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } }; }); });
+    return ws;
+  };
+  const dasar = [{ h: 'No. Absen', w: 8 }, { h: 'NISN', w: 13, teks: true }, { h: 'Nama', w: 28 }];
+  const id = s => [s.no, s.nisn, s.nama];
+  sheet('Daftar Siswa', dasar.concat([{ h: 'NIS', w: 10, teks: true }]), R.siswa.map(s => id(s).concat(s.nis)));
+  sheet('Rekap Nilai', dasar.concat(R.mapel.map(m => ({ h: m.nama, w: 11 })), [{ h: 'Jumlah', w: 9 }, { h: 'Rata-rata', w: 9 }, { h: 'Peringkat', w: 9 }]),
+    R.siswa.map(s => id(s).concat(s.mapel.map(m => m.nilai ?? ''), [s.jumlah ?? '', s.rataRata ?? '', s.peringkat ?? ''])));
+  const tpTeks = d => d.map(t => (t.seni ? t.seni + ': ' : '') + t.kode + ' — ' + t.tp).join('\n');
+  R.mapel.forEach((m, j) => {
+    const varian = m.jenis === 'agama' ? [{ h: 'Agama', w: 12 }] : m.jenis === 'seni' ? [{ h: 'Seni', w: 14 }] : [];
+    const namaSheet = m.jenis === 'agama' ? 'Agama' : m.nama.length > 31 ? m.kode : m.nama;
+    sheet(namaSheet, dasar.concat(varian, [{ h: 'Nilai Akhir', w: 8 }, { h: 'TP Tertinggi', w: 46 }, { h: 'TP Terendah', w: 46 },
+      { h: 'Deskripsi Capaian Tertinggi', w: 46 }, { h: 'Deskripsi Capaian Terendah', w: 46 }, { h: 'Catatan', w: 30 }]),
+      R.siswa.map(s => {
+        const h = s.mapel[j];
+        const v = m.jenis === 'agama' ? [h.nama.replace(/^Pendidikan (Agama )?/, '').replace(/ dan Budi Pekerti$/, '')]
+          : m.jenis === 'seni' ? [h.tpTinggi.concat(h.tpRendah).map(t => t.seni).filter((x, i, a) => x && a.indexOf(x) === i).join(', ')] : [];
+        return id(s).concat(v, [h.nilai ?? '', tpTeks(h.tpTinggi), tpTeks(h.tpRendah), h.deskripsiTinggi || '', h.deskripsiRendah || '', h.lengkap ? '' : h.peringatan.join('; ')]);
+      }));
+  });
+  sheet('Kokurikuler', dasar.concat([{ h: 'Deskripsi Kokurikuler', w: 90 }]), R.siswa.map(s => id(s).concat(s.kokurikuler || '')));
+  const maksEks = Math.max(1, ...R.siswa.map(s => s.ekskul.length));
+  const kolEks = [];
+  for (let i = 1; i <= maksEks; i++) kolEks.push({ h: 'Ekstrakurikuler ' + i, w: 16 }, { h: 'Keterangan ' + i, w: 34 });
+  const kolLain = [{ h: 'Sakit', w: 7 }, { h: 'Izin', w: 7 }, { h: 'Tanpa Keterangan', w: 10 }, { h: 'Catatan Wali Kelas', w: 46 }]
+    .concat(R.semester === 2 ? [{ h: R.rombel.kelas === 6 ? 'Kelulusan' : 'Kenaikan Kelas', w: 24 }] : []);
+  sheet('Ekskul & Kehadiran', dasar.concat(kolEks, kolLain), R.siswa.map(s => {
+    const e = [];
+    for (let i = 0; i < maksEks; i++) e.push(s.ekskul[i] ? s.ekskul[i].kegiatan : '', s.ekskul[i] ? s.ekskul[i].keterangan : '');
+    const p = s.presensi;
+    return id(s).concat(e, [p.sakit, p.izin, p.alpa, p.catatan || ''], R.semester === 2 ? [s.kenaikan.teks || ''] : []);
+  }));
+  return wb.xlsx.writeBuffer();
+}
+$('#ct-excel-btn').addEventListener('click', e => sibuk(e.target, async () => {
+  try {
+    pesan('#ct-excel-msg', 'Menyiapkan berkas Excel…', true);
+    await muatPustaka('ExcelJS');
+    const buf = await excelRapor(CT);
+    const nama = 'Rapor ' + CT.rombel.label + ' Semester ' + CT.semester + ' ' + CT.tahunAjaran.replace('/', '-') + '.xlsx';
+    const url = URL.createObjectURL(new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
+    const a = document.createElement('a'); a.href = url; a.download = nama; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+    const belum = CT.siswa.length - CT.siap;
+    pesan('#ct-excel-msg', nama + ' terunduh.' + (belum ? ' Catatan: ' + belum + ' siswa belum lengkap; kekurangannya tertulis di kolom Catatan tiap sheet mapel.' : ''), true);
+  } catch (err) {
+    pesan('#ct-excel-msg', err.message, false);
+  }
+}));
 
 /* Satu rapor siswa dalam format cetak. */
 function halamanRapor(s){
