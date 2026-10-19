@@ -158,27 +158,90 @@ function hitungNilaiMapel_(isian, aturan) {
       if (t.nilai < rendah.nilai) rendah = t;
     });
     hasil.tertinggi = tinggi;
-    hasil.deskripsiTinggi = kalimatCapaian_(gaya, kktp, aturan.panggilan, tinggi, 'tinggi');
+    hasil.deskripsiTinggi = kalimatCapaian_(gaya, kktp, aturan.panggilan, [tinggi], 'tinggi');
     // Satu TP saja, atau semua TP bernilai sama: tidak ada "terendah" yang bermakna.
     if (rendah.nilai < tinggi.nilai) {
       hasil.terendah = rendah;
-      hasil.deskripsiRendah = kalimatCapaian_(gaya, kktp, aturan.panggilan, rendah, 'rendah');
+      hasil.deskripsiRendah = kalimatCapaian_(gaya, kktp, aturan.panggilan, [rendah], 'rendah');
     }
   }
   return hasil;
 }
 
-function kalimatCapaian_(gaya, kktp, panggilan, tp, arah) {
-  var kalimat = gaya.mode === 'predikat'
-    ? barisKktp_(tp.nilai, kktp).kalimat
-    : (arah === 'tinggi' ? gaya.kalimatTinggi : gaya.kalimatRendah);
-  kalimat = String(kalimat || '').trim();
-  var materi = tp.materi.replace(/[.\s]+$/, '');
+/**
+ * Satu kalimat deskripsi untuk satu TP atau beberapa TP sekaligus (mis. dari beberapa seni).
+ * TP dengan kalimat pembuka yang sama digabung: "… sangat baik dalam A dan B".
+ * Pada mode predikat, kalimat pembuka yang berbeda menjadi anak kalimat: "… sangat baik dalam A dan … baik dalam B".
+ */
+function kalimatCapaian_(gaya, kktp, panggilan, daftarTp, arah) {
+  var kelompok = [];
+  daftarTp.forEach(function (tp) {
+    var kalimat = String((gaya.mode === 'predikat'
+      ? barisKktp_(tp.nilai, kktp).kalimat
+      : (arah === 'tinggi' ? gaya.kalimatTinggi : gaya.kalimatRendah)) || '').trim();
+    var materi = tp.materi.replace(/[.\s]+$/, '');
+    var ada = kelompok.filter(function (k) { return k.kalimat === kalimat; })[0];
+    if (ada) { if (ada.materi.indexOf(materi) < 0) ada.materi.push(materi); }
+    else kelompok.push({ kalimat: kalimat, materi: [materi] });
+  });
+  var isi = gabungDaftar_(kelompok.map(function (k, i) {
+    return (i === 0 ? k.kalimat : hurufKecilAwal_(k.kalimat)) + ' ' + gabungDaftar_(k.materi);
+  }));
   var nama = String(panggilan || '').trim();
-  var awal = gaya.pakaiPanggilan && nama
-    ? 'Ananda ' + nama + ' ' + hurufKecilAwal_(kalimat)
-    : hurufBesarAwal_(kalimat);
-  return awal + ' ' + materi + '.';
+  var awal = gaya.pakaiPanggilan && nama ? 'Ananda ' + nama + ' ' + hurufKecilAwal_(isi) : hurufBesarAwal_(isi);
+  return awal + '.';
+}
+
+/** ['a'] → 'a'; ['a','b'] → 'a dan b'; ['a','b','c'] → 'a, b, dan c'. */
+function gabungDaftar_(daftar) {
+  if (daftar.length <= 1) return daftar.join('');
+  return daftar.slice(0, -1).join(', ') + (daftar.length > 2 ? ',' : '') + ' dan ' + daftar[daftar.length - 1];
+}
+
+/**
+ * Nilai satu baris rapor yang terdiri dari beberapa bagian, mis. Seni dan Budaya untuk siswa yang
+ * mengikuti Seni Musik dan Seni Rupa. Setiap bagian dihitung seperti mapel biasa (bobot, KKTP), lalu:
+ * - nilai rapor = rata-rata nilai tiap bagian (sama seperti rapor Excel lama);
+ * - deskripsi tertinggi/terendah = TP tertinggi/terendah tiap bagian, digabung dalam satu kalimat.
+ *
+ * bagian = [{ nama: 'Seni Musik', isian: { tp: [...], akhir: [...] } }, ...]
+ * Hasil berbentuk sama dengan hitungNilaiMapel_, ditambah rincian[] per bagian.
+ */
+function hitungNilaiGabungan_(bagian, aturan) {
+  aturan = aturan || {};
+  var kktp = aturan.kktp || KKTP_BAWAAN;
+  var gaya = aturan.deskripsi || DESKRIPSI_BAWAAN;
+  var hasil = {
+    nilai: null, nilaiLingkup: null, nilaiAkhir: null, predikat: '', lengkap: false,
+    peringatan: [], salah: [], tertinggi: null, terendah: null, deskripsiTinggi: '', deskripsiRendah: '', rincian: []
+  };
+  if (!bagian || !bagian.length) {
+    hasil.peringatan.push('Belum ada pilihan (mis. seni) untuk siswa ini.');
+    return hasil;
+  }
+  var lengkap = true, tinggi = [], rendah = [], nilai = [];
+  bagian.forEach(function (b) {
+    var h = hitungNilaiMapel_(b.isian, aturan);
+    hasil.rincian.push({ nama: b.nama, hasil: h });
+    h.peringatan.forEach(function (x) { hasil.peringatan.push(b.nama + ': ' + x); });
+    h.salah.forEach(function (x) { hasil.salah.push(b.nama + ': ' + x); });
+    if (!h.lengkap) lengkap = false;
+    if (h.nilai !== null) nilai.push(h.nilai);
+    if (h.tertinggi) tinggi.push(h.tertinggi);
+    if (h.terendah) rendah.push(h.terendah);
+  });
+  hasil.nilai = bulatkan_(rataRata_(nilai), 0);
+  hasil.lengkap = lengkap && nilai.length === bagian.length;
+  var baris = barisKktp_(hasil.nilai, kktp);
+  hasil.predikat = baris ? baris.predikat : '';
+  if (tinggi.length) hasil.deskripsiTinggi = kalimatCapaian_(gaya, kktp, aturan.panggilan, tinggi, 'tinggi');
+  if (rendah.length) hasil.deskripsiRendah = kalimatCapaian_(gaya, kktp, aturan.panggilan, rendah, 'rendah');
+  return hasil;
+}
+
+/** "Seni Musik, Seni Rupa" → ['Seni Musik', 'Seni Rupa']. */
+function pecahSeni_(seni) {
+  return String(seni || '').split(',').map(function (x) { return x.trim(); }).filter(String);
 }
 
 function hurufBesarAwal_(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
@@ -310,7 +373,9 @@ function cekDaftarSiswa_(siswa, aturan) {
     var jk = String(s.jk || '').trim().toUpperCase();
     if (jk !== 'L' && jk !== 'P') salah.push(baris + 'jenis kelamin harus L atau P.');
     if (!normalisasiAgama_(s.agama)) salah.push(baris + 'agama "' + (s.agama || '') + '" tidak dikenal.');
-    if (s.seni && seni.indexOf(s.seni) < 0) salah.push(baris + 'seni pilihan "' + s.seni + '" tidak ditawarkan sekolah.');
+    pecahSeni_(s.seni).forEach(function (x) {
+      if (seni.indexOf(x) < 0) salah.push(baris + 'seni pilihan "' + x + '" tidak ditawarkan sekolah.');
+    });
   });
   return salah;
 }

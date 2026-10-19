@@ -179,7 +179,7 @@ function layani_(req) {
       case 'keluar': return keluar_(req.sesi);
       case 'gantiSandi': return gantiSandi_(sesi.npsn, req.lama, req.baru, req.ulangi);
       case 'dataSekolah': return dataSekolah_(sesi.npsn);
-      case 'simpanProfil': return simpanProfil_(sesi.npsn, req.profil || {}, req.semester);
+      case 'simpanProfil': return simpanProfil_(sesi.npsn, req.profil || {}, req.semester, req.seni);
       case 'simpanRombel': return simpanRombel_(sesi.npsn, req.rombel || {});
       case 'hapusRombel': return hapusRombel_(sesi.npsn, req.id);
       case 'siswaRombel': return siswaRombel_(sesi.npsn, req.rombel);
