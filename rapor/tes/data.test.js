@@ -93,7 +93,12 @@ test('cekProfil_ dan cekRombel_ menolak isian yang salah', () => {
   assert.match(c.cekRombel_({ kelas: 5, nama: '5a' }, lain).salah[0], /sudah ada/);
   assert.equal(c.cekRombel_({ id: 'R1', kelas: 5, nama: '5a' }, lain).salah.length, 0, 'mengubah rombel sendiri boleh');
   assert.match(c.cekRombel_({ kelas: 7, nama: '7A' }, []).salah[0], /kelas 1 sampai 6/);
-  assert.match(c.cekRombel_({ kelas: 5, nama: '' }, []).salah[0], /wajib/);
+  // kelas dengan satu rombel cukup dikosongkan namanya; huruf saja diberi awalan nomor kelas
+  assert.equal(c.cekRombel_({ kelas: 5, nama: '' }, []).rombel.nama, '5');
+  assert.equal(c.cekRombel_({ kelas: 5, nama: ' b ' }, []).rombel.nama, '5B');
+  assert.equal(c.cekRombel_({ kelas: 5, nama: 'Melati' }, []).rombel.nama, 'MELATI');
+  assert.match(c.cekRombel_({ kelas: 5, nama: '' }, [{ id: 'R2', nama: '5' }]).salah[0], /Kelas 5 sudah punya rombel/);
+  assert.match(c.cekRombel_({ kelas: 5, nama: 'a' }, [{ id: 'R1', nama: '5A' }]).salah[0], /Rombel 5A sudah ada/);
   assert.match(c.cekRombel_({ kelas: 5, nama: '5B', nip: '123' }, []).salah[0], /18 digit/);
 });
 
@@ -146,6 +151,18 @@ test('rombel: tambah, urut per kelas, nama dobel ditolak, ubah wali kelas', () =
   assert.equal(r.nip, '199805092026062001');
   assert.equal(g.isi('Rombel').length, 3);
   assert.equal(g.minta({ aksi: 'simpanRombel', rombel: { id: 'Rpalsu', kelas: 5, nama: '5C' } }).ok, false);
+});
+
+test('rombel: kelas dengan satu rombel tidak perlu nama, pesannya menyebut "Kelas 1"', () => {
+  const g = sekolahAktif();
+  const h = g.minta({ aksi: 'simpanRombel', rombel: { kelas: 1, nama: '' } });
+  assert.equal(h.rombel.nama, '1');
+  assert.equal(h.pesan, 'Rombel Kelas 1 tersimpan.');
+  assert.match(g.minta({ aksi: 'simpanRombel', rombel: { kelas: 1, nama: '' } }).pesan, /Kelas 1 sudah punya rombel/);
+  const s = g.minta({ aksi: 'simpanSiswa', rombel: h.rombel.id, siswa: SISWA.slice(0, 1) });
+  assert.match(s.pesan, /^1 siswa Kelas 1 tersimpan/);
+  const id5 = rombel(g, 5, 'b');
+  assert.equal(g.minta({ aksi: 'dataSekolah' }).rombel.find((r) => r.id === id5).nama, '5B');
 });
 
 test('rombel: hanya rombel kosong yang bisa dihapus', () => {
@@ -215,7 +232,7 @@ test('simpanSiswa: NISN yang sudah dipakai di rombel lain ditolak dengan nama ro
   g.minta({ aksi: 'simpanSiswa', rombel: a, siswa: SISWA.slice(0, 1) });
   const h = g.minta({ aksi: 'simpanSiswa', rombel: b, siswa: [{ ...SISWA[0], nama: 'Ani Lain' }] });
   assert.equal(h.ok, false);
-  assert.match(h.pesan, /NISN sudah dipakai ANI LESTARI di rombel 5A/);
+  assert.match(h.pesan, /NISN sudah dipakai ANI LESTARI di 5A/);
 });
 
 test('simpanSiswa: memindah siswa 5A → 5B dengan hapus lalu tempel ulang tidak membuat data dobel', () => {
@@ -239,7 +256,7 @@ test('simpanSiswa: ID siswa rombel lain yang dikirim ke rombel ini ditolak', () 
   const b = rombel(g, 5, '5B');
   g.minta({ aksi: 'simpanSiswa', rombel: a, siswa: SISWA.slice(0, 1) });
   const ani = g.minta({ aksi: 'siswaRombel', rombel: a }).siswa[0];
-  assert.match(g.minta({ aksi: 'simpanSiswa', rombel: b, siswa: [ani] }).pesan, /sudah terdaftar di rombel 5A/);
+  assert.match(g.minta({ aksi: 'simpanSiswa', rombel: b, siswa: [ani] }).pesan, /sudah terdaftar di 5A/);
   assert.match(g.minta({ aksi: 'simpanSiswa', rombel: b, siswa: [{ ...ani, id: 'Spalsu' }] }).pesan, /tidak ditemukan/);
 });
 
