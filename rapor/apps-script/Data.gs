@@ -171,13 +171,24 @@ function labelRombel_(r) { return String(r.nama) === String(r.kelas) ? 'Kelas ' 
 /* ---------- akses spreadsheet sekolah ---------- */
 
 function bukaSekolah_(npsn) {
-  var s = cariSekolah_('npsn', npsn);
-  if (!s || !s.spreadsheet) throw galatPengguna_('Spreadsheet sekolah tidak ditemukan. Hubungi pengelola aplikasi.');
+  // ID spreadsheet diingat 10 menit agar tidak membaca sheet Sekolah di Pusat pada setiap permintaan.
+  var cache = CacheService.getScriptCache(), kunci = 'ss:' + npsn;
+  var id = cache.get(kunci);
+  if (!id) {
+    var s = cariSekolah_('npsn', npsn);
+    if (!s || !s.spreadsheet) throw galatPengguna_('Spreadsheet sekolah tidak ditemukan. Hubungi pengelola aplikasi.');
+    id = s.spreadsheet;
+  }
+  var ss;
   try {
-    return SpreadsheetApp.openById(s.spreadsheet);
+    ss = SpreadsheetApp.openById(id);
   } catch (e) {
+    cache.remove(kunci);
     throw galatPengguna_('Spreadsheet sekolah tidak bisa dibuka. Hubungi pengelola aplikasi.');
   }
+  cache.put(kunci, id, 600);
+  if (BACA_AWAL_.length) bacaSekaligus_(ss, BACA_AWAL_);
+  return ss;
 }
 
 function sheetSekolah_(ss, nama) {
@@ -187,9 +198,99 @@ function sheetSekolah_(ss, nama) {
 }
 
 /** Isi sheet sebagai daftar objek berkunci nama kolom. Baris kosong dilewati. */
+/*
+ * Isi sheet yang terakhir dibaca/ditulis dalam permintaan ini (dikosongkan di awal setiap permintaan oleh layani_).
+ * tulisTabel_ memakainya untuk menulis hanya baris yang berubah, bukan seluruh sheet.
+ */
+var ISI_SHEET_ = {};
+var JUDUL_SHEET_ = {}; // baris judul yang ikut terbaca, agar tulisTabel_ tidak perlu membacanya lagi
+
+/* Sheet yang dibaca sekaligus di awal permintaan (diatur siapkanPermintaan_ menurut aksi). */
+var BACA_AWAL_ = [];
+var SHEET_INTI_ = ['Pengaturan', 'Rombel', 'Siswa', 'Anggota Rombel'];
+var BACA_PER_AKSI_ = {
+  dataSekolah: ['Profil Sekolah', 'Pengaturan', 'Rombel', 'Anggota Rombel'],
+  nilaiRombel: SHEET_INTI_.concat(['Mapel Aktif', 'Tujuan Pembelajaran', 'Nilai', 'KKTP']),
+  kokRombel: SHEET_INTI_.concat(['Kokurikuler', 'Capaian Kokurikuler', 'Master Narasi']),
+  waliRombel: SHEET_INTI_.concat(['Presensi & Catatan', 'Ekstrakurikuler', 'Kenaikan']),
+  tpKelas: SHEET_INTI_.concat(['Mapel Aktif', 'Tujuan Pembelajaran', 'Nilai']),
+  rekapRombel: SHEET_INTI_.concat(['Profil Sekolah', 'KKTP', 'Mapel Aktif', 'Tujuan Pembelajaran', 'Nilai', 'Kokurikuler',
+    'Capaian Kokurikuler', 'Master Narasi', 'Presensi & Catatan', 'Ekstrakurikuler', 'Kenaikan'])
+};
+BACA_PER_AKSI_.simpanNilai = BACA_PER_AKSI_.nilaiRombel;
+BACA_PER_AKSI_.simpanKok = BACA_PER_AKSI_.simpanDimensiKok = BACA_PER_AKSI_.kokRombel;
+BACA_PER_AKSI_.simpanEkskul = BACA_PER_AKSI_.simpanPresensi = BACA_PER_AKSI_.simpanKenaikan = BACA_PER_AKSI_.waliRombel;
+BACA_PER_AKSI_.simpanTp = BACA_PER_AKSI_.tpKelas;
+BACA_PER_AKSI_.kunciRapor = BACA_PER_AKSI_.bukaKunciRapor = SHEET_INTI_;
+
+/** Dipanggil di awal setiap permintaan: kosongkan isi sheet yang diingat dan tentukan sheet yang dibaca sekaligus. */
+function siapkanPermintaan_(aksi) {
+  ISI_SHEET_ = {};
+  JUDUL_SHEET_ = {};
+  BACA_AWAL_ = BACA_PER_AKSI_[aksi] || [];
+}
+
+function hurufKolom_(n) { return String.fromCharCode(64 + n); }
+
+/** Nomor seri tanggal Google Sheets (zona waktu spreadsheet) → Date. */
+function tanggalDariSerial_(serial, zona) {
+  var kira = new Date(Math.round((serial - 25569) * 86400000));
+  var z = Utilities.formatDate(kira, zona, 'Z'); // mis. "+0700"
+  var menit = (z.charAt(0) === '-' ? -1 : 1) * (Number(z.substr(1, 2)) * 60 + Number(z.substr(3, 2)));
+  return new Date(kira.getTime() - menit * 60000);
+}
+
+/**
+ * Membaca beberapa sheet dalam SATU panggilan Google Sheets API (layanan lanjutan "Sheets").
+ * Membuka sheet satu per satu lewat SpreadsheetApp makan ±0,2–0,3 detik per sheet; ini memangkasnya.
+ * Bila layanan belum diaktifkan, kuota habis, atau ada galat apa pun, tidak terjadi apa-apa:
+ * bacaTabel_ membaca dengan cara biasa.
+ */
+function bacaSekaligus_(ss, daftar) {
+  if (typeof Sheets === 'undefined' || !Sheets || !Sheets.Spreadsheets) return false;
+  var perlu = daftar.filter(function (n) { return !ISI_SHEET_[kunciIsi_(ss, n)]; });
+  if (!perlu.length) return true;
+  try {
+    var res = Sheets.Spreadsheets.Values.batchGet(ss.getId(), {
+      ranges: perlu.map(function (n) { return "'" + n + "'!A1:" + hurufKolom_(strukturSheet_(n).kolom.length); }),
+      valueRenderOption: 'UNFORMATTED_VALUE', dateTimeRenderOption: 'SERIAL_NUMBER'
+    });
+    var zona = ss.getSpreadsheetTimeZone(), hasil = {};
+    perlu.forEach(function (n, i) {
+      var st = strukturSheet_(n), vr = (res.valueRanges || [])[i];
+      if (!vr) throw new Error('jawaban tidak lengkap');
+      var baris = vr.values || [];
+      JUDUL_SHEET_[kunciIsi_(ss, n)] = st.kolom.map(function (k, j) { return baris[0] && baris[0][j] !== undefined ? baris[0][j] : ''; });
+      hasil[n] = baris.slice(1).map(function (r) {
+        return st.kolom.map(function (kol, j) {
+          var v = r[j];
+          if (v === undefined || v === null) return '';
+          if (st.tanggal && st.tanggal.indexOf(kol) >= 0 && typeof v === 'number') return tanggalDariSerial_(v, zona);
+          return v;
+        });
+      });
+    });
+    Object.keys(hasil).forEach(function (n) { ISI_SHEET_[kunciIsi_(ss, n)] = hasil[n]; });
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+function kunciIsi_(ss, nama) { return ss.getId() + '|' + nama; }
+
 function bacaTabel_(ss, nama) {
   var kolom = strukturSheet_(nama).kolom;
-  var rows = sheetSekolah_(ss, nama).getDataRange().getValues();
+  var kunci = kunciIsi_(ss, nama);
+  if (!ISI_SHEET_[kunci]) {
+    // Belum dibaca di permintaan ini: baca sekali, lalu pakai ulang (sheet yang sama tidak dibaca dua kali).
+    var semua = sheetSekolah_(ss, nama).getDataRange().getValues().map(function (r) {
+      return kolom.map(function (k, j) { return r[j] === undefined || r[j] === null ? '' : r[j]; });
+    });
+    JUDUL_SHEET_[kunci] = semua[0] || [];
+    ISI_SHEET_[kunci] = semua.slice(1);
+  }
+  var rows = [kolom].concat(ISI_SHEET_[kunci]);
   var hasil = [];
   for (var i = 1; i < rows.length; i++) {
     var kosong = true, o = {};
@@ -204,28 +305,75 @@ function bacaTabel_(ss, nama) {
 }
 
 /** Menulis ulang seluruh isi sheet (di bawah judul) dari daftar objek. */
+/** Sama untuk keperluan menulis: angka 85 dan teks "85", tanggal yang sama, kosong dan null. */
+function samaSel_(a, b) {
+  if (a instanceof Date || b instanceof Date) return String(a && a.getTime ? a.getTime() : a) === String(b && b.getTime ? b.getTime() : b);
+  return String(a === null || a === undefined ? '' : a) === String(b === null || b === undefined ? '' : b);
+}
+
+function samaBaris_(a, b) {
+  if (!a || !b || a.length !== b.length) return false;
+  for (var j = 0; j < a.length; j++) if (!samaSel_(a[j], b[j])) return false;
+  return true;
+}
+
+/**
+ * Menulis seluruh isi tabel (tanpa baris judul). Hanya rentang baris yang berbeda dari isi lama yang ditulis:
+ * simpan nilai satu mapel di sekolah besar menulis puluhan baris, bukan belasan ribu.
+ */
 function tulisTabel_(ss, nama, data) {
   var st = strukturSheet_(nama);
   var sh = sheetSekolah_(ss, nama);
   // Spreadsheet yang dibuat versi lama belum punya kolom baru (mis. Jumlah Siswa): judulnya dilengkapi di sini.
-  var judul = sh.getRange(1, 1, 1, st.kolom.length).getValues()[0];
+  var kunci = kunciIsi_(ss, nama);
+  var judul = JUDUL_SHEET_[kunci] || sh.getRange(1, 1, 1, st.kolom.length).getValues()[0];
   if (judul.join('|') !== st.kolom.join('|')) {
     sh.getRange(1, 1, 1, st.kolom.length).setValues([st.kolom])
       .setFontWeight('bold').setBackground('#12314f').setFontColor('#ffffff');
+    JUDUL_SHEET_[kunci] = st.kolom.slice();
   }
-  var lama = Math.max(sh.getLastRow() - 1, 0);
-  var perlu = data.length + 1;
+  var baru = data.map(function (o) {
+    return st.kolom.map(function (k) { return o[k] === undefined || o[k] === null ? '' : o[k]; });
+  });
+  var lama = ISI_SHEET_[kunci];
+  var jumlahLama = Math.max(sh.getLastRow() - 1, 0);
+  if (!lama || lama.length !== jumlahLama) {
+    // Belum dibaca di permintaan ini (atau sheet berubah di luar aplikasi): baca dulu agar perbandingan benar.
+    lama = jumlahLama ? sh.getRange(2, 1, jumlahLama, st.kolom.length).getValues() : [];
+  }
+  var perlu = baru.length + 1;
   if (sh.getMaxRows() < perlu) {
     var awal = sh.getMaxRows() + 1;
     sh.insertRowsAfter(sh.getMaxRows(), perlu - sh.getMaxRows() + 200);
     formatTeks_(sh, st, awal);
   }
-  if (data.length) {
-    sh.getRange(2, 1, data.length, st.kolom.length).setValues(data.map(function (o) {
-      return st.kolom.map(function (k) { return o[k] === undefined || o[k] === null ? '' : o[k]; });
-    }));
+  var mulai = 0;
+  while (mulai < baru.length && mulai < lama.length && samaBaris_(baru[mulai], lama[mulai])) mulai++;
+  var akhir = baru.length - 1; // baris terakhir yang perlu ditulis
+  if (baru.length === lama.length) {
+    while (akhir >= mulai && samaBaris_(baru[akhir], lama[akhir])) akhir--;
   }
-  if (lama > data.length) sh.getRange(data.length + 2, 1, lama - data.length, st.kolom.length).clearContent();
+  if (akhir >= mulai) sh.getRange(mulai + 2, 1, akhir - mulai + 1, st.kolom.length).setValues(baru.slice(mulai, akhir + 1));
+  if (lama.length > baru.length) sh.getRange(baru.length + 2, 1, lama.length - baru.length, st.kolom.length).clearContent();
+  ISI_SHEET_[kunci] = baru;
+}
+
+/**
+ * Mengganti baris dalam satu lingkup (mis. satu layar nilai) tanpa menggeser baris lain:
+ * baris lama yang kuncinya masih ada diganti di tempat, yang hilang dihapus, yang baru ditambah di akhir.
+ * Dengan begitu tulisTabel_ hanya menulis bagian kecil sheet.
+ */
+function gantiDiTempat_(semua, diLingkup, kunci, baru) {
+  var per = {}, urut = [];
+  baru.forEach(function (o) { var k = kunci(o); if (!(k in per)) urut.push(k); per[k] = o; });
+  var hasil = [], dipakai = {};
+  semua.forEach(function (r) {
+    if (!diLingkup(r)) { hasil.push(r); return; }
+    var k = kunci(r);
+    if (k in per && !dipakai[k]) { hasil.push(per[k]); dipakai[k] = true; }
+  });
+  urut.forEach(function (k) { if (!dipakai[k]) hasil.push(per[k]); });
+  return hasil;
 }
 
 function bacaKunciNilai_(ss, nama) {
@@ -414,6 +562,8 @@ function simpanSiswa_(npsn, rombelId, daftar, jumlah) {
     rombelId = teks_(rombelId);
     var rombel = daftarRombel_(ss, ta).filter(function (r) { return r.id === rombelId; })[0];
     if (!rombel) return { ok: false, pesan: 'Rombel tidak ditemukan. Muat ulang halaman.' };
+    // Data siswa (nama, agama, seni) ikut tercetak di rapor: dikunci bila rapor semester berjalan sudah final.
+    cekTerkunci_(ss, ta, atur.semester, rombel);
 
     var tahun = new Date().getFullYear();
     var salah = [];
@@ -611,6 +761,7 @@ function simpanMapel_(npsn, isian) {
     var baris = semua.filter(function (r) { return teks_(r['Tahun Ajaran']) === ta; });
     var cek = cekMapel_(kelompokMapel_(baris), isian, mapelBernilai_(ss, ta));
     if (cek.salah.length) return { ok: false, salah: cek.salah, pesan: cek.salah[0] };
+    var berubah = {};
     cek.mapel.forEach(function (m) {
       Object.keys(m.kelas).forEach(function (k) {
         var r = baris.filter(function (x) { return teks_(x['Kode Mapel']) === m.kode && Number(x.Kelas) === Number(k); })[0];
@@ -618,10 +769,12 @@ function simpanMapel_(npsn, isian) {
           r = { 'Tahun Ajaran': ta, Kelas: Number(k), 'Kode Mapel': m.kode, Jenis: m.jenis, Urutan: m.urutan };
           semua.push(r);
         }
+        if (teks_(r['Nama di Rapor']) !== m.nama || teks_(r.Aktif) !== (m.kelas[k] ? 'Ya' : 'Tidak')) berubah[Number(k)] = true;
         r['Nama di Rapor'] = m.nama;
         r.Aktif = m.kelas[k] ? 'Ya' : 'Tidak';
       });
     });
+    Object.keys(berubah).forEach(function (k) { cekKelasTerkunci_(ss, ta, 0, Number(k)); });
     tulisTabel_(ss, 'Mapel Aktif', semua);
     catatSekolah_(ss, 'ubah mapel', cek.mapel.filter(function (m) { return m.pilihan; }).map(function (m) {
       return m.nama + ': ' + Object.keys(m.kelas).filter(function (k) { return m.kelas[k]; }).join(',');

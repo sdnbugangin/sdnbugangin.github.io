@@ -172,7 +172,9 @@ function kokRombel_(npsn, req) {
   var ss = bukaSekolah_(npsn);
   var k = konteksKok_(ss, req || {});
   if (k.galat) return { ok: false, pesan: k.galat };
-  return bentukKok_(ss, k, capaianTersimpan_(ss, k));
+  var layar = bentukKok_(ss, k, capaianTersimpan_(ss, k));
+  layar.terkunci = infoKunci_(ss, k.ta, k.sem, k.rombel.id);
+  return layar;
 }
 
 /**
@@ -184,6 +186,7 @@ function simpanDimensiKok_(npsn, req) {
   return denganKunci_(function () {
     var k = konteksKok_(ss, req || {});
     if (k.galat) return { ok: false, pesan: k.galat };
+    cekKelasTerkunci_(ss, k.ta, k.sem, k.rombel.kelas);
     var cek = cekDimensiKelas_(req.dimensi);
     var terisi = subdimensiTerisi_(ss, k.ta, k.sem, k.rombel.kelas);
     var baru = {};
@@ -219,6 +222,7 @@ function simpanKok_(npsn, req) {
   return denganKunci_(function () {
     var k = konteksKok_(ss, req || {});
     if (k.galat) return { ok: false, pesan: k.galat };
+    cekTerkunci_(ss, k.ta, k.sem, k.rombel);
     if (!k.dimensi.length) return { ok: false, pesan: 'Pilih dulu subdimensi yang dinilai di kelas ini.' };
     var isian = req.capaian && typeof req.capaian === 'object' ? req.capaian : {};
     var kenal = {}, salah = [], baru = {};
@@ -239,19 +243,16 @@ function simpanKok_(npsn, req) {
 
     var sub = {};
     k.dimensi.forEach(function (d) { sub[d.subdimensi] = true; });
-    var sisa = bacaTabel_(ss, 'Capaian Kokurikuler').filter(function (c) {
-      return !(kenal[teks_(c['ID Siswa'])] && teks_(c['Tahun Ajaran']) === k.ta && Number(c.Semester) === k.sem &&
-        sub[subdimensiBaku_(c.Subdimensi)]);
-    });
-    var jumlah = 0;
+    var ganti = [];
     k.siswa.forEach(function (s) {
       k.dimensi.forEach(function (d) {
-        if (!baru[s.id][d.subdimensi]) return;
-        sisa.push({ 'Tahun Ajaran': k.ta, Semester: k.sem, 'ID Siswa': s.id, Subdimensi: d.subdimensi, Level: baru[s.id][d.subdimensi] });
-        jumlah++;
+        if (baru[s.id][d.subdimensi]) ganti.push({ 'Tahun Ajaran': k.ta, Semester: k.sem, 'ID Siswa': s.id, Subdimensi: d.subdimensi, Level: baru[s.id][d.subdimensi] });
       });
     });
-    tulisTabel_(ss, 'Capaian Kokurikuler', sisa);
+    var jumlah = ganti.length;
+    tulisTabel_(ss, 'Capaian Kokurikuler', gantiDiTempat_(bacaTabel_(ss, 'Capaian Kokurikuler'), function (c) {
+      return kenal[teks_(c['ID Siswa'])] && teks_(c['Tahun Ajaran']) === k.ta && Number(c.Semester) === k.sem && sub[subdimensiBaku_(c.Subdimensi)];
+    }, function (c) { return teks_(c['ID Siswa']) + '|' + subdimensiBaku_(c.Subdimensi); }, ganti));
     catatSekolah_(ss, 'simpan kokurikuler', k.rombel.nama + ' smt ' + k.sem + ': ' + jumlah + ' capaian');
     var layar = bentukKok_(ss, k, baru);
     var belum = k.siswa.filter(function (s) { return !layar.hasil[s.id].lengkap; }).length;
@@ -280,6 +281,16 @@ function simpanNarasi_(npsn, req) {
   if (!Object.keys(ubah).length) return { ok: false, pesan: 'Tidak ada narasi yang diubah.' };
   var ss = bukaSekolah_(npsn);
   return denganKunci_(function () {
+    // Narasi yang dipakai rapor terkunci tidak boleh berubah diam-diam.
+    var ta = aturSekolah_(ss).tahunAjaran, rombel = {};
+    daftarRombel_(ss, ta).forEach(function (r) { rombel[r.id] = r; });
+    var dipakai = {};
+    daftarKunci_(ss).forEach(function (x) {
+      if (x.ta !== ta || !rombel[x.rombel]) return;
+      dimensiKelas_(ss, ta, x.sem, rombel[x.rombel].kelas).forEach(function (d) { dipakai[d.subdimensi] = rombel[x.rombel]; });
+    });
+    var kena = Object.keys(ubah).map(function (x) { return ubah[x].Subdimensi; }).filter(function (sub) { return dipakai[sub]; })[0];
+    if (kena) return { ok: false, pesan: 'Narasi "' + kena + '" dipakai rapor ' + labelRombel_(dipakai[kena]) + ' yang sudah dikunci, jadi tidak bisa diubah. Buka kunci dulu jika memang perlu.' };
     var sisa = bacaTabel_(ss, 'Master Narasi').filter(function (r) {
       return !ubah[subdimensiBaku_(r.Subdimensi) + '|' + levelKok_(r.Level)];
     });

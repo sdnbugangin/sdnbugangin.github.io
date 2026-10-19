@@ -137,6 +137,7 @@ function simpanTp_(npsn, req) {
   var ss = bukaSekolah_(npsn);
   return denganKunci_(function () {
     var atur = aturSekolah_(ss), ta = atur.tahunAjaran;
+    cekKelasTerkunci_(ss, ta, sem, k);
     var kodeMapel = teks_(req.mapel).toUpperCase();
     var m = mapelAktifKelas_(ss, ta, k).filter(function (x) { return x.kode === kodeMapel; })[0];
     if (!m) return { ok: false, pesan: 'Mapel ini tidak aktif di kelas ' + k + '. Atur di tab Mata Pelajaran.' };

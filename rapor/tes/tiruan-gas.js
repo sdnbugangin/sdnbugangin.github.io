@@ -5,8 +5,10 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 
-const BERKAS_GS = ['Referensi.gs', 'Narasi.gs', 'Hitung.gs', 'Kode.gs', 'Akun.gs', 'Sekolah.gs', 'Data.gs', 'Tp.gs', 'Nilai.gs', 'Kokurikuler.gs', 'WaliKelas.gs', 'Rapor.gs'];
+const BERKAS_GS = ['Referensi.gs', 'Narasi.gs', 'Hitung.gs', 'Kode.gs', 'Akun.gs', 'Sekolah.gs', 'Data.gs', 'Tp.gs', 'Nilai.gs', 'Kokurikuler.gs', 'WaliKelas.gs', 'Rapor.gs', 'Kunci.gs', 'Uji.gs'];
 const MAKS_BARIS = 1000;
+/* Penghitung sel yang dibaca/ditulis, untuk uji beban (mirip biaya panggilan Sheets yang sebenarnya). */
+const BEBAN = { baca: 0, tulis: 0, panggilBaca: 0, panggilTulis: 0 };
 
 function tanpaEfek(target) {
   const p = new Proxy(target, { get: (t, k) => (k in t ? t[k] : () => p) });
@@ -35,6 +37,7 @@ class Sheet {
     const sh = this;
     const r = {
       getValues() {
+        BEBAN.baca += banyak * lebar; BEBAN.panggilBaca++;
         const hasil = [];
         for (let i = 0; i < banyak; i++) {
           const row = sh.data[baris - 1 + i] || [];
@@ -44,11 +47,13 @@ class Sheet {
       },
       setValues(v) {
         if (v.length !== banyak || v.some((x) => x.length !== lebar)) throw new Error('Ukuran data tidak cocok dengan rentang.');
+        BEBAN.tulis += banyak * lebar; BEBAN.panggilTulis++;
         v.forEach((row, i) => row.forEach((x, j) => r._tulis(i, j, x)));
         return r.__diri;
       },
       setValue(x) { r._tulis(0, 0, x); return r.__diri; },
       clearContent() {
+        BEBAN.tulis += banyak * lebar; BEBAN.panggilTulis++;
         for (let i = 0; i < banyak; i++) for (let j = 0; j < lebar; j++) r._tulis(i, j, '');
         return r.__diri;
       },
@@ -73,6 +78,7 @@ class Spreadsheet {
   constructor(id, nama) { this.id = id; this.nama = nama; this.sheets = [new Sheet('Sheet1')]; }
   getId() { return this.id; }
   getName() { return this.nama; }
+  getSpreadsheetTimeZone() { return 'Asia/Jakarta'; }
   getSheets() { return this.sheets.slice(); }
   getSheetByName(n) { return this.sheets.find((s) => s.nama === n) || null; }
   insertSheet(n) {
@@ -154,9 +160,11 @@ function buatGas() {
       base64Encode: (bytes) => Buffer.from(bytes.map((b) => (b < 0 ? b + 256 : b))).toString('base64'),
       computeHmacSha256Signature: (teks, kunci) =>
         [...crypto.createHmac('sha256', kunci).update(teks, 'utf8').digest()].map((b) => (b > 127 ? b - 256 : b)),
-      getUuid: () => crypto.randomUUID()
+      getUuid: () => crypto.randomUUID(),
+      formatDate: (d, zona, pola) => (pola === 'Z' ? '+0700' : new Date(d.getTime() + 7 * 3600000).toISOString().slice(0, 16).replace('T', ' '))
     },
     ScriptApp: { getOAuthToken: () => 'token-tiruan' },
+    Logger: { isi: [], log(t) { this.isi.push(String(t)); } },
     UrlFetchApp: {
       fetch: (url, o) => {
         const m = url.match(/spreadsheets\/d\/([^/]+)\/export\?format=xlsx$/);
@@ -166,6 +174,31 @@ function buatGas() {
           getBlob: () => ({ getBytes: () => [...Buffer.from('xlsx:' + (m && m[1]))] })
         };
       }
+    },
+    /* Layanan lanjutan Sheets API: batchGet seperti aslinya (UNFORMATTED_VALUE, tanggal → nomor seri WIB). */
+    Sheets: {
+      dipanggil: 0, gagal: false,
+      Spreadsheets: { Values: { batchGet: (id, opsi) => {
+        gas.Sheets.dipanggil++; BEBAN.panggilBaca++;
+        if (gas.Sheets.gagal) throw new Error('Quota exceeded');
+        const ss = berkas[id].ss;
+        return { valueRanges: opsi.ranges.map((r) => {
+          const m = r.match(/^'(.+)'!A1:([A-Z])$/);
+          const sh = ss.getSheetByName(m[1]); const lebar = m[2].charCodeAt(0) - 64;
+          const akhir = sh.getLastRow();
+          BEBAN.baca += akhir * lebar;
+          const values = sh.data.slice(0, akhir).map((row) => {
+            const out = Array.from({ length: lebar }, (_, j) => {
+              const v = row[j];
+              if (v instanceof Date) return (v.getTime() + 7 * 3600000) / 86400000 + 25569;
+              return v === undefined ? '' : v;
+            });
+            while (out.length && out[out.length - 1] === '') out.pop(); // API membuang sel kosong di ujung baris
+            return out;
+          });
+          return values.length ? { range: r, values } : { range: r };
+        }) };
+      } } }
     },
     ContentService: {
       MimeType: { JSON: 'json' },
@@ -182,7 +215,7 @@ function buatGas() {
     ...Object.entries(folder).filter(([, f]) => f.induk === 'akar' && !f.sampah).map(([, f]) => '📁 ' + f.nama),
     ...Object.entries(lokasi).filter(([id, l]) => l === 'akar' && !(berkas[id] && berkas[id].sampah)).map(([id]) => '📄 ' + id)
   ];
-  return { ctx, pusat, berkas, cache, surat, jam, folder, lokasi, isiAkar, MailApp: gas.MailApp, DriveApp: gas.DriveApp };
+  return { ctx, pusat, berkas, cache, surat, jam, folder, lokasi, isiAkar, MailApp: gas.MailApp, DriveApp: gas.DriveApp, Logger: gas.Logger, Sheets: gas.Sheets };
 }
 
 /**
@@ -206,4 +239,4 @@ function sekolahAktif(data, g) {
   };
 }
 
-module.exports = { buatGas, sekolahAktif, BERKAS_GS };
+module.exports = { buatGas, sekolahAktif, BERKAS_GS, BEBAN };

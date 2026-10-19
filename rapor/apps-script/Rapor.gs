@@ -148,6 +148,7 @@ function rekapRombel_(npsn, req) {
     },
     mapel: mapel.map(function (m) { return { kode: m.kode, nama: m.nama, jenis: m.jenis }; }),
     siswa: siswa, masalahUmum: masalahUmum,
-    siap: siswa.filter(function (s) { return !s.masalah.length; }).length
+    siap: siswa.filter(function (s) { return !s.masalah.length; }).length,
+    terkunci: infoKunci_(ss, k.ta, k.sem, k.rombel.id)
   };
 }

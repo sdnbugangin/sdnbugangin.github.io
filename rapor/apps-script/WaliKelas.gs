@@ -126,7 +126,9 @@ function waliRombel_(npsn, req) {
   var ss = bukaSekolah_(npsn);
   var k = konteksWali_(ss, req || {});
   if (k.galat) return { ok: false, pesan: k.galat };
-  return bentukWali_(ss, k);
+  var layar = bentukWali_(ss, k);
+  layar.terkunci = infoKunci_(ss, k.ta, k.sem, k.rombel.id);
+  return layar;
 }
 
 /** Mengganti daftar kegiatan ekstrakurikuler sekolah. Kegiatan yang sudah diikuti siswa tahun ini tidak bisa dihapus. */
@@ -143,10 +145,7 @@ function simpanEkskulSekolah_(npsn, daftar) {
       if (!baru[n.toLowerCase()]) cek.salah.push(n + ' sudah diisi untuk ' + pakai[n] + ' data siswa tahun ini, jadi tidak bisa dihapus.');
     });
     if (cek.salah.length) return { ok: false, salah: cek.salah, pesan: cek.salah[0] };
-    var rows = bacaTabel_(ss, 'Pengaturan'), ada = false;
-    rows.forEach(function (r) { if (teks_(r.Kunci) === KUNCI_EKSKUL) { r.Nilai = cek.daftar.join('; '); ada = true; } });
-    if (!ada) rows.push({ Kunci: KUNCI_EKSKUL, Nilai: cek.daftar.join('; '), Keterangan: 'Kegiatan ekstrakurikuler sekolah, dipisah titik koma.' });
-    tulisTabel_(ss, 'Pengaturan', rows);
+    aturPengaturan_(ss, KUNCI_EKSKUL, cek.daftar.join('; '), 'Kegiatan ekstrakurikuler sekolah, dipisah titik koma.');
     catatSekolah_(ss, 'ubah daftar ekstrakurikuler', cek.daftar.join('; '));
     return { ok: true, ekskulSekolah: cek.daftar, pesan: cek.daftar.length + ' kegiatan ekstrakurikuler tersimpan.' };
   });
@@ -161,6 +160,7 @@ function simpanEkskul_(npsn, req) {
   return denganKunci_(function () {
     var k = konteksWali_(ss, req || {});
     if (k.galat) return { ok: false, pesan: k.galat };
+    cekTerkunci_(ss, k.ta, k.sem, k.rombel);
     var isian = req.ekskul && typeof req.ekskul === 'object' ? req.ekskul : {};
     var tawar = {}, salah = [], baru = [];
     ekskulSekolah_(ss).forEach(function (n) { tawar[n.toLowerCase()] = n; });
@@ -180,8 +180,8 @@ function simpanEkskul_(npsn, req) {
       });
     });
     if (salah.length) return { ok: false, salah: salah, pesan: salah[0] };
-    var sisa = bacaTabel_(ss, 'Ekstrakurikuler').filter(function (r) { return !milikLayar_(k, r, true); });
-    tulisTabel_(ss, 'Ekstrakurikuler', sisa.concat(baru));
+    tulisTabel_(ss, 'Ekstrakurikuler', gantiDiTempat_(bacaTabel_(ss, 'Ekstrakurikuler'), function (r) { return milikLayar_(k, r, true); },
+      function (r) { return teks_(r['ID Siswa']) + '|' + teks_(r.Kegiatan).toLowerCase(); }, baru));
     catatSekolah_(ss, 'simpan ekstrakurikuler', k.rombel.nama + ' smt ' + k.sem + ': ' + baru.length + ' kegiatan');
     var layar = bentukWali_(ss, k);
     var belum = k.siswa.filter(function (s) { return !layar.ekskul[s.id].length; }).length;
@@ -196,6 +196,7 @@ function simpanPresensi_(npsn, req) {
   return denganKunci_(function () {
     var k = konteksWali_(ss, req || {});
     if (k.galat) return { ok: false, pesan: k.galat };
+    cekTerkunci_(ss, k.ta, k.sem, k.rombel);
     var isian = req.presensi && typeof req.presensi === 'object' ? req.presensi : {};
     var salah = [], baru = {};
     Object.keys(isian).forEach(function (id) { if (!k.kenal[id]) salah.push('Ada siswa yang tidak terdaftar di rombel ini. Muat ulang halaman.'); });
@@ -211,19 +212,16 @@ function simpanPresensi_(npsn, req) {
       baru[s.id] = b;
     });
     if (salah.length) return { ok: false, salah: salah, pesan: salah[0] };
-    var lama = {};
-    var sisa = bacaTabel_(ss, 'Presensi & Catatan').filter(function (r) {
-      if (!milikLayar_(k, r, true)) return true;
-      lama[teks_(r['ID Siswa'])] = r;
-      return false;
-    });
+    var lama = {}, semua = bacaTabel_(ss, 'Presensi & Catatan'), ganti = [];
+    semua.forEach(function (r) { if (milikLayar_(k, r, true)) lama[teks_(r['ID Siswa'])] = r; });
     k.siswa.forEach(function (s) {
       var b = baru[s.id], tanggapan = lama[s.id] ? lama[s.id]['Tanggapan Orang Tua'] : '';
       if (b.sakit === '' && b.izin === '' && b.alpa === '' && !b.catatan && !teks_(tanggapan)) return;
-      sisa.push({ 'Tahun Ajaran': k.ta, Semester: k.sem, 'ID Siswa': s.id, Sakit: b.sakit, Izin: b.izin, 'Tanpa Keterangan': b.alpa,
+      ganti.push({ 'Tahun Ajaran': k.ta, Semester: k.sem, 'ID Siswa': s.id, Sakit: b.sakit, Izin: b.izin, 'Tanpa Keterangan': b.alpa,
         'Catatan Wali Kelas': b.catatan, 'Tanggapan Orang Tua': tanggapan });
     });
-    tulisTabel_(ss, 'Presensi & Catatan', sisa);
+    tulisTabel_(ss, 'Presensi & Catatan', gantiDiTempat_(semua, function (r) { return milikLayar_(k, r, true); },
+      function (r) { return teks_(r['ID Siswa']); }, ganti));
     catatSekolah_(ss, 'simpan presensi & catatan', k.rombel.nama + ' smt ' + k.sem);
     var layar = bentukWali_(ss, k);
     layar.pesan = 'Ketidakhadiran dan catatan ' + labelRombel_(k.rombel) + ' tersimpan.';
@@ -237,6 +235,7 @@ function simpanKenaikan_(npsn, req) {
   return denganKunci_(function () {
     var k = konteksWali_(ss, req || {});
     if (k.galat) return { ok: false, pesan: k.galat };
+    cekTerkunci_(ss, k.ta, 2, k.rombel); // keputusan kenaikan hanya tampil di rapor semester 2
     var isian = req.kenaikan && typeof req.kenaikan === 'object' ? req.kenaikan : {};
     var salah = [], baru = {};
     Object.keys(isian).forEach(function (id) { if (!k.kenal[id]) salah.push('Ada siswa yang tidak terdaftar di rombel ini. Muat ulang halaman.'); });
@@ -246,12 +245,12 @@ function simpanKenaikan_(npsn, req) {
       else baru[s.id] = v;
     });
     if (salah.length) return { ok: false, salah: salah, pesan: salah[0] };
-    var sisa = bacaTabel_(ss, 'Kenaikan').filter(function (r) { return !milikLayar_(k, r, false); });
-    var lulus = k.rombel.kelas === 6;
+    var lulus = k.rombel.kelas === 6, ganti = [];
     k.siswa.forEach(function (s) {
-      if (baru[s.id]) sisa.push({ 'Tahun Ajaran': k.ta, 'ID Siswa': s.id, Keputusan: baru[s.id] === 'naik' ? (lulus ? 'Lulus' : 'Naik') : (lulus ? 'Tidak Lulus' : 'Tinggal') });
+      if (baru[s.id]) ganti.push({ 'Tahun Ajaran': k.ta, 'ID Siswa': s.id, Keputusan: baru[s.id] === 'naik' ? (lulus ? 'Lulus' : 'Naik') : (lulus ? 'Tidak Lulus' : 'Tinggal') });
     });
-    tulisTabel_(ss, 'Kenaikan', sisa);
+    tulisTabel_(ss, 'Kenaikan', gantiDiTempat_(bacaTabel_(ss, 'Kenaikan'), function (r) { return milikLayar_(k, r, false); },
+      function (r) { return teks_(r['ID Siswa']); }, ganti));
     catatSekolah_(ss, 'simpan kenaikan', k.rombel.nama);
     var layar = bentukWali_(ss, k);
     layar.pesan = 'Keputusan ' + (lulus ? 'kelulusan' : 'kenaikan kelas') + ' ' + labelRombel_(k.rombel) + ' tersimpan.';

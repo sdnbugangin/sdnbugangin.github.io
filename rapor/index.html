@@ -113,6 +113,8 @@ table.wk td.cat textarea{width:100%;min-width:380px;font:inherit;font-size:13px;
 table.wk td.naik select{padding:6px 8px;font-size:13px;border-radius:8px;min-width:150px}
 table.wk select.naik{background:#e3f4e7;color:var(--ok);font-weight:700}table.wk select.tinggal{background:#fde4e1;color:var(--bad);font-weight:700}
 table.wk td.w{font-size:12px;color:#9a6c00;min-width:200px;line-height:1.4}
+.kunci-bar{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:14px;padding:14px 18px}
+.kunci-bar .st{font-size:14px;line-height:1.5}.kunci-bar.on{background:#eef3f8;border-color:#c9d6e3}
 .back{display:inline-block;margin-bottom:6px;font-size:14px}
 footer{text-align:center;color:var(--muted);font-size:13px;line-height:1.7;padding:28px 16px 8px}
 .cek-ok{color:var(--ok);font-weight:800}.cek-x{color:var(--bad);font-weight:800}
@@ -285,7 +287,7 @@ table.leger td.j{text-align:center;font-weight:800}
         Bisa tempel satu blok angka dari Excel mulai dari kotak yang dipilih. Sumatif akhir semester: isi <b>Tes</b> dan/atau <b>Praktik</b> (keduanya dirata-rata).</div>
       <div class="toolbar">
         <button class="btn" type="button" id="nl-simpan" style="width:auto">Simpan nilai</button>
-        <label class="show" style="margin:0"><input type="checkbox" id="nl-deskripsi" checked> Tampilkan deskripsi rapor</label>
+        <label class="show bebas" style="margin:0"><input type="checkbox" id="nl-deskripsi" checked> Tampilkan deskripsi rapor</label>
         <span class="sub" id="nl-status"></span>
       </div>
       <div class="msg" id="nl-msg"></div>
@@ -419,6 +421,8 @@ table.leger td.j{text-align:center;font-weight:800}
     <div class="msg" id="ct-info"></div>
     <div id="ct-isi" class="hidden">
       <div class="notice hidden" id="ct-umum"></div>
+      <div class="card kunci-bar" id="ct-kunci-bar"><span class="st" id="ct-kunci-status"></span><button class="btn small" type="button" id="ct-kunci-btn"></button></div>
+      <div class="msg" id="ct-kunci-msg"></div>
       <div class="tabs" role="tablist" style="margin-top:14px">
         <button type="button" data-ct="cek" class="on">Kelengkapan</button>
         <button type="button" data-ct="leger">Leger</button>
@@ -1083,6 +1087,7 @@ function renderNilai(){
   }).join('');
   $('table.nilai').classList.toggle('tanpa-deskripsi', !$('#nl-deskripsi').checked);
   statusNilai();
+  kunciLayar('#nl-editor', NL.terkunci, '.bebas');
 }
 function statusNilai(){
   const lengkap = NL.siswa.filter(s => (NL.hasil[s.id] || {}).lengkap).length;
@@ -1220,11 +1225,13 @@ function renderKok(){
   renderDimKok();
   const ada = KK.dimensi.length > 0;
   $('#kk-editor').classList.toggle('hidden', !ada || !KK.siswa.length);
+  kunciLayar('#kk-isi', KK.terkunci);
   if (!ada) return pesan('#kk-info', 'Pilih dulu subdimensi yang dinilai di kelas ' + KK.rombel.kelas + ' semester ' + KK.semester + ', lalu klik Simpan subdimensi.', false);
   if (!KK.siswa.length) return pesan('#kk-info', 'Rombel ini belum punya siswa. Isi dulu di Data Sekolah & Siswa → Rombel & Siswa.', false);
   $('#kk-info').textContent = '';
   renderTabelKok();
   renderNarasiKok();
+  kunciLayar('#kk-isi', KK.terkunci);
 }
 
 function opsiSubdimensi(pilih, dipakai){
@@ -1426,6 +1433,7 @@ function renderWali(){
   document.querySelectorAll('[data-wk]').forEach(b => b.classList.toggle('on', b.dataset.wk === WK_TAB));
   ['eks', 'hadir', 'naik'].forEach(t => $('#wk-' + t).classList.toggle('hidden', t !== WK_TAB));
   renderEkskul(); renderHadir(); renderNaik();
+  kunciLayar('#wk-isi', WK.terkunci, '.tabs, #wk-daftar-box');
 }
 document.querySelectorAll('[data-wk]').forEach(b => b.addEventListener('click', () => { WK_TAB = b.dataset.wk; renderWali(); }));
 
@@ -1624,6 +1632,51 @@ document.querySelector('#v-wk [data-ke="beranda"]').addEventListener('click', ()
   if (!tinggalkanWali()) tampil('wk');
 });
 
+/* Rapor terkunci: tampilkan penanda dan matikan semua isian di wadah (kecuali yang ditandai bebas). */
+function kunciLayar(wadah, info, bebas){
+  const el = $(wadah);
+  let b = el.querySelector(':scope > .kunci-info');
+  if (!b) { b = document.createElement('div'); b.className = 'notice kunci-info'; b.style.marginTop = '14px'; el.prepend(b); }
+  b.classList.toggle('hidden', !info);
+  b.innerHTML = info ? '🔒 <b>Rapor rombel ini sudah dikunci</b> (' + esc(info.waktu) + '). Data hanya bisa dilihat. Jika memang perlu diubah, buka kunci di menu Cek &amp; Cetak Rapor.' : '';
+  el.querySelectorAll('input, select, textarea, button').forEach(x => {
+    if (bebas && x.closest(bebas)) return;
+    if (info) { x.disabled = true; x.dataset.dikunci = '1'; } else if (x.dataset.dikunci) { x.disabled = false; delete x.dataset.dikunci; }
+  });
+}
+function renderKunciCetak(){
+  const t = CT.terkunci;
+  $('#ct-kunci-bar').classList.toggle('on', !!t);
+  $('#ct-kunci-status').innerHTML = t ? '🔒 <b>Rapor terkunci</b> sejak ' + esc(t.waktu) + '. Nilai dan isian rombel ini tidak bisa diubah.'
+    : '🔓 <b>Belum dikunci.</b> Kunci setelah rapor final, agar tidak berubah karena salah ubah oleh pengguna akun sekolah.';
+  $('#ct-kunci-btn').textContent = t ? 'Buka kunci' : 'Kunci rapor';
+  $('#ct-kunci-btn').classList.toggle('ghost', !!t);
+}
+/* Tidak memakai sibuk(): label tombol berubah (Kunci ↔ Buka kunci) setelah selesai. */
+$('#ct-kunci-btn').addEventListener('click', async e => {
+  const btn = e.target;
+  if (btn.disabled) return;
+  btn.disabled = true; btn.textContent = 'Memproses…';
+  try { await ubahKunci(); } finally { btn.disabled = false; renderKunciCetak(); }
+});
+async function ubahKunci(){
+  const label = CT.rombel.label + ' semester ' + CT.semester;
+  let res;
+  if (CT.terkunci) {
+    const alasan = prompt('Buka kunci rapor ' + label + '.\nTuliskan alasannya (dicatat di log sekolah):');
+    if (alasan === null) return;
+    res = await api({ aksi:'bukaKunciRapor', rombel: CT.rombel.id, semester: CT.semester, alasan });
+  } else {
+    const belum = CT.siswa.length - CT.siap;
+    if (!confirm('Kunci rapor ' + label + '?' + (belum ? '\n\nPerhatian: ' + belum + ' siswa belum lengkap.' : '') +
+      '\n\nSetelah dikunci, nilai, kokurikuler, ekstrakurikuler, ketidakhadiran, catatan, dan data siswa rombel ini tidak bisa diubah.')) return;
+    res = await api({ aksi:'kunciRapor', rombel: CT.rombel.id, semester: CT.semester });
+  }
+  if (res.sesiHabis) return;
+  pesan('#ct-kunci-msg', res.pesan, res.ok);
+  if (res.ok) CT.terkunci = res.terkunci;
+}
+
 /* ---------- cek & cetak rapor ---------- */
 let CT = null, CT_TAB = 'cek';
 $('#t-cetak').addEventListener('click', () => bukaCetak());
@@ -1652,7 +1705,7 @@ async function muatCetak(){
   $('#ct-info').textContent = '';
   if (res.sesiHabis) return;
   if (!res.ok) { $('#ct-isi').classList.add('hidden'); return pesan('#ct-info', res.pesan, false); }
-  CT = res;
+  CT = res; $('#ct-kunci-msg').textContent = '';
   $('#ct-sub').textContent = 'Tahun ajaran ' + res.tahunAjaran + ' · ' + res.rombel.label + ' · Semester ' + res.semester;
   if (!res.siswa.length) { $('#ct-isi').classList.add('hidden'); return pesan('#ct-info', 'Rombel ini belum punya siswa.', false); }
   $('#ct-isi').classList.remove('hidden');
@@ -1661,6 +1714,7 @@ async function muatCetak(){
   renderCetak();
 }
 function renderCetak(){
+  renderKunciCetak();
   document.querySelectorAll('[data-ct]').forEach(b => b.classList.toggle('on', b.dataset.ct === CT_TAB));
   ['cek', 'leger', 'cetak', 'excel'].forEach(t => $('#ct-' + t).classList.toggle('hidden', t !== CT_TAB));
   const n = CT.siswa.length;

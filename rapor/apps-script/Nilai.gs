@@ -161,7 +161,9 @@ function nilaiRombel_(npsn, req) {
   var k = konteksNilai_(ss, req || {});
   if (k.galat) return { ok: false, pesan: k.galat };
   var nilai = nilaiTersimpan_(ss, k);
-  return bentukLayar_(k, nilai, hasilNilai_(k, nilai, aturanNilai_(ss)));
+  var layar = bentukLayar_(k, nilai, hasilNilai_(k, nilai, aturanNilai_(ss)));
+  layar.terkunci = infoKunci_(ss, k.ta, k.sem, k.rombel.id);
+  return layar;
 }
 
 /**
@@ -174,6 +176,7 @@ function simpanNilai_(npsn, req) {
   return denganKunci_(function () {
     var k = konteksNilai_(ss, req || {});
     if (k.galat) return { ok: false, pesan: k.galat };
+    cekTerkunci_(ss, k.ta, k.sem, k.rombel);
     if (!k.tp.length) return { ok: false, pesan: 'Belum ada TP untuk mapel ini. Susun dulu di menu Tujuan Pembelajaran.' };
     if (k.varian !== teks_(req.varian)) return { ok: false, pesan: 'Pilihan agama/seni berubah. Muat ulang halaman.' };
     var isian = req.nilai && typeof req.nilai === 'object' ? req.nilai : {};
@@ -199,24 +202,29 @@ function simpanNilai_(npsn, req) {
     var kodeSasIni = {};
     KODE_SAS.forEach(function (x) { kodeSasIni[kodeSas_(k.varian, x)] = x; });
     var semua = bacaTabel_(ss, 'Nilai');
-    var sisa = semua.filter(function (n) {
+    var diLingkup = function (n) {
       if (!kenal[teks_(n['ID Siswa'])] || teks_(n['Tahun Ajaran']) !== k.ta || Number(n.Semester) !== k.sem ||
-        teks_(n['Kode Mapel']) !== k.mapel.kode) return true;
+        teks_(n['Kode Mapel']) !== k.mapel.kode) return false;
       var kode = teks_(n.Kode);
-      return !((teks_(n.Jenis) === 'TP' && kodeTp[kode]) || (teks_(n.Jenis) === 'SAS' && kodeSasIni[kode]));
-    });
-    var waktu = new Date(), jumlah = 0;
+      return (teks_(n.Jenis) === 'TP' && kodeTp[kode]) || (teks_(n.Jenis) === 'SAS' && kodeSasIni[kode]);
+    };
+    var kunciBaris = function (n) { return teks_(n['ID Siswa']) + '|' + teks_(n.Jenis) + '|' + teks_(n.Kode); };
+    var lamaPer = {};
+    semua.forEach(function (n) { if (diLingkup(n)) lamaPer[kunciBaris(n)] = n; });
+    var waktu = new Date(), jumlah = 0, ganti = [];
     k.siswa.forEach(function (s) {
       Object.keys(baru[s.id]).forEach(function (kode) {
         var sas = KODE_SAS.indexOf(kode) >= 0;
-        sisa.push({
+        var r = {
           'Tahun Ajaran': k.ta, Semester: k.sem, 'ID Siswa': s.id, 'Kode Mapel': k.mapel.kode,
           Jenis: sas ? 'SAS' : 'TP', Kode: sas ? kodeSas_(k.varian, kode) : kode, Nilai: baru[s.id][kode], 'Diubah Pada': waktu
-        });
+        };
+        var lama = lamaPer[kunciBaris(r)];
+        ganti.push(lama && Number(lama.Nilai) === r.Nilai && teks_(lama.Nilai) !== '' ? lama : r); // angka sama: baris tidak disentuh
         jumlah++;
       });
     });
-    tulisTabel_(ss, 'Nilai', sisa);
+    tulisTabel_(ss, 'Nilai', gantiDiTempat_(semua, diLingkup, kunciBaris, ganti));
     catatSekolah_(ss, 'simpan nilai', k.rombel.nama + ' ' + k.mapel.nama + (k.varian ? ' (' + k.varian + ')' : '') +
       ' smt ' + k.sem + ': ' + jumlah + ' angka');
     var hasil = hasilNilai_(k, baru, aturanNilai_(ss));
