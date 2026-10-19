@@ -109,22 +109,34 @@ function cekProfil_(isian, kunciAda) {
   return { salah: salah, bersih: bersih };
 }
 
-/** Memeriksa rombel baru/ubahan terhadap rombel lain di tahun ajaran yang sama. */
+/**
+ * Memeriksa rombel baru/ubahan terhadap rombel lain di tahun ajaran yang sama.
+ * Nama rombel boleh kosong untuk kelas yang hanya punya satu rombel: namanya menjadi nomor kelas ("5").
+ * Huruf saja diberi awalan nomor kelas: "a" → "5A".
+ */
 function cekRombel_(d, rombelLain) {
   var salah = [];
   var kelas = Number(d.kelas);
+  var kelasSah = kelas >= 1 && kelas <= 6 && Math.floor(kelas) === kelas;
   var nama = teks_(d.nama).toUpperCase();
   var nip = teks_(d.nip).replace(/\s/g, '');
-  if (!(kelas >= 1 && kelas <= 6 && Math.floor(kelas) === kelas)) salah.push('Pilih kelas 1 sampai 6.');
-  if (!nama) salah.push('Nama rombel wajib diisi, misalnya ' + (kelas || 5) + 'A.');
-  else if (nama.length > 20) salah.push('Nama rombel maksimal 20 karakter.');
-  else if (rombelLain.some(function (r) { return r.id !== d.id && String(r.nama).toUpperCase() === nama; })) {
-    salah.push('Rombel ' + nama + ' sudah ada di tahun ajaran ini.');
+  if (!kelasSah) salah.push('Pilih kelas 1 sampai 6.');
+  if (kelasSah && !nama) nama = String(kelas);
+  else if (kelasSah && /^[A-Z]{1,2}$/.test(nama)) nama = kelas + nama;
+  var lain = rombelLain.filter(function (r) { return r.id !== d.id; });
+  if (nama.length > 20) salah.push('Nama rombel maksimal 20 karakter.');
+  else if (lain.some(function (r) { return String(r.nama).toUpperCase() === nama; })) {
+    salah.push(nama === String(kelas)
+      ? 'Kelas ' + kelas + ' sudah punya rombel. Jika kelas ' + kelas + ' punya lebih dari satu rombel, isi nama rombel (misalnya A atau B), lalu ubah juga nama rombel yang sudah ada.'
+      : 'Rombel ' + nama + ' sudah ada di tahun ajaran ini.');
   }
   if (teks_(d.wali).length > 100) salah.push('Nama wali kelas terlalu panjang.');
   if (nip && !/^\d{18}$/.test(nip)) salah.push('NIP wali kelas harus 18 digit angka (atau kosongkan).');
   return { salah: salah, rombel: { id: d.id, kelas: kelas, nama: nama, wali: teks_(d.wali), nip: nip } };
 }
+
+/** Nama rombel untuk pesan: kelas dengan satu rombel (nama = nomor kelas) disebut "Kelas 5". */
+function labelRombel_(r) { return String(r.nama) === String(r.kelas) ? 'Kelas ' + r.kelas : String(r.nama); }
 
 /* ---------- akses spreadsheet sekolah ---------- */
 
@@ -272,7 +284,7 @@ function simpanRombel_(npsn, d) {
     }
     tulisTabel_(ss, 'Rombel', semua);
     catatSekolah_(ss, d.id ? 'ubah rombel' : 'tambah rombel', r.nama + ' (kelas ' + r.kelas + ')');
-    return { ok: true, rombel: r, pesan: 'Rombel ' + r.nama + ' tersimpan.' };
+    return { ok: true, rombel: r, pesan: 'Rombel ' + labelRombel_(r) + ' tersimpan.' };
   });
 }
 
@@ -349,7 +361,7 @@ function simpanSiswa_(npsn, rombelId, daftar) {
     var semuaSiswa = bacaTabel_(ss, 'Siswa');
     var anggota = bacaTabel_(ss, 'Anggota Rombel');
     var namaRombel = {};
-    daftarRombel_(ss, ta).forEach(function (r) { namaRombel[r.id] = r.nama; });
+    daftarRombel_(ss, ta).forEach(function (r) { namaRombel[r.id] = labelRombel_(r); });
     var rombelSiswa = {};
     anggota.forEach(function (a) {
       if (teks_(a['Tahun Ajaran']) === ta && teks_(a['ID Rombel']) !== rombelId) rombelSiswa[teks_(a['ID Siswa'])] = teks_(a['ID Rombel']);
@@ -383,9 +395,9 @@ function simpanSiswa_(npsn, rombelId, daftar) {
     bersih.forEach(function (s, i) {
       var baris = 'Baris ' + (i + 1) + (s.nama ? ' (' + s.nama + ')' : '') + ': ';
       if (s.id && !adaId[s.id]) salah.push(baris + 'data siswa tidak ditemukan. Muat ulang halaman.');
-      if (s.id && rombelSiswa[s.id]) salah.push(baris + 'siswa ini sudah terdaftar di rombel ' + (namaRombel[rombelSiswa[s.id]] || 'lain') + '.');
+      if (s.id && rombelSiswa[s.id]) salah.push(baris + 'siswa ini sudah terdaftar di ' + (namaRombel[rombelSiswa[s.id]] || 'rombel lain') + '.');
       var lain = s.nisn && nisnLain[s.nisn];
-      if (lain) salah.push(baris + 'NISN sudah dipakai ' + teks_(lain['Nama Lengkap']) + (rombelSiswa[teks_(lain['ID Siswa'])] ? ' di rombel ' + namaRombel[rombelSiswa[teks_(lain['ID Siswa'])]] : '') + '.');
+      if (lain) salah.push(baris + 'NISN sudah dipakai ' + teks_(lain['Nama Lengkap']) + (rombelSiswa[teks_(lain['ID Siswa'])] ? ' di ' + namaRombel[rombelSiswa[teks_(lain['ID Siswa'])]] : '') + '.');
       lain = s.nis && nisLain[s.nis];
       if (lain) salah.push(baris + 'NIS sudah dipakai ' + teks_(lain['Nama Lengkap']) + '.');
     });
@@ -416,7 +428,7 @@ function simpanSiswa_(npsn, rombelId, daftar) {
     var tanpaSeni = bersih.filter(function (s) { return !s.seni; }).length;
     return {
       ok: true, siswa: bersih,
-      pesan: bersih.length + ' siswa ' + rombel.nama + ' tersimpan.' +
+      pesan: bersih.length + ' siswa ' + labelRombel_(rombel) + ' tersimpan.' +
         (tanpaSeni ? ' Catatan: ' + tanpaSeni + ' siswa belum memilih seni (wajib diisi sebelum cetak rapor).' : '')
     };
   });

@@ -17,7 +17,7 @@ h1{margin:0 0 6px;font-size:clamp(1.5rem,4vw,2.3rem);letter-spacing:-.03em}heade
 .card{background:#fff;border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 10px 24px rgba(18,49,79,.07)}
 .form{max-width:460px;margin:22px auto 0}.form h2{margin:0 0 6px}.form>p{color:var(--muted);font-size:14px;line-height:1.55;margin:0 0 16px}
 .field{margin-bottom:13px}label{display:block;font-size:13px;font-weight:700;margin:0 0 6px}.hint{font-size:12.5px;color:var(--muted);margin-top:5px;line-height:1.45}
-input[type=text],input[type=email],input[type=password]{width:100%;font:inherit;font-size:15px;padding:11px 12px;border:1px solid #d9cfb8;border-radius:12px;background:#fff;color:var(--ink)}
+input[type=text],input[type=email],input[type=password],input[type=date]{width:100%;font:inherit;font-size:15px;padding:11px 12px;border:1px solid #d9cfb8;border-radius:12px;background:#fff;color:var(--ink)}
 input:focus{outline:2px solid var(--yellow);border-color:var(--yellow)}
 .check{display:flex;gap:10px;align-items:flex-start;font-weight:400;font-size:13.5px;line-height:1.5;padding:12px;border:1px solid var(--line);border-radius:12px;background:#fffdf7;cursor:pointer}.check input{margin-top:3px;width:18px;height:18px;flex:none;accent-color:var(--red)}
 .show{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--muted);margin:-4px 0 12px;cursor:pointer}.show input{accent-color:var(--blue)}
@@ -159,21 +159,21 @@ footer{text-align:center;color:var(--muted);font-size:13px;line-height:1.7;paddi
     </div>
 
     <div class="card akun">
-      <h3>Salinan data sekolah</h3>
-      <p>Unduh seluruh isi spreadsheet sekolah (profil, rombel, siswa, dan nilai) sebagai berkas Excel untuk disimpan sendiri.</p>
-      <button class="btn" type="button" id="b-unduh">Unduh salinan Excel</button>
+      <h3>Akun &amp; data sekolah</h3>
+      <div class="aksi">
+        <button class="btn ghost small" type="button" id="b-unduh" title="Unduh seluruh isi spreadsheet sekolah sebagai berkas Excel">Unduh salinan Excel</button>
+        <button class="btn ghost small" type="button" id="b-ganti" aria-expanded="false" aria-controls="ganti-wrap">Ganti kata sandi</button>
+      </div>
       <div class="msg" id="u-msg"></div>
-    </div>
-
-    <div class="card akun">
-      <h3>Ganti kata sandi</h3>
-      <p>Lakukan ini jika ada guru yang pindah atau kata sandi tersebar. Semua perangkat lain otomatis keluar dan harus masuk dengan kata sandi baru.</p>
-      <form id="f-ganti" class="grid3">
-        <div><label for="g-lama">Kata sandi lama</label><input id="g-lama" type="password" autocomplete="current-password" required></div>
-        <div><label for="g-baru">Kata sandi baru</label><input id="g-baru" type="password" autocomplete="new-password" required></div>
-        <div><label for="g-ulangi">Ulangi kata sandi baru</label><input id="g-ulangi" type="password" autocomplete="new-password" required></div>
-        <div><button class="btn" type="submit">Ganti kata sandi</button></div>
-      </form>
+      <div id="ganti-wrap" class="hidden" style="margin-top:16px">
+        <p class="hint" style="margin:0 0 12px">Lakukan jika ada guru yang pindah atau kata sandi tersebar. Semua perangkat lain otomatis keluar.</p>
+        <form id="f-ganti" class="grid3">
+          <div><label for="g-lama">Kata sandi lama</label><input id="g-lama" type="password" autocomplete="current-password" required></div>
+          <div><label for="g-baru">Kata sandi baru</label><input id="g-baru" type="password" autocomplete="new-password" required></div>
+          <div><label for="g-ulangi">Ulangi kata sandi baru</label><input id="g-ulangi" type="password" autocomplete="new-password" required></div>
+          <div class="aksi"><button class="btn small" type="submit">Simpan</button><button class="btn ghost small" type="button" id="g-batal">Batal</button></div>
+        </form>
+      </div>
       <div class="msg" id="g-msg"></div>
     </div>
   </section>
@@ -205,7 +205,8 @@ footer{text-align:center;color:var(--muted);font-size:13px;line-height:1.7;paddi
         <h3 id="rf-judul" style="margin:0 0 12px">Tambah rombel</h3>
         <form id="f-rombel" class="grid2">
           <div><label for="rf-kelas">Kelas</label><select id="rf-kelas"><option value="1">Kelas 1</option><option value="2">Kelas 2</option><option value="3">Kelas 3</option><option value="4">Kelas 4</option><option value="5">Kelas 5</option><option value="6">Kelas 6</option></select></div>
-          <div><label for="rf-nama">Nama rombel</label><input id="rf-nama" type="text" maxlength="20" placeholder="Contoh: 5A"></div>
+          <div><label for="rf-nama">Nama rombel <span style="font-weight:400;color:var(--muted)">(boleh dikosongkan)</span></label><input id="rf-nama" type="text" maxlength="20" placeholder="Kosongkan jika hanya 1 rombel">
+            <div class="hint">Hanya diisi jika kelas ini punya lebih dari satu rombel. Cukup ketik A, B, C… (otomatis menjadi <span id="rf-contoh">5A, 5B</span>).</div></div>
           <div><label for="rf-wali">Wali kelas</label><input id="rf-wali" type="text" maxlength="100" placeholder="Nama lengkap dengan gelar"></div>
           <div><label for="rf-nip">NIP wali kelas</label><input id="rf-nip" type="text" inputmode="numeric" maxlength="24" placeholder="Kosongkan jika tidak ada"></div>
           <div class="aksi"><button class="btn small" type="submit">Simpan rombel</button><button class="btn ghost small" type="button" id="rf-batal">Batal</button></div>
@@ -265,6 +266,8 @@ const KOLOM = [
   { k:'alamat', judul:'Alamat', w:260 }
 ];
 /* "2016-03-15" → "15/03/2016" agar sama dengan kebiasaan guru; server menerima keduanya. */
+/* Kelas dengan satu rombel menyimpan nama rombel berupa nomor kelas ("5"); tampil sebagai "Kelas 5". */
+const labelRombel = r => r.nama === String(r.kelas) ? 'Kelas ' + r.kelas : r.nama;
 const tglTampil = v => /^\d{4}-\d{2}-\d{2}$/.test(v || '') ? v.split('-').reverse().join('/') : (v || '');
 
 async function api(body){
@@ -339,8 +342,15 @@ $('#f-ganti').addEventListener('submit', e => { e.preventDefault(); kirim(e.targ
   const res = await api({ aksi:'gantiSandi', lama: $('#g-lama').value, baru: $('#g-baru').value, ulangi: $('#g-ulangi').value });
   if (res.sesiHabis) return;
   pesan('#g-msg', res.pesan, res.ok, res.salah);
-  if (res.ok) { ls.set(KUNCI_SESI, res.sesi); e.target.reset(); }
+  if (res.ok) { ls.set(KUNCI_SESI, res.sesi); e.target.reset(); bukaGanti(false); }
 }); });
+function bukaGanti(buka){
+  $('#ganti-wrap').classList.toggle('hidden', !buka);
+  $('#b-ganti').setAttribute('aria-expanded', String(buka));
+  if (buka) { $('#g-msg').textContent = ''; $('#g-lama').focus(); }
+}
+$('#b-ganti').addEventListener('click', () => bukaGanti($('#ganti-wrap').classList.contains('hidden')));
+$('#g-batal').addEventListener('click', () => { $('#f-ganti').reset(); bukaGanti(false); });
 
 /* ---------- data sekolah ---------- */
 function pilihTab(tab){
@@ -367,8 +377,8 @@ function renderProfil(){
   $('#profil-isi').innerHTML = DATA.profil.map((p, i) => {
     const tgl = p.kunci === 'Tanggal Pembagian Rapor';
     return '<div class="field"><label for="pf-' + i + '">' + esc(p.kunci) + '</label>' +
-      '<input id="pf-' + i + '" type="text" data-kunci="' + esc(p.kunci) + '" value="' + esc(tgl ? tglTampil(p.nilai) : p.nilai) + '"' +
-      (p.tetap ? ' disabled' : '') + (tgl ? ' placeholder="dd/mm/yyyy"' : '') + '>' +
+      '<input id="pf-' + i + '" type="' + (tgl ? 'date' : 'text') + '" data-kunci="' + esc(p.kunci) + '" value="' +
+      esc(tgl ? (/^\d{4}-\d{2}-\d{2}$/.test(p.nilai) ? p.nilai : '') : p.nilai) + '"' + (p.tetap ? ' disabled' : '') + '>' +
       (p.tetap ? '<div class="hint">Tidak bisa diubah (identitas akun).</div>' : p.ket ? '<div class="hint">' + esc(p.ket) + '</div>' : '') + '</div>';
   }).join('');
   $('#p-semester').value = String(DATA.semester);
@@ -389,7 +399,7 @@ function renderRombel(){
   for (let k = 1; k <= 6; k++) {
     const isi = DATA.rombel.filter(r => r.kelas === k);
     html += '<div class="kelas"><h3>Kelas ' + k + '</h3><div class="rombels">' +
-      isi.map(r => '<div class="rombel"><b>' + esc(r.nama) + '</b><div class="sub">' +
+      isi.map(r => '<div class="rombel"><b>' + esc(labelRombel(r)) + '</b><div class="sub">' +
         (r.wali ? 'Wali kelas: ' + esc(r.wali) : '<i>Wali kelas belum diisi</i>') + '<br>' + r.jumlah + ' siswa</div>' +
         '<div class="aksi"><button class="btn small" type="button" data-siswa="' + esc(r.id) + '">Data siswa</button>' +
         '<button class="btn ghost small" type="button" data-ubah="' + esc(r.id) + '">Ubah</button>' +
@@ -403,9 +413,10 @@ function renderRombel(){
 function formRombel(r, kelas){
   $('#rf-wrap').classList.remove('hidden');
   $('#rf-wrap').dataset.id = r ? r.id : '';
-  $('#rf-judul').textContent = r ? 'Ubah rombel ' + r.nama : 'Tambah rombel kelas ' + kelas;
+  $('#rf-judul').textContent = r ? 'Ubah rombel ' + labelRombel(r) : 'Tambah rombel kelas ' + kelas;
   $('#rf-kelas').value = String(r ? r.kelas : kelas);
-  $('#rf-nama').value = r ? r.nama : '';
+  $('#rf-nama').value = r && r.nama !== String(r.kelas) ? r.nama : '';
+  contohRombel();
   $('#rf-wali').value = r ? r.wali : '';
   $('#rf-nip').value = r ? r.nip : '';
   $('#rf-msg').textContent = '';
@@ -422,7 +433,7 @@ $('#daftar-rombel').addEventListener('click', async e => {
   if (b.dataset.ubah) return formRombel(r);
   if (b.dataset.siswa) return bukaSiswa(r.id);
   if (b.dataset.hapus) {
-    if (!confirm('Hapus rombel ' + r.nama + '?')) return;
+    if (!confirm('Hapus rombel ' + labelRombel(r) + '?')) return;
     await sibuk(b, async () => {
       const res = await api({ aksi:'hapusRombel', id: r.id });
       if (res.sesiHabis) return;
@@ -445,6 +456,8 @@ $('#f-rombel').addEventListener('submit', e => { e.preventDefault(); kirim(e.tar
   DATA.rombel.sort((a, b) => a.kelas - b.kelas || a.nama.localeCompare(b.nama));
   renderRombel();
 }); });
+function contohRombel(){ const k = $('#rf-kelas').value; $('#rf-contoh').textContent = k + 'A, ' + k + 'B'; }
+$('#rf-kelas').addEventListener('change', contohRombel);
 $('#rf-batal').addEventListener('click', () => $('#rf-wrap').classList.add('hidden'));
 
 /* ---------- siswa satu rombel ---------- */
@@ -456,7 +469,7 @@ async function bukaSiswa(id){
   if (res.sesiHabis) return;
   if (!res.ok) { $('#s-judul').textContent = 'Siswa'; return pesan('#s-msg', res.pesan, false); }
   ROMBEL = res.rombel;
-  $('#s-judul').textContent = 'Siswa ' + res.rombel.nama;
+  $('#s-judul').textContent = 'Siswa ' + labelRombel(res.rombel);
   $('#s-sub').textContent = 'Kelas ' + res.rombel.kelas + (res.rombel.wali ? ' · Wali kelas: ' + res.rombel.wali : '') + ' · Tahun ajaran ' + (DATA ? DATA.tahunAjaran : '');
   $('#dl-seni').innerHTML = res.seni.map(s => '<option value="' + esc(s) + '">').join('');
   SISWA = res.siswa.map(s => ({ ...s, tanggalLahir: tglTampil(s.tanggalLahir) }));
