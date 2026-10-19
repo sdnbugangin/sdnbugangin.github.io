@@ -136,3 +136,24 @@ test('baca sekaligus gagal atau tidak aktif: tetap berjalan dengan cara biasa', 
   g.ctx.Sheets = simpan;
   assert.equal(h.nilai[id[1]].TP2, 55, 'tanpa layanan Sheets');
 });
+
+test('kunci per sekolah: sekolah lain tidak menunggu, sekolah yang sama menunggu lalu diberi pesan jelas', () => {
+  const { g, rb, id, nilai } = siapKecil();
+  const npsnLain = '20321654';
+  const lain = sekolahAktif({ npsn: npsnLain, nama: 'SD LAIN', email: 'sdlain@gmail.com', sandi: 'rapor2026', ulangi: 'rapor2026', setuju: true }, g);
+  const rbLain = lain.minta({ aksi: 'simpanRombel', rombel: { kelas: 1, nama: '' } });
+  // sekolah pertama "sedang menyimpan" dari perangkat lain
+  g.cache.set('kunci:20321653', { isi: 'perangkat-lain', sampai: g.jam.sekarang + 60000 });
+  assert.equal(rbLain.ok, true);
+  assert.equal(lain.minta({ aksi: 'simpanRombel', rombel: { kelas: 2, nama: '' } }).ok, true, 'sekolah lain tetap bisa menyimpan');
+  const t = g.jam.sekarang;
+  const h = g.minta({ aksi: 'simpanNilai', rombel: rb, mapel: 'MTK', varian: '', nilai });
+  assert.equal(h.ok, false);
+  assert.match(h.pesan, /sedang disimpan dari perangkat lain/);
+  assert.ok(g.jam.sekarang - t >= 20000, 'menunggu ±20 dtk sebelum menyerah');
+  // setelah kunci lepas sendiri (60 dtk), bisa menyimpan; kunci dilepas lagi sesudahnya
+  g.jam.sekarang += 60000;
+  assert.equal(g.minta({ aksi: 'simpanNilai', rombel: rb, mapel: 'MTK', varian: '', nilai }).ok, true);
+  assert.equal(g.cache.has('kunci:20321653'), false, 'kunci dilepas setelah selesai');
+  assert.equal(id.length, 3);
+});

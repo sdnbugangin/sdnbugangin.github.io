@@ -224,10 +224,45 @@ function galatPengguna_(pesan) {
   return e;
 }
 
+/*
+ * Kunci penyimpanan. Perubahan data satu sekolah dikunci PER SEKOLAH, sehingga sekolah yang berbeda bisa
+ * menyimpan bersamaan; kunci skrip (satu untuk semua) hanya dipegang sesaat untuk mengambil kunci sekolah,
+ * dan untuk urusan akun di spreadsheet Pusat.
+ */
+var SEKOLAH_AKTIF_ = '';   // NPSN yang spreadsheet-nya dibuka di permintaan ini (diatur bukaSekolah_)
+var KUNCI_DIPEGANG_ = {};  // kunci sekolah yang sedang dipegang eksekusi ini (boleh dipanggil bertingkat)
+
 function denganKunci_(fn) {
+  return SEKOLAH_AKTIF_ ? denganKunciSekolah_(SEKOLAH_AKTIF_, fn) : denganKunciSkrip_(fn);
+}
+
+function denganKunciSkrip_(fn) {
   var kunci = LockService.getScriptLock();
   if (!kunci.tryLock(20000)) throw galatPengguna_('Server sedang sibuk melayani sekolah lain. Coba lagi sebentar lagi.');
   try { return fn(); } finally { kunci.releaseLock(); }
+}
+
+function denganKunciSekolah_(npsn, fn) {
+  if (KUNCI_DIPEGANG_[npsn]) return fn();
+  var cache = CacheService.getScriptCache(), nama = 'kunci:' + npsn, token = Utilities.getUuid();
+  var batas = new Date().getTime() + 20000;
+  for (;;) {
+    var dapat = denganKunciSkrip_(function () {
+      if (cache.get(nama)) return false;
+      cache.put(nama, token, 60); // lepas sendiri setelah 60 dtk bila eksekusi terhenti mendadak
+      return true;
+    });
+    if (dapat) break;
+    if (new Date().getTime() > batas) throw galatPengguna_('Data sekolah ini sedang disimpan dari perangkat lain. Coba lagi sebentar lagi.');
+    Utilities.sleep(300);
+  }
+  KUNCI_DIPEGANG_[npsn] = true;
+  try {
+    return fn();
+  } finally {
+    delete KUNCI_DIPEGANG_[npsn];
+    try { denganKunciSkrip_(function () { if (cache.get(nama) === token) cache.remove(nama); }); } catch (e) { /* lepas sendiri 60 dtk */ }
+  }
 }
 
 function json_(obj) {

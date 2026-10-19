@@ -36,7 +36,7 @@ function ujiBeban() {
     ISI_SHEET_ = {}; t0 = new Date().getTime();
     var api = bacaSekaligus_(ssBaru, BACA_PER_AKSI_.nilaiRombel);
     catat(api ? 'rincian: baca 8 sheet sekaligus (Sheets API) ' + detik_(t0) + ' dtk'
-      : 'rincian: layanan Sheets API BELUM aktif (Layanan + → Google Sheets API) — memakai cara biasa');
+      : 'rincian: baca sekaligus TIDAK dipakai — ' + GALAT_BACA_SEKALIGUS_ + '. Memakai cara biasa.');
 
     var ukur = function (nama, aksi, fn) {
       siapkanPermintaan_(aksi);

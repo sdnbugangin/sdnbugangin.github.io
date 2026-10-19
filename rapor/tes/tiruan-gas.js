@@ -161,6 +161,7 @@ function buatGas() {
       computeHmacSha256Signature: (teks, kunci) =>
         [...crypto.createHmac('sha256', kunci).update(teks, 'utf8').digest()].map((b) => (b > 127 ? b - 256 : b)),
       getUuid: () => crypto.randomUUID(),
+      sleep: (ms) => { jam.sekarang += ms; },
       formatDate: (d, zona, pola) => (pola === 'Z' ? '+0700' : new Date(d.getTime() + 7 * 3600000).toISOString().slice(0, 16).replace('T', ' '))
     },
     ScriptApp: { getOAuthToken: () => 'token-tiruan' },
