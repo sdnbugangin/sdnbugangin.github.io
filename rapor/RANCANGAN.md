@@ -139,6 +139,15 @@ Pengamannya: setiap perubahan nilai dicatat di Log beserta waktunya, dan kepala 
   - Kode mapel e-Rapor ada di `KODE_ERAPOR` (`Referensi.gs`); yang belum diketahui (Agama per agama, Pancasila, PJOK, KKA, Mulok) diberi peringatan dan sel C2-nya dikosongkan.
   - Agama: satu berkas per agama. Seni: semua seni digabung dalam berkas "Seni Budaya".
 
+### Input nilai
+
+- **Satu layar** = satu rombel, satu mapel, satu agama/seni, satu semester. Hanya siswa yang mengikuti agama/seni itu yang tampil, tetap dengan nomor absen rombelnya.
+- **Kolom**: TP1…TPn (sumatif lingkup materi) serta **SAS Tes** dan **SAS Praktik** (sumatif akhir semester, boleh salah satu; jika keduanya diisi, dirata-rata).
+- **Cara isi**: angka 0–100, koma desimal boleh. Kotak yang salah langsung merah dan simpan dicegah. Enter pindah ke siswa berikutnya. Satu blok angka bisa ditempel dari Excel.
+- **Tersimpan per angka** di sheet Nilai: Jenis `TP` dengan kode TP, atau Jenis `SAS` dengan kode `TES`/`PRAKTIK`. Untuk mapel dengan varian, kode SAS diawali varian (`Seni Musik|TES`) karena satu siswa bisa mengikuti beberapa seni.
+- **Nilai rapor, predikat, dan deskripsi tidak disimpan.** Semuanya dihitung ulang dari angka dengan `hitungNilaiMapel_` memakai bobot, KKTP, dan gaya deskripsi sekolah, sehingga perubahan pengaturan langsung berlaku. Pengaturan yang rusak (bobot ≠ 100%) dilaporkan, bukan menghasilkan nilai salah.
+- **Hasil per siswa** (nilai, predikat, deskripsi tertinggi/terendah, peringatan seperti "SAS belum diisi") tampil setelah disimpan, ditambah penghitung "Lengkap 28 dari 30 siswa".
+
 ## 5. Pencegahan error (pelajaran dari rapor Excel lama)
 
 | Masalah di file lama | Penyebab | Penanganan di aplikasi baru |
@@ -169,6 +178,6 @@ Aturan umum:
 | 1 | Mesin hitung + data referensi + uji otomatis | ✅ selesai (`apps-script/Hitung.gs`, `Referensi.gs`, `tes/`) |
 | 2 | Akun sekolah (daftar, verifikasi email, masuk, lupa & ganti kata sandi) dan pembuatan spreadsheet sekolah otomatis | ✅ selesai (`index.html`, `apps-script/Kode.gs`, `Akun.gs`, `Sekolah.gs`, `Narasi.gs`) |
 | 3 | Data sekolah: profil, rombel & wali kelas, siswa (tempel langsung dari Excel/Dapodik), unduh salinan Excel | ✅ selesai (`apps-script/Data.gs`, halaman Data Sekolah & Siswa) |
-| 4 | Tujuan Pembelajaran (✅ selesai, `apps-script/Tp.gs`); input nilai, kokurikuler, ekstrakurikuler, presensi | sedang dikerjakan |
+| 4 | Tujuan Pembelajaran ✅ (`Tp.gs`), input nilai ✅ (`Nilai.gs`); kokurikuler, ekstrakurikuler, presensi, catatan, kenaikan | sedang dikerjakan |
 | 5 | Cek kelengkapan, rekap/leger, cetak rapor PDF (sampul, rapor, transkrip, SKL), kunci rapor | |
 | 6 | Kenaikan kelas tahunan, uji coba di SDN Bugangin, lalu dibuka untuk sekolah lain | |
