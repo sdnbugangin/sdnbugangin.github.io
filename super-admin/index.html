@@ -791,6 +791,7 @@ $('#bt-grid').addEventListener('click', async e => {
   if (tambah) {
     const kotak = tambah.closest('.bt'), jenis = kotak.dataset.j, nominal = angkaRp(kotak.querySelector('input').value), bulan = Number(kotak.querySelector('select').value);
     if (!(nominal > 0)) { m.className='msg err'; m.textContent = 'Isi jumlah uang ' + jenis + ' yang diterima.'; kotak.querySelector('input').focus(); return; }
+    if (nominal < 1000) { m.className='msg err'; m.textContent = 'Jumlah uang terlalu kecil. Tulis lengkap dalam rupiah, misalnya 450000 (bukan 450).'; kotak.querySelector('input').focus(); return; }
     req = { aksi:'tambahBantuan', data:{ siswa:id, jenis, bulan:[bulan], nominal } };
     m.textContent = 'Menyimpan ' + jenis + ' ' + BULAN[bulan-1] + '…';
   } else {
