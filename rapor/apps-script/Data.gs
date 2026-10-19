@@ -476,6 +476,126 @@ function simpanSiswa_(npsn, rombelId, daftar) {
   });
 }
 
+/* ---------- aksi: mata pelajaran per kelas ---------- */
+
+/** Baris Mapel Aktif satu tahun ajaran → daftar mapel dengan status aktif per kelas: { kelas: { 5: true, … } }. */
+function kelompokMapel_(baris) {
+  var urut = [], per = {};
+  baris.forEach(function (r) {
+    var kode = teks_(r['Kode Mapel']);
+    if (!per[kode]) {
+      var bawaan = mapelBawaan_(kode);
+      per[kode] = {
+        kode: kode, nama: teks_(r['Nama di Rapor']), jenis: teks_(r.Jenis), urutan: Number(r.Urutan) || 99,
+        pilihan: !!(bawaan && bawaan.pilihan), kelas: {}
+      };
+      urut.push(per[kode]);
+    }
+    per[kode].kelas[Number(r.Kelas)] = teks_(r.Aktif) === 'Ya';
+  });
+  return urut.sort(function (a, b) { return a.urutan - b.urutan || (a.kode < b.kode ? -1 : 1); });
+}
+
+/**
+ * Memeriksa perubahan mapel. lama = kelompokMapel_(...), isian = [{ kode, nama, kelas: { 1: true, … } }],
+ * bernilai = { 'BING|5': true } (mapel di kelas yang sudah punya nilai).
+ * Hasil: { salah[], mapel[] } — mapel berisi keadaan akhir semua mapel (yang tidak dikirim tetap seperti lama).
+ * Mapel wajib selalu aktif. Muatan lokal yang aktif wajib diberi nama sungguhan (bukan "Muatan Lokal 1").
+ */
+function cekMapel_(lama, isian, bernilai) {
+  var salah = [];
+  var akhir = lama.map(function (m) { return { kode: m.kode, nama: m.nama, jenis: m.jenis, urutan: m.urutan, pilihan: m.pilihan, kelas: Object.assign({}, m.kelas) }; });
+  var urutanMaks = akhir.reduce(function (x, m) { return Math.max(x, m.urutan); }, 0);
+  (Array.isArray(isian) ? isian : []).forEach(function (d) {
+    var kode = teks_(d && d.kode).toUpperCase();
+    var bawaan = mapelBawaan_(kode);
+    if (!bawaan) { salah.push('Mapel "' + kode + '" tidak dikenal.'); return; }
+    var m = akhir.filter(function (x) { return x.kode === kode; })[0];
+    if (!m) {
+      if (bawaan.jenis !== 'mulok') { salah.push('Mapel ' + bawaan.nama + ' tidak dikenal di spreadsheet sekolah.'); return; }
+      m = { kode: kode, nama: bawaan.nama, jenis: 'mulok', urutan: ++urutanMaks, pilihan: true, kelas: {}, baru: true };
+      bawaan.kelas.forEach(function (k) { m.kelas[k] = false; });
+      akhir.push(m);
+    }
+    var minta = (d && d.kelas) || {};
+    Object.keys(m.kelas).forEach(function (k) {
+      var mau = minta[k] === true;
+      if (!m.pilihan) { m.kelas[k] = true; return; }
+      if (m.kelas[k] && !mau && bernilai[kode + '|' + k]) {
+        salah.push(m.nama + ' kelas ' + k + ' sudah punya nilai, jadi tidak bisa dinonaktifkan.');
+        return;
+      }
+      m.kelas[k] = mau;
+    });
+    if (m.jenis === 'mulok') {
+      var nama = teks_(d.nama);
+      var aktif = Object.keys(m.kelas).some(function (k) { return m.kelas[k]; });
+      if (nama) m.nama = nama;
+      if (aktif && (!nama || /^muatan lokal \d+$/i.test(nama))) salah.push('Beri nama muatan lokal yang diajarkan (misalnya Bahasa Jawa), bukan "' + (nama || m.nama) + '".');
+      else if (nama.length > 60) salah.push('Nama muatan lokal maksimal 60 karakter.');
+    }
+  });
+  var namaDipakai = {};
+  akhir.forEach(function (m) {
+    var aktif = Object.keys(m.kelas).some(function (k) { return m.kelas[k]; });
+    if (!aktif) return;
+    var kunci = m.nama.toLowerCase();
+    if (namaDipakai[kunci]) salah.push('Nama mapel "' + m.nama + '" dipakai dua kali.');
+    namaDipakai[kunci] = true;
+  });
+  return { salah: salah, mapel: akhir };
+}
+
+/** { 'KODE|kelas': true } untuk mapel yang sudah punya nilai tersimpan di tahun ajaran ini. */
+function mapelBernilai_(ss, ta) {
+  var kelasRombel = {}, kelasSiswa = {}, ada = {};
+  daftarRombel_(ss, ta).forEach(function (r) { kelasRombel[r.id] = r.kelas; });
+  bacaTabel_(ss, 'Anggota Rombel').forEach(function (a) {
+    if (teks_(a['Tahun Ajaran']) === ta) kelasSiswa[teks_(a['ID Siswa'])] = kelasRombel[teks_(a['ID Rombel'])];
+  });
+  bacaTabel_(ss, 'Nilai').forEach(function (n) {
+    if (teks_(n['Tahun Ajaran']) !== ta || teks_(n.Nilai) === '') return;
+    var k = kelasSiswa[teks_(n['ID Siswa'])];
+    if (k) ada[teks_(n['Kode Mapel']) + '|' + k] = true;
+  });
+  return ada;
+}
+
+function mapelSekolah_(npsn) {
+  var ss = bukaSekolah_(npsn);
+  var ta = aturSekolah_(ss).tahunAjaran;
+  var baris = bacaTabel_(ss, 'Mapel Aktif').filter(function (r) { return teks_(r['Tahun Ajaran']) === ta; });
+  return { ok: true, tahunAjaran: ta, mapel: kelompokMapel_(baris), maksMulok: MAKS_MULOK };
+}
+
+function simpanMapel_(npsn, isian) {
+  var ss = bukaSekolah_(npsn);
+  return denganKunci_(function () {
+    var ta = aturSekolah_(ss).tahunAjaran;
+    var semua = bacaTabel_(ss, 'Mapel Aktif');
+    var baris = semua.filter(function (r) { return teks_(r['Tahun Ajaran']) === ta; });
+    var cek = cekMapel_(kelompokMapel_(baris), isian, mapelBernilai_(ss, ta));
+    if (cek.salah.length) return { ok: false, salah: cek.salah, pesan: cek.salah[0] };
+    cek.mapel.forEach(function (m) {
+      Object.keys(m.kelas).forEach(function (k) {
+        var r = baris.filter(function (x) { return teks_(x['Kode Mapel']) === m.kode && Number(x.Kelas) === Number(k); })[0];
+        if (!r) {
+          r = { 'Tahun Ajaran': ta, Kelas: Number(k), 'Kode Mapel': m.kode, Jenis: m.jenis, Urutan: m.urutan };
+          semua.push(r);
+        }
+        r['Nama di Rapor'] = m.nama;
+        r.Aktif = m.kelas[k] ? 'Ya' : 'Tidak';
+      });
+    });
+    tulisTabel_(ss, 'Mapel Aktif', semua);
+    catatSekolah_(ss, 'ubah mapel', cek.mapel.filter(function (m) { return m.pilihan; }).map(function (m) {
+      return m.nama + ': ' + Object.keys(m.kelas).filter(function (k) { return m.kelas[k]; }).join(',');
+    }).join('; '));
+    return { ok: true, mapel: kelompokMapel_(bacaTabel_(ss, 'Mapel Aktif').filter(function (r) { return teks_(r['Tahun Ajaran']) === ta; })),
+      pesan: 'Mata pelajaran tersimpan. Hanya mapel yang dicentang yang muncul di input nilai dan rapor.' };
+  });
+}
+
 /* ---------- aksi: unduh salinan Excel ---------- */
 
 function unduhExcel_(npsn) {
