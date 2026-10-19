@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 
-const BERKAS_GS = ['Referensi.gs', 'Narasi.gs', 'Hitung.gs', 'Kode.gs', 'Akun.gs', 'Sekolah.gs'];
+const BERKAS_GS = ['Referensi.gs', 'Narasi.gs', 'Hitung.gs', 'Kode.gs', 'Akun.gs', 'Sekolah.gs', 'Data.gs'];
 const MAKS_BARIS = 1000;
 
 function tanpaEfek(target) {
@@ -14,17 +14,22 @@ function tanpaEfek(target) {
 }
 
 class Sheet {
-  constructor(nama) { this.nama = nama; this.data = []; this.format = {}; }
+  constructor(nama) { this.nama = nama; this.data = []; this.format = {}; this.maks = MAKS_BARIS; }
   getName() { return this.nama; }
   setName(n) { this.nama = n; return this; }
-  getLastRow() { return this.data.length; }
-  getMaxRows() { return MAKS_BARIS; }
-  appendRow(r) { this.data.push(r.slice()); return this; }
+  getLastRow() {
+    for (let i = this.data.length; i > 0; i--) if ((this.data[i - 1] || []).some((x) => x !== '' && x !== undefined)) return i;
+    return 0;
+  }
+  getMaxRows() { return this.maks; }
+  insertRowsAfter(_, banyak) { this.maks += banyak; }
+  appendRow(r) { this.data[this.getLastRow()] = r.slice(); return this; } // seperti Sheets: setelah baris berisi terakhir
   deleteRow(n) { this.data.splice(n - 1, 1); }
   setFrozenRows() { return this; }
   getDataRange() {
-    const lebar = Math.max(0, ...this.data.map((r) => r.length));
-    return this.getRange(1, 1, Math.max(this.data.length, 1), Math.max(lebar, 1));
+    const akhir = this.getLastRow();
+    const lebar = Math.max(0, ...this.data.slice(0, akhir).map((r) => r.length));
+    return this.getRange(1, 1, Math.max(akhir, 1), Math.max(lebar, 1));
   }
   getRange(baris, kolom, banyak = 1, lebar = 1) {
     const sh = this;
@@ -43,6 +48,10 @@ class Sheet {
         return r.__diri;
       },
       setValue(x) { r._tulis(0, 0, x); return r.__diri; },
+      clearContent() {
+        for (let i = 0; i < banyak; i++) for (let j = 0; j < lebar; j++) r._tulis(i, j, '');
+        return r.__diri;
+      },
       setNumberFormat(f) {
         for (let i = 0; i < banyak; i++) for (let j = 0; j < lebar; j++) sh.format[(baris + i) + ':' + (kolom + j)] = f;
         return r.__diri;
@@ -142,9 +151,21 @@ function buatGas() {
     Utilities: {
       DigestAlgorithm: { SHA_256: 'sha256' },
       computeDigest: (alg, teks) => [...crypto.createHash(alg).update(teks, 'utf8').digest()].map((b) => (b > 127 ? b - 256 : b)),
+      base64Encode: (bytes) => Buffer.from(bytes.map((b) => (b < 0 ? b + 256 : b))).toString('base64'),
       computeHmacSha256Signature: (teks, kunci) =>
         [...crypto.createHmac('sha256', kunci).update(teks, 'utf8').digest()].map((b) => (b > 127 ? b - 256 : b)),
       getUuid: () => crypto.randomUUID()
+    },
+    ScriptApp: { getOAuthToken: () => 'token-tiruan' },
+    UrlFetchApp: {
+      fetch: (url, o) => {
+        const m = url.match(/spreadsheets\/d\/([^/]+)\/export\?format=xlsx$/);
+        const ada = m && berkas[m[1]] && o.headers.Authorization === 'Bearer token-tiruan';
+        return {
+          getResponseCode: () => (ada ? 200 : 404),
+          getBlob: () => ({ getBytes: () => [...Buffer.from('xlsx:' + (m && m[1]))] })
+        };
+      }
     },
     ContentService: {
       MimeType: { JSON: 'json' },

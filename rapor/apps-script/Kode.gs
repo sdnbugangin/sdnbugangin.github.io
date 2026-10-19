@@ -2,11 +2,11 @@
  * Aplikasi Rapor SD (Kurikulum Merdeka) — backend Google Apps Script.
  * Melayani halaman sdnbugangin.github.io/rapor/ untuk semua sekolah yang mendaftar.
  *
- * Proyek Apps Script ini berisi berkas: Kode.gs, Akun.gs, Sekolah.gs, Hitung.gs, Referensi.gs, Narasi.gs.
+ * Proyek Apps Script ini berisi berkas: Kode.gs, Akun.gs, Sekolah.gs, Data.gs, Hitung.gs, Referensi.gs, Narasi.gs.
  *
  * Cara pasang (sekali saja, dengan akun Google PENGELOLA, bukan akun pribadi):
  * 1. Buat Google Sheet baru, beri nama "Rapor SD - Pusat".
- * 2. Menu Ekstensi → Apps Script. Buat keenam berkas di atas (tombol + → Skrip) dan tempel isinya.
+ * 2. Menu Ekstensi → Apps Script. Buat ketujuh berkas di atas (tombol + → Skrip) dan tempel isinya.
  * 3. Pilih fungsi "siapkan" di toolbar, klik Jalankan, lalu izinkan akses.
  * 4. Deploy → Deployment baru → Jenis: Aplikasi web.
  *    Jalankan sebagai: Saya. Yang memiliki akses: Siapa saja. Klik Deploy.
@@ -178,6 +178,13 @@ function layani_(req) {
       case 'sesi': return { ok: true, sekolah: ringkasSekolah_(sesi.npsn) };
       case 'keluar': return keluar_(req.sesi);
       case 'gantiSandi': return gantiSandi_(sesi.npsn, req.lama, req.baru, req.ulangi);
+      case 'dataSekolah': return dataSekolah_(sesi.npsn);
+      case 'simpanProfil': return simpanProfil_(sesi.npsn, req.profil || {}, req.semester);
+      case 'simpanRombel': return simpanRombel_(sesi.npsn, req.rombel || {});
+      case 'hapusRombel': return hapusRombel_(sesi.npsn, req.id);
+      case 'siswaRombel': return siswaRombel_(sesi.npsn, req.rombel);
+      case 'simpanSiswa': return simpanSiswa_(sesi.npsn, req.rombel, req.siswa);
+      case 'unduhExcel': return unduhExcel_(sesi.npsn);
       default: return { ok: false, pesan: 'Aksi tidak dikenal.' };
     }
   } catch (err) {

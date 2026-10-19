@@ -36,6 +36,33 @@ input:focus{outline:2px solid var(--yellow);border-color:var(--yellow)}
 .akun{margin-top:18px}.akun h3{margin:0 0 4px;font-size:17px}.akun>p{color:var(--muted);font-size:13.5px;margin:0 0 14px;line-height:1.5}
 .grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;align-items:end}
 .akun .btn{width:auto}
+button.tile{text-align:left;font:inherit;color:inherit;width:100%;cursor:pointer}button.tile:hover{border-color:var(--blue);box-shadow:0 8px 20px rgba(18,49,79,.08)}
+.tag.on{background:#e3f4e7;color:var(--ok)}
+.tabs{display:flex;gap:6px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:5px;margin-bottom:14px}.tabs button{flex:1;border:0;background:none;font:inherit;font-weight:800;font-size:14px;padding:11px;border-radius:10px;color:var(--muted);cursor:pointer}.tabs button.on{background:var(--blue);color:#fff}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px 16px}
+select{width:100%;font:inherit;font-size:15px;padding:11px 12px;border:1px solid #d9cfb8;border-radius:12px;background:#fff;color:var(--ink)}
+input:disabled{background:#f5f2ea;color:var(--muted)}
+.kelas{margin-bottom:18px}.kelas h3{font-size:15px;margin:0 0 8px;color:var(--blue)}
+.rombels{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.rombel{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px}.rombel b{font-size:18px}.rombel .sub{font-size:13px;color:var(--muted);margin:3px 0 10px;line-height:1.45}
+.aksi{display:flex;gap:6px;flex-wrap:wrap;align-items:end}
+.btn.small{padding:8px 12px;font-size:13px;width:auto}
+.btn.add{background:#fff;color:var(--blue);border:1px dashed #bcae8c;width:auto}.btn.add:hover{border-color:var(--blue);background:#fff}
+.btn.danger{background:#fff;color:var(--bad);border:1px solid #f1c7c2}.btn.danger:hover{background:#fde4e1}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:12px 0}.toolbar .sub{font-size:13px;color:var(--muted)}
+.panduan{background:#eef3f8;border-radius:14px;padding:12px 14px;font-size:13.5px;line-height:1.55;color:#24384d}
+.tbl{overflow:auto;border:1px solid var(--line);border-radius:14px;background:#fff;max-height:70vh}
+table.siswa{border-collapse:collapse;font-size:13px}
+table.siswa th{position:sticky;top:0;background:var(--blue);color:#fff;text-align:left;padding:9px 8px;font-size:12px;white-space:nowrap;z-index:1}
+table.siswa td{border-bottom:1px solid #efe6d2;padding:2px}
+table.siswa td.no{text-align:center;color:var(--muted);min-width:38px;width:38px;font-size:12px}
+/* No dan Nama tetap terlihat saat tabel digeser ke kanan */
+table.siswa td:nth-child(-n+2){position:sticky;background:#fff;z-index:1}table.siswa th:nth-child(-n+2){position:sticky;z-index:2}
+table.siswa td:nth-child(1),table.siswa th:nth-child(1){left:0}table.siswa td:nth-child(2),table.siswa th:nth-child(2){left:38px;box-shadow:2px 0 0 #efe6d2}
+table.siswa input{width:100%;border:1px solid transparent;border-radius:8px;padding:7px 8px;font:inherit;font-size:13px;background:transparent;color:var(--ink)}
+table.siswa input:hover{border-color:#eadfc7}table.siswa input:focus{border-color:var(--yellow);outline:none;background:#fffdf3}
+table.siswa .hapus{border:0;background:none;color:var(--bad);font-size:18px;line-height:1;cursor:pointer;padding:6px 10px;border-radius:8px}table.siswa .hapus:hover{background:#fde4e1}
+.back{display:inline-block;margin-bottom:6px;font-size:14px}
 footer{text-align:center;color:var(--muted);font-size:13px;line-height:1.7;padding:28px 16px 8px}
 </style>
 </head>
@@ -125,10 +152,17 @@ footer{text-align:center;color:var(--muted);font-size:13px;line-height:1.7;paddi
       <button class="btn ghost" id="b-keluar" type="button">Keluar</button>
     </div>
     <div class="menu">
-      <div class="tile"><b>Data Sekolah &amp; Siswa</b><span>Profil sekolah, rombel kelas 1–6, wali kelas, dan daftar siswa.</span><div class="tag">Segera hadir</div></div>
+      <button class="tile" type="button" id="t-data"><b>Data Sekolah &amp; Siswa</b><span>Profil sekolah, rombel kelas 1–6, wali kelas, dan daftar siswa.</span><div class="tag on">Buka →</div></button>
       <div class="tile"><b>Input Nilai</b><span>Tujuan pembelajaran, sumatif lingkup materi, dan sumatif akhir semester.</span><div class="tag">Segera hadir</div></div>
       <div class="tile"><b>Kokurikuler &amp; Ekstrakurikuler</b><span>Capaian dimensi profil, ekstrakurikuler, presensi, dan catatan wali kelas.</span><div class="tag">Segera hadir</div></div>
       <div class="tile"><b>Cek &amp; Cetak Rapor</b><span>Pemeriksaan kelengkapan, leger, dan cetak rapor PDF.</span><div class="tag">Segera hadir</div></div>
+    </div>
+
+    <div class="card akun">
+      <h3>Salinan data sekolah</h3>
+      <p>Unduh seluruh isi spreadsheet sekolah (profil, rombel, siswa, dan nilai) sebagai berkas Excel untuk disimpan sendiri.</p>
+      <button class="btn" type="button" id="b-unduh">Unduh salinan Excel</button>
+      <div class="msg" id="u-msg"></div>
     </div>
 
     <div class="card akun">
@@ -144,6 +178,64 @@ footer{text-align:center;color:var(--muted);font-size:13px;line-height:1.7;paddi
     </div>
   </section>
 
+  <!-- DATA SEKOLAH -->
+  <section id="v-data" class="hidden">
+    <div class="bar">
+      <div><button class="link back" type="button" data-ke="beranda">← Beranda</button><h2>Data Sekolah &amp; Siswa</h2><div class="sub" id="d-sub"></div></div>
+    </div>
+    <div class="tabs" role="tablist">
+      <button type="button" data-tab="profil" class="on">Profil Sekolah</button>
+      <button type="button" data-tab="rombel">Rombel &amp; Siswa</button>
+    </div>
+
+    <div id="p-profil" class="card">
+      <form id="f-profil">
+        <div class="grid2" id="profil-isi"></div>
+        <div class="grid2" style="margin-top:12px">
+          <div><label for="p-semester">Semester yang sedang diisi</label>
+            <select id="p-semester"><option value="1">Semester 1 (Ganjil): rapor tanpa keterangan naik/lulus</option><option value="2">Semester 2 (Genap): rapor dengan keterangan naik/lulus</option></select></div>
+        </div>
+        <div class="toolbar"><button class="btn" type="submit" style="width:auto">Simpan profil</button></div>
+        <div class="msg" id="p-msg"></div>
+      </form>
+    </div>
+
+    <div id="p-rombel" class="hidden">
+      <div class="card hidden" id="rf-wrap" style="margin-bottom:16px">
+        <h3 id="rf-judul" style="margin:0 0 12px">Tambah rombel</h3>
+        <form id="f-rombel" class="grid2">
+          <div><label for="rf-kelas">Kelas</label><select id="rf-kelas"><option value="1">Kelas 1</option><option value="2">Kelas 2</option><option value="3">Kelas 3</option><option value="4">Kelas 4</option><option value="5">Kelas 5</option><option value="6">Kelas 6</option></select></div>
+          <div><label for="rf-nama">Nama rombel</label><input id="rf-nama" type="text" maxlength="20" placeholder="Contoh: 5A"></div>
+          <div><label for="rf-wali">Wali kelas</label><input id="rf-wali" type="text" maxlength="100" placeholder="Nama lengkap dengan gelar"></div>
+          <div><label for="rf-nip">NIP wali kelas</label><input id="rf-nip" type="text" inputmode="numeric" maxlength="24" placeholder="Kosongkan jika tidak ada"></div>
+          <div class="aksi"><button class="btn small" type="submit">Simpan rombel</button><button class="btn ghost small" type="button" id="rf-batal">Batal</button></div>
+        </form>
+        <div class="msg" id="rf-msg"></div>
+      </div>
+      <div class="msg" id="rb-msg"></div>
+      <div id="daftar-rombel"></div>
+    </div>
+  </section>
+
+  <!-- SISWA SATU ROMBEL -->
+  <section id="v-siswa" class="hidden">
+    <div class="bar">
+      <div><button class="link back" type="button" id="s-kembali">← Rombel &amp; Siswa</button><h2 id="s-judul">Siswa</h2><div class="sub" id="s-sub"></div></div>
+    </div>
+    <div class="panduan"><b>Bisa langsung tempel dari Excel atau Dapodik.</b> Susun kolom di Excel sesuai urutan tabel di bawah, blok datanya, salin (Ctrl+C), klik kotak <i>Nama Lengkap</i> di baris pertama, lalu tempel (Ctrl+V).
+      Baris judul ikut tersalin? Tidak apa-apa, dilewati otomatis. Nama panggilan diisi dari kata pertama nama jika dikosongkan. Kolom bertanda * wajib.</div>
+    <div class="toolbar">
+      <button class="btn add" type="button" id="s-tambah">+ Tambah baris</button>
+      <button class="btn" type="button" id="s-simpan" style="width:auto">Simpan daftar siswa</button>
+      <span class="sub" id="s-jumlah"></span>
+    </div>
+    <div class="msg" id="s-msg"></div>
+    <div class="tbl"><table class="siswa"><thead><tr id="s-head"></tr></thead><tbody id="s-body"></tbody></table></div>
+    <datalist id="dl-jk"><option value="L"><option value="P"></datalist>
+    <datalist id="dl-agama"><option value="Islam"><option value="Kristen"><option value="Katolik"><option value="Hindu"><option value="Buddha"><option value="Khonghucu"><option value="Kepercayaan terhadap Tuhan YME"></datalist>
+    <datalist id="dl-seni"></datalist>
+  </section>
+
   <footer>Rapor SD · dikembangkan oleh SD N BUGANGIN · <a href="../" style="color:inherit">Beranda sekolah</a></footer>
 </div>
 
@@ -154,8 +246,26 @@ const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const ls = { get:k=>{try{return localStorage.getItem(k)||''}catch(e){return ''}}, set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}, del:k=>{try{localStorage.removeItem(k)}catch(e){}} };
 const KUNCI_SESI = 'rapor-sesi';
-const VIEWS = ['masuk','daftar','lupa','reset','verifikasi','beranda'];
+const VIEWS = ['masuk','daftar','lupa','reset','verifikasi','beranda','data','siswa'];
 let TOKEN_RESET = '';
+let DATA = null, ROMBEL = null, SISWA = [], UBAH = false;
+const KOLOM = [
+  { k:'nama', judul:'Nama Lengkap *', w:230 },
+  { k:'panggilan', judul:'Nama Panggilan', w:120 },
+  { k:'nis', judul:'NIS', w:100 },
+  { k:'nisn', judul:'NISN', w:120 },
+  { k:'jk', judul:'L/P *', w:60, list:'dl-jk' },
+  { k:'agama', judul:'Agama *', w:120, list:'dl-agama' },
+  { k:'seni', judul:'Seni Pilihan', w:130, list:'dl-seni' },
+  { k:'tempatLahir', judul:'Tempat Lahir', w:130 },
+  { k:'tanggalLahir', judul:'Tanggal Lahir', w:115, ph:'dd/mm/yyyy' },
+  { k:'ayah', judul:'Nama Ayah', w:180 },
+  { k:'ibu', judul:'Nama Ibu', w:180 },
+  { k:'wali', judul:'Nama Wali', w:180 },
+  { k:'alamat', judul:'Alamat', w:260 }
+];
+/* "2016-03-15" → "15/03/2016" agar sama dengan kebiasaan guru; server menerima keduanya. */
+const tglTampil = v => /^\d{4}-\d{2}-\d{2}$/.test(v || '') ? v.split('-').reverse().join('/') : (v || '');
 
 async function api(body){
   if (!API_URL) return { ok:false, pesan:'Sistem belum tersambung ke Apps Script.' };
@@ -183,8 +293,8 @@ function pesan(sel, teks, ok, salah){
 }
 
 /* Mencegah kirim ganda: tombol dimatikan selama permintaan berjalan. */
-async function kirim(form, fn){
-  const btn = form.querySelector('button[type=submit]');
+async function kirim(form, fn){ return sibuk(form.querySelector('button[type=submit]'), fn); }
+async function sibuk(btn, fn){
   if (btn.disabled) return;
   const label = btn.textContent;
   btn.disabled = true; btn.textContent = 'Memproses…';
@@ -231,6 +341,220 @@ $('#f-ganti').addEventListener('submit', e => { e.preventDefault(); kirim(e.targ
   pesan('#g-msg', res.pesan, res.ok, res.salah);
   if (res.ok) { ls.set(KUNCI_SESI, res.sesi); e.target.reset(); }
 }); });
+
+/* ---------- data sekolah ---------- */
+function pilihTab(tab){
+  document.querySelectorAll('[data-tab]').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
+  $('#p-profil').classList.toggle('hidden', tab !== 'profil');
+  $('#p-rombel').classList.toggle('hidden', tab !== 'rombel');
+}
+
+async function bukaData(tab){
+  tampil('data');
+  pilihTab(tab || 'profil');
+  $('#profil-isi').innerHTML = '<div class="sub">Memuat data sekolah…</div>';
+  $('#daftar-rombel').innerHTML = '';
+  const res = await api({ aksi:'dataSekolah' });
+  if (res.sesiHabis) return;
+  if (!res.ok) { $('#profil-isi').innerHTML = ''; return pesan('#p-msg', res.pesan, false); }
+  DATA = res;
+  $('#d-sub').textContent = 'Tahun ajaran ' + res.tahunAjaran + ' · Semester ' + res.semester;
+  renderProfil();
+  renderRombel();
+}
+
+function renderProfil(){
+  $('#profil-isi').innerHTML = DATA.profil.map((p, i) => {
+    const tgl = p.kunci === 'Tanggal Pembagian Rapor';
+    return '<div class="field"><label for="pf-' + i + '">' + esc(p.kunci) + '</label>' +
+      '<input id="pf-' + i + '" type="text" data-kunci="' + esc(p.kunci) + '" value="' + esc(tgl ? tglTampil(p.nilai) : p.nilai) + '"' +
+      (p.tetap ? ' disabled' : '') + (tgl ? ' placeholder="dd/mm/yyyy"' : '') + '>' +
+      (p.tetap ? '<div class="hint">Tidak bisa diubah (identitas akun).</div>' : p.ket ? '<div class="hint">' + esc(p.ket) + '</div>' : '') + '</div>';
+  }).join('');
+  $('#p-semester').value = String(DATA.semester);
+  $('#p-msg').textContent = '';
+}
+
+$('#f-profil').addEventListener('submit', e => { e.preventDefault(); kirim(e.target, async () => {
+  const profil = {};
+  document.querySelectorAll('#profil-isi input:not([disabled])').forEach(i => { profil[i.dataset.kunci] = i.value; });
+  const res = await api({ aksi:'simpanProfil', profil, semester: Number($('#p-semester').value) });
+  if (res.sesiHabis) return;
+  pesan('#p-msg', res.pesan, res.ok, res.salah);
+  if (res.ok) { DATA.semester = Number($('#p-semester').value); $('#d-sub').textContent = 'Tahun ajaran ' + DATA.tahunAjaran + ' · Semester ' + DATA.semester; }
+}); });
+
+function renderRombel(){
+  let html = '';
+  for (let k = 1; k <= 6; k++) {
+    const isi = DATA.rombel.filter(r => r.kelas === k);
+    html += '<div class="kelas"><h3>Kelas ' + k + '</h3><div class="rombels">' +
+      isi.map(r => '<div class="rombel"><b>' + esc(r.nama) + '</b><div class="sub">' +
+        (r.wali ? 'Wali kelas: ' + esc(r.wali) : '<i>Wali kelas belum diisi</i>') + '<br>' + r.jumlah + ' siswa</div>' +
+        '<div class="aksi"><button class="btn small" type="button" data-siswa="' + esc(r.id) + '">Data siswa</button>' +
+        '<button class="btn ghost small" type="button" data-ubah="' + esc(r.id) + '">Ubah</button>' +
+        (r.jumlah ? '' : '<button class="btn danger small" type="button" data-hapus="' + esc(r.id) + '">Hapus</button>') + '</div></div>').join('') +
+      '<div><button class="btn add small" type="button" data-tambah="' + k + '">+ Tambah rombel kelas ' + k + '</button></div>' +
+      '</div></div>';
+  }
+  $('#daftar-rombel').innerHTML = html;
+}
+
+function formRombel(r, kelas){
+  $('#rf-wrap').classList.remove('hidden');
+  $('#rf-wrap').dataset.id = r ? r.id : '';
+  $('#rf-judul').textContent = r ? 'Ubah rombel ' + r.nama : 'Tambah rombel kelas ' + kelas;
+  $('#rf-kelas').value = String(r ? r.kelas : kelas);
+  $('#rf-nama').value = r ? r.nama : '';
+  $('#rf-wali').value = r ? r.wali : '';
+  $('#rf-nip').value = r ? r.nip : '';
+  $('#rf-msg').textContent = '';
+  $('#rf-wrap').scrollIntoView({ behavior:'smooth', block:'start' });
+  $('#rf-nama').focus();
+}
+
+$('#daftar-rombel').addEventListener('click', async e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  if (b.dataset.tambah) return formRombel(null, Number(b.dataset.tambah));
+  const r = DATA.rombel.find(x => x.id === (b.dataset.ubah || b.dataset.hapus || b.dataset.siswa));
+  if (!r) return;
+  if (b.dataset.ubah) return formRombel(r);
+  if (b.dataset.siswa) return bukaSiswa(r.id);
+  if (b.dataset.hapus) {
+    if (!confirm('Hapus rombel ' + r.nama + '?')) return;
+    await sibuk(b, async () => {
+      const res = await api({ aksi:'hapusRombel', id: r.id });
+      if (res.sesiHabis) return;
+      pesan('#rb-msg', res.pesan, res.ok);
+      if (res.ok) { DATA.rombel = DATA.rombel.filter(x => x.id !== r.id); renderRombel(); }
+    });
+  }
+});
+
+$('#f-rombel').addEventListener('submit', e => { e.preventDefault(); kirim(e.target, async () => {
+  const rombel = { id: $('#rf-wrap').dataset.id || undefined, kelas: Number($('#rf-kelas').value),
+    nama: $('#rf-nama').value, wali: $('#rf-wali').value, nip: $('#rf-nip').value };
+  const res = await api({ aksi:'simpanRombel', rombel });
+  if (res.sesiHabis) return;
+  if (!res.ok) return pesan('#rf-msg', res.pesan, false, res.salah);
+  $('#rf-wrap').classList.add('hidden');
+  pesan('#rb-msg', res.pesan, true);
+  const lama = DATA.rombel.find(x => x.id === res.rombel.id);
+  if (lama) Object.assign(lama, res.rombel); else DATA.rombel.push({ ...res.rombel, jumlah: 0 });
+  DATA.rombel.sort((a, b) => a.kelas - b.kelas || a.nama.localeCompare(b.nama));
+  renderRombel();
+}); });
+$('#rf-batal').addEventListener('click', () => $('#rf-wrap').classList.add('hidden'));
+
+/* ---------- siswa satu rombel ---------- */
+async function bukaSiswa(id){
+  tampil('siswa');
+  $('#s-judul').textContent = 'Memuat…';
+  $('#s-sub').textContent = ''; $('#s-msg').textContent = ''; $('#s-body').innerHTML = '';
+  const res = await api({ aksi:'siswaRombel', rombel: id });
+  if (res.sesiHabis) return;
+  if (!res.ok) { $('#s-judul').textContent = 'Siswa'; return pesan('#s-msg', res.pesan, false); }
+  ROMBEL = res.rombel;
+  $('#s-judul').textContent = 'Siswa ' + res.rombel.nama;
+  $('#s-sub').textContent = 'Kelas ' + res.rombel.kelas + (res.rombel.wali ? ' · Wali kelas: ' + res.rombel.wali : '') + ' · Tahun ajaran ' + (DATA ? DATA.tahunAjaran : '');
+  $('#dl-seni').innerHTML = res.seni.map(s => '<option value="' + esc(s) + '">').join('');
+  SISWA = res.siswa.map(s => ({ ...s, tanggalLahir: tglTampil(s.tanggalLahir) }));
+  if (!SISWA.length) SISWA = Array.from({ length: 5 }, () => ({}));
+  UBAH = false;
+  renderTabel();
+}
+
+function renderTabel(){
+  $('#s-head').innerHTML = '<th>No</th>' + KOLOM.map(c => '<th style="min-width:' + c.w + 'px">' + esc(c.judul) + '</th>').join('') + '<th></th>';
+  $('#s-body').innerHTML = SISWA.map((s, i) => '<tr><td class="no">' + (i + 1) + '</td>' +
+    KOLOM.map(c => '<td><input data-i="' + i + '" data-k="' + c.k + '" value="' + esc(s[c.k]) + '"' +
+      (c.list ? ' list="' + c.list + '"' : '') + (c.ph ? ' placeholder="' + c.ph + '"' : '') + ' aria-label="' + esc(c.judul) + ' baris ' + (i + 1) + '"></td>').join('') +
+    '<td><button class="hapus" type="button" data-hapus-baris="' + i + '" title="Hapus baris" aria-label="Hapus baris ' + (i + 1) + '">×</button></td></tr>').join('');
+  hitungJumlah();
+}
+
+const barisKosong = s => KOLOM.every(c => !String(s[c.k] || '').trim());
+function hitungJumlah(){ $('#s-jumlah').textContent = SISWA.filter(s => !barisKosong(s)).length + ' siswa' + (UBAH ? ' · belum disimpan' : ''); }
+
+$('#s-body').addEventListener('input', e => {
+  const t = e.target;
+  if (!t.dataset.k) return;
+  SISWA[Number(t.dataset.i)][t.dataset.k] = t.value;
+  UBAH = true; hitungJumlah();
+});
+
+$('#s-body').addEventListener('click', e => {
+  const b = e.target.closest('[data-hapus-baris]');
+  if (!b) return;
+  SISWA.splice(Number(b.dataset.hapusBaris), 1);
+  if (!SISWA.length) SISWA.push({});
+  UBAH = true; renderTabel();
+});
+
+/* Tempel dari Excel: teks berpisah tab/baris diisikan mulai dari kotak yang sedang dipilih. */
+$('#s-body').addEventListener('paste', e => {
+  const t = e.target;
+  if (!t.dataset.k) return;
+  const teks = (e.clipboardData || window.clipboardData).getData('text');
+  if (!/[\t\n]/.test(teks.replace(/\s+$/, ''))) return;
+  e.preventDefault();
+  const baris = teks.replace(/\r/g, '').replace(/\n+$/, '').split('\n').map(r => r.split('\t'));
+  const JUDUL = /^(no\.?|nomor|nama( lengkap)?( siswa| peserta didik)?|nisn|nis|l\/p|jk|jenis kelamin|agama)$/i;
+  if (baris.length > 1 && baris[0].some(x => JUDUL.test(x.trim()))) baris.shift(); // baris judul ikut tersalin
+  const i0 = Number(t.dataset.i), k0 = KOLOM.findIndex(c => c.k === t.dataset.k);
+  baris.forEach((r, bi) => {
+    if (!SISWA[i0 + bi]) SISWA[i0 + bi] = {};
+    r.forEach((v, ki) => { const c = KOLOM[k0 + ki]; if (c) SISWA[i0 + bi][c.k] = v.trim(); });
+  });
+  UBAH = true; renderTabel();
+  pesan('#s-msg', baris.length + ' baris ditempel. Periksa lalu klik Simpan daftar siswa.', true);
+});
+
+$('#s-tambah').addEventListener('click', () => {
+  SISWA.push({}); renderTabel();
+  const inp = document.querySelectorAll('#s-body tr:last-child input')[0];
+  if (inp) inp.focus();
+});
+
+$('#s-simpan').addEventListener('click', e => sibuk(e.target, async () => {
+  // Baris kosong dibuang dulu agar nomor baris di pesan kesalahan sama dengan nomor di tabel.
+  SISWA = SISWA.filter(s => !barisKosong(s));
+  renderTabel();
+  const res = await api({ aksi:'simpanSiswa', rombel: ROMBEL.id, siswa: SISWA });
+  if (res.sesiHabis) return;
+  pesan('#s-msg', res.pesan, res.ok, res.salah);
+  if (!SISWA.length) SISWA.push({});
+  if (!res.ok) return renderTabel();
+  SISWA = res.siswa.map(s => ({ ...s, tanggalLahir: tglTampil(s.tanggalLahir) }));
+  UBAH = false; renderTabel();
+  const r = DATA && DATA.rombel.find(x => x.id === ROMBEL.id);
+  if (r) r.jumlah = res.siswa.length;
+}));
+
+$('#s-kembali').addEventListener('click', () => {
+  if (UBAH && !confirm('Perubahan daftar siswa belum disimpan. Tinggalkan halaman ini?')) return;
+  UBAH = false;
+  tampil('data'); pilihTab('rombel'); renderRombel();
+});
+window.addEventListener('beforeunload', e => { if (UBAH) { e.preventDefault(); e.returnValue = ''; } });
+
+document.querySelectorAll('[data-tab]').forEach(b => b.addEventListener('click', () => pilihTab(b.dataset.tab)));
+document.querySelectorAll('[data-ke="beranda"]').forEach(b => b.addEventListener('click', () => tampil('beranda')));
+$('#t-data').addEventListener('click', () => bukaData('profil'));
+
+$('#b-unduh').addEventListener('click', e => sibuk(e.target, async () => {
+  pesan('#u-msg', 'Menyiapkan berkas Excel…', true);
+  const res = await api({ aksi:'unduhExcel' });
+  if (res.sesiHabis) return;
+  if (!res.ok) return pesan('#u-msg', res.pesan, false);
+  const biner = atob(res.data), bytes = new Uint8Array(biner.length);
+  for (let i = 0; i < biner.length; i++) bytes[i] = biner.charCodeAt(i);
+  const url = URL.createObjectURL(new Blob([bytes], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
+  const a = document.createElement('a'); a.href = url; a.download = res.nama; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+  pesan('#u-msg', 'Berkas ' + res.nama + ' sudah diunduh.', true);
+}));
 
 $('#b-keluar').addEventListener('click', async () => {
   await api({ aksi:'keluar' });
