@@ -17,7 +17,7 @@ h1{margin:0 0 6px;font-size:clamp(1.5rem,4vw,2.3rem);letter-spacing:-.03em}heade
 .card{background:#fff;border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 10px 24px rgba(18,49,79,.07)}
 .form{max-width:460px;margin:22px auto 0}.form h2{margin:0 0 6px}.form>p{color:var(--muted);font-size:14px;line-height:1.55;margin:0 0 16px}
 .field{margin-bottom:13px}label{display:block;font-size:13px;font-weight:700;margin:0 0 6px}.hint{font-size:12.5px;color:var(--muted);margin-top:5px;line-height:1.45}
-input[type=text],input[type=email],input[type=password],input[type=date]{width:100%;font:inherit;font-size:15px;padding:11px 12px;border:1px solid #d9cfb8;border-radius:12px;background:#fff;color:var(--ink)}
+input[type=text],input[type=email],input[type=password],input[type=date],input[type=number]{width:100%;font:inherit;font-size:15px;padding:11px 12px;border:1px solid #d9cfb8;border-radius:12px;background:#fff;color:var(--ink)}
 input:focus{outline:2px solid var(--yellow);border-color:var(--yellow)}
 .check{display:flex;gap:10px;align-items:flex-start;font-weight:400;font-size:13.5px;line-height:1.5;padding:12px;border:1px solid var(--line);border-radius:12px;background:#fffdf7;cursor:pointer}.check input{margin-top:3px;width:18px;height:18px;flex:none;accent-color:var(--red)}
 .show{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--muted);margin:-4px 0 12px;cursor:pointer}.show input{accent-color:var(--blue)}
@@ -100,6 +100,9 @@ table.kok tr.basi td.ket{opacity:.45}
 .narasi textarea{width:100%;font:inherit;font-size:13.5px;line-height:1.45;padding:9px 10px;border:1px solid #d9cfb8;border-radius:10px;resize:vertical;min-height:58px}
 .narasi textarea:focus{outline:2px solid var(--yellow);border-color:var(--yellow)}
 @media (max-width:560px){.narasi .lv{grid-template-columns:1fr}.narasi .lv b{padding-top:0}}
+.eks-daftar{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px;margin-top:12px}
+.eks-daftar label{display:flex;align-items:center;gap:8px;margin:0;font-size:13px;color:var(--muted)}.eks-daftar label b{min-width:22px;text-align:right}
+.eks-daftar input{padding:9px 10px!important;font-size:14px!important}
 .eks{display:flex;flex-direction:column;gap:6px;padding:6px 4px;min-width:560px}
 .eks .e{display:grid;grid-template-columns:170px 130px 1fr 34px;gap:6px;align-items:center}
 .eks select,.eks input{padding:6px 8px!important;font-size:13px!important;border:1px solid #e3d8c0!important;border-radius:8px!important;background:#fff!important}
@@ -355,13 +358,14 @@ table.leger td.j{text-align:center;font-weight:800}
       <div id="wk-eks">
         <details class="card" id="wk-daftar-box">
           <summary><b>Daftar ekstrakurikuler sekolah</b> <span class="sub" id="wk-daftar-ring"></span></summary>
-          <p class="hint" style="margin:10px 0">Satu kegiatan per baris, misalnya Pramuka, Drum Band, Tilawah. Daftar ini dipakai semua kelas. Kegiatan yang sudah diisi untuk siswa tidak bisa dihapus.</p>
-          <div class="narasi"><textarea id="wk-daftar" rows="5" aria-label="Daftar ekstrakurikuler"></textarea></div>
+          <p class="hint" style="margin:10px 0">Isi jumlah ekstrakurikuler di sekolah, lalu tulis namanya di kotak bernomor (misalnya Pramuka, Drum Band, Tilawah). Daftar ini dipakai semua kelas. Kegiatan yang sudah diisi untuk siswa tidak bisa dihapus.</p>
+          <div style="max-width:240px"><label for="wk-jml">Jumlah ekstrakurikuler</label><input type="number" id="wk-jml" min="0" max="50" inputmode="numeric" placeholder="misalnya 10"></div>
+          <div class="eks-daftar" id="wk-daftar"></div>
           <div class="toolbar"><button class="btn small" type="button" id="wk-daftar-simpan">Simpan daftar</button></div>
           <div class="msg" id="wk-daftar-msg"></div>
         </details>
         <div id="wk-eks-editor">
-          <div class="panduan" style="margin-top:14px">Tiap siswa paling banyak 5 ekstrakurikuler. Pilih kegiatan dan predikatnya. Keterangan boleh dikosongkan; rapor akan memakai kalimat otomatis seperti yang tampil samar di kotak keterangan.</div>
+          <div class="panduan" style="margin-top:14px">Siswa boleh mengikuti lebih dari satu ekstrakurikuler (klik <b>+ ekstrakurikuler</b>). Pilih kegiatan dan predikatnya. Keterangan boleh dikosongkan; rapor akan memakai kalimat otomatis seperti yang tampil samar di kotak keterangan.</div>
           <div class="toolbar">
             <span class="sub">Tambahkan ke semua siswa:</span>
             <select id="wk-massal-keg" style="width:auto"></select>
@@ -1343,6 +1347,11 @@ document.querySelector('#v-kok [data-ke="beranda"]').addEventListener('click', (
 });
 
 /* ---------- wali kelas ---------- */
+let WK_DAFTAR = [];
+function renderDaftarEkskul(){
+  $('#wk-jml').value = WK_DAFTAR.length || '';
+  $('#wk-daftar').innerHTML = WK_DAFTAR.map((n, i) => '<label><b>' + (i + 1) + '.</b><input type="text" data-i="' + i + '" maxlength="60" value="' + esc(n) + '" aria-label="Ekstrakurikuler ' + (i + 1) + '"></label>').join('');
+}
 let WK = null, WK_TAB = 'eks', WK_EKS = {}, WK_HADIR = {}, WK_NAIK = {};
 const WK_UBAH = { eks:false, hadir:false, naik:false };
 const WK_HARI = [{ k:'sakit' }, { k:'izin' }, { k:'alpa' }];
@@ -1396,7 +1405,7 @@ async function muatWali(){
   $('#wk-sub').textContent = 'Tahun ajaran ' + res.tahunAjaran + ' · ' + labelRombel(res.rombel) + ' · Semester ' + res.semester;
   if (!res.siswa.length) { $('#wk-isi').classList.add('hidden'); return pesan('#wk-info', 'Rombel ini belum punya siswa. Isi dulu di Data Sekolah & Siswa → Rombel & Siswa.', false); }
   $('#wk-isi').classList.remove('hidden');
-  $('#wk-daftar').value = res.ekskulSekolah.join('\n');
+  WK_DAFTAR = res.ekskulSekolah.slice(); renderDaftarEkskul();
   $('#wk-daftar-box').open = !res.ekskulSekolah.length;
   renderWali();
 }
@@ -1412,6 +1421,12 @@ document.querySelectorAll('[data-wk]').forEach(b => b.addEventListener('click', 
 const opsi = (daftar, pilih, kosong) => (kosong !== undefined ? '<option value="">' + esc(kosong) + '</option>' : '') +
   daftar.map(v => '<option' + (v === pilih ? ' selected' : '') + '>' + esc(v) + '</option>').join('');
 const ketOtomatis = e => e.kegiatan && e.predikat ? e.predikat.charAt(0) + e.predikat.slice(1).toLowerCase() + ' dalam mengikuti kegiatan ' + e.kegiatan + '.' : 'Keterangan (isi jika tanpa predikat)';
+/* Kegiatan yang sudah dipilih di baris lain siswa yang sama tidak bisa dipilih lagi. */
+function opsiKegiatan(daftar, isi, pilih){
+  const lain = isi.map(e => e.kegiatan).filter(k => k && k !== pilih);
+  const semua = !pilih || daftar.includes(pilih) ? daftar : daftar.concat(pilih);
+  return '<option value="">— kegiatan —</option>' + semua.map(v => '<option' + (v === pilih ? ' selected' : '') + (lain.includes(v) ? ' disabled' : '') + '>' + esc(v) + '</option>').join('');
+}
 function renderEkskul(){
   const daftar = WK.ekskulSekolah;
   $('#wk-daftar-ring').textContent = daftar.length ? '(' + daftar.join(', ') + ')' : '(belum ada — isi dulu)';
@@ -1421,11 +1436,11 @@ function renderEkskul(){
   $('#wk-eks-body').innerHTML = WK.siswa.map((s, i) => {
     const isi = WK_EKS[s.id] || [];
     return '<tr><td class="no">' + s.no + '</td><td>' + esc(s.nama) + '</td><td><div class="eks">' +
-      isi.map((e, j) => '<div class="e"><select data-s="' + i + '" data-j="' + j + '" data-f="kegiatan" aria-label="Kegiatan">' + opsi(daftar.includes(e.kegiatan) || !e.kegiatan ? daftar : daftar.concat(e.kegiatan), e.kegiatan, '— kegiatan —') + '</select>' +
+      isi.map((e, j) => '<div class="e"><select data-s="' + i + '" data-j="' + j + '" data-f="kegiatan" aria-label="Kegiatan">' + opsiKegiatan(daftar, isi, e.kegiatan) + '</select>' +
         '<select data-s="' + i + '" data-j="' + j + '" data-f="predikat" aria-label="Predikat">' + opsi(WK.predikat, e.predikat, '— predikat —') + '</select>' +
         '<input data-s="' + i + '" data-j="' + j + '" data-f="keterangan" maxlength="300" value="' + esc(e.keterangan || '') + '" placeholder="' + esc(ketOtomatis(e)) + '" aria-label="Keterangan">' +
         '<button class="hapus" type="button" data-s="' + i + '" data-hapus="' + j + '" title="Hapus">✕</button></div>').join('') +
-      (isi.length < WK.maksEkskul ? '<button class="tambah" type="button" data-s="' + i + '" data-tambah="1">+ ekstrakurikuler</button>' : '') +
+      (isi.length < daftar.length ? '<button class="tambah" type="button" data-s="' + i + '" data-tambah="1">+ ekstrakurikuler</button>' : '') +
       '</div></td></tr>';
   }).join('');
   statusEkskul();
@@ -1447,20 +1462,20 @@ $('#wk-eks-body').addEventListener('click', e => {
   if (!t.dataset.f) return;
   const en = WK_EKS[WK.siswa[Number(t.dataset.s)].id][Number(t.dataset.j)];
   en[t.dataset.f] = t.value; WK_UBAH.eks = true;
+  if (t.dataset.f === 'kegiatan' && e.type === 'change') { renderEkskul(); return; }
   if (t.dataset.f !== 'keterangan') t.closest('.e').querySelector('input').placeholder = ketOtomatis(en);
   statusEkskul();
 }));
 $('#wk-massal').addEventListener('click', () => {
   const keg = $('#wk-massal-keg').value, pred = $('#wk-massal-pred').value;
-  let n = 0, penuh = 0;
+  let n = 0;
   WK.siswa.forEach(s => {
     const isi = WK_EKS[s.id];
     if (isi.some(e => e.kegiatan === keg)) return;
-    if (isi.length >= WK.maksEkskul) { penuh++; return; }
     isi.push({ kegiatan: keg, predikat: pred, keterangan:'' }); n++;
   });
   WK_UBAH.eks = WK_UBAH.eks || n > 0; renderEkskul();
-  pesan('#wk-eks-msg', keg + ' ditambahkan ke ' + n + ' siswa.' + (penuh ? ' ' + penuh + ' siswa sudah 5 kegiatan.' : '') + ' Klik Simpan ekstrakurikuler.', !penuh);
+  pesan('#wk-eks-msg', keg + ' ditambahkan ke ' + n + ' siswa' + (n < WK.siswa.length ? ' (siswa lain sudah mengikutinya)' : '') + '. Klik Simpan ekstrakurikuler.', true);
 });
 $('#wk-eks-simpan').addEventListener('click', e => sibuk(e.target, async () => {
   const res = await api({ aksi:'simpanEkskul', rombel: WK.rombel.id, semester: WK.semester, ekskul: WK_EKS });
@@ -1469,12 +1484,35 @@ $('#wk-eks-simpan').addEventListener('click', e => sibuk(e.target, async () => {
   if (!res.ok) return;
   pakaiWali(res, ['eks']); renderWali();
 }));
+$('#wk-jml').addEventListener('change', e => {
+  const n = Math.max(0, Math.min(50, Math.floor(Number(e.target.value) || 0)));
+  if (n < WK_DAFTAR.length) {
+    const terisi = WK_DAFTAR.slice(n).map((x, i) => x.trim() ? n + i + 1 : 0).filter(Boolean);
+    if (terisi.length) {
+      e.target.value = WK_DAFTAR.length;
+      return pesan('#wk-daftar-msg', 'Kotak nomor ' + terisi.join(', ') + ' masih berisi. Kosongkan dulu jika memang ingin mengurangi jumlahnya.', false);
+    }
+  }
+  while (WK_DAFTAR.length < n) WK_DAFTAR.push('');
+  WK_DAFTAR.length = n;
+  $('#wk-daftar-msg').textContent = '';
+  renderDaftarEkskul();
+  const kosong = $('#wk-daftar input[value=""]');
+  if (kosong) kosong.focus();
+});
+$('#wk-daftar').addEventListener('input', e => { if (e.target.dataset.i !== undefined) WK_DAFTAR[Number(e.target.dataset.i)] = e.target.value; });
+$('#wk-daftar').addEventListener('keydown', e => {
+  if (e.key !== 'Enter' || e.target.dataset.i === undefined) return;
+  e.preventDefault();
+  const lanjut = $('#wk-daftar input[data-i="' + (Number(e.target.dataset.i) + 1) + '"]');
+  if (lanjut) lanjut.focus(); else $('#wk-daftar-simpan').focus();
+});
 $('#wk-daftar-simpan').addEventListener('click', e => sibuk(e.target, async () => {
-  const res = await api({ aksi:'simpanEkskulSekolah', daftar: $('#wk-daftar').value.split('\n') });
+  const res = await api({ aksi:'simpanEkskulSekolah', daftar: WK_DAFTAR });
   if (res.sesiHabis) return;
   pesan('#wk-daftar-msg', res.pesan, res.ok, res.salah);
   if (!res.ok) return;
-  WK.ekskulSekolah = res.ekskulSekolah; $('#wk-daftar').value = res.ekskulSekolah.join('\n');
+  WK.ekskulSekolah = res.ekskulSekolah; WK_DAFTAR = res.ekskulSekolah.slice(); renderDaftarEkskul();
   renderEkskul();
 }));
 

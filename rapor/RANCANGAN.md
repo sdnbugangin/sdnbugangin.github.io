@@ -74,7 +74,7 @@ Dengan cara ini tidak ada batas 15 TP atau 60 siswa, dan tidak ada 21 sheet beri
 | Kokurikuler | subdimensi yang dinilai per kelas per semester (dimensi mengikuti subdimensinya) |
 | Capaian Kokurikuler | capaian per siswa per subdimensi (Mahir / Cakap / Berkembang) |
 | Master Narasi | subdimensi, level, narasi (75 baris bawaan dari rapor lama) |
-| Ekstrakurikuler | siswa, kegiatan, predikat, keterangan (paling banyak 5 kegiatan per siswa per semester) |
+| Ekstrakurikuler | siswa, kegiatan, predikat, keterangan (tanpa batas jumlah per siswa) |
 | Presensi & Catatan | siswa, sakit, izin, alpa, catatan wali kelas, tanggapan orang tua |
 | Kenaikan | siswa, keputusan (Naik / Tinggal; kelas 6: Lulus / Tidak Lulus) per tahun ajaran; hanya tampil di rapor semester 2 |
 | Log | waktu, pengguna, aksi, rincian |
@@ -159,8 +159,8 @@ Pengamannya: setiap perubahan nilai dicatat di Log beserta waktunya, dan kepala 
 
 ### Wali kelas (ekstrakurikuler, ketidakhadiran, catatan, kenaikan)
 
-- **Daftar ekstrakurikuler sekolah** disimpan di Pengaturan "Ekstrakurikuler Ditawarkan". Kegiatan yang sudah diisi untuk siswa tahun ini tidak bisa dihapus.
-- **Ekstrakurikuler siswa**: paling banyak 5 kegiatan dari daftar sekolah, masing-masing dengan predikat (Sangat Baik/Baik/Cukup/Kurang) dan keterangan.
+- **Daftar ekstrakurikuler sekolah** diisi dengan "jumlah ekstrakurikuler" lalu kotak bernomor (maks. 50 sebagai pengaman), disimpan di Pengaturan "Ekstrakurikuler Ditawarkan". Kegiatan yang sudah diisi untuk siswa tahun ini tidak bisa dihapus.
+- **Ekstrakurikuler siswa**: boleh lebih dari satu kegiatan dari daftar sekolah (tanpa batas selain daftar itu; satu kegiatan sekali), masing-masing dengan predikat (Sangat Baik/Baik/Cukup/Kurang) dan keterangan.
   - Keterangan kosong dibuat otomatis saat dibaca, misalnya "Sangat baik dalam mengikuti kegiatan Pramuka.", sehingga selalu sesuai predikat.
   - Satu kegiatan bisa ditambahkan ke semua siswa sekaligus.
 - **Ketidakhadiran**: bilangan bulat 0–200 hari; kosong = belum diisi. Tersedia tombol "isi 0" dan tempel blok dari Excel.
