@@ -12,8 +12,20 @@ var MAKS_SISWA_ROMBEL = 100;
 var KOLOM_SISWA = {
   id: 'ID Siswa', nis: 'NIS', nisn: 'NISN', nama: 'Nama Lengkap', panggilan: 'Nama Panggilan',
   jk: 'Jenis Kelamin', agama: 'Agama', tempatLahir: 'Tempat Lahir', tanggalLahir: 'Tanggal Lahir',
-  ayah: 'Nama Ayah', ibu: 'Nama Ibu', wali: 'Nama Wali', alamat: 'Alamat'
+  ayah: 'Nama Ayah', ibu: 'Nama Ibu', wali: 'Nama Wali', alamat: 'Alamat',
+  pendidikanSebelumnya: 'Pendidikan Sebelumnya', pekerjaanAyah: 'Pekerjaan Ayah', pekerjaanIbu: 'Pekerjaan Ibu',
+  alamatOrtu: 'Alamat Orang Tua', pekerjaanWali: 'Pekerjaan Wali', alamatWali: 'Alamat Wali'
 };
+
+/* Baris profil yang ditambahkan setelah versi pertama: dilengkapi otomatis di spreadsheet lama. */
+var PROFIL_TAMBAHAN = [{ Kunci: 'Website', Nilai: '', Keterangan: 'Opsional, tercetak di sampul rapor.' }];
+
+function profilLengkap_(rows) {
+  var ada = {};
+  rows.forEach(function (r) { ada[teks_(r.Kunci)] = true; });
+  PROFIL_TAMBAHAN.forEach(function (t) { if (!ada[t.Kunci]) rows.push({ Kunci: t.Kunci, Nilai: t.Nilai, Keterangan: t.Keterangan }); });
+  return rows;
+}
 
 /* ---------- pemeriksaan & perapian isian (murni) ---------- */
 
@@ -98,6 +110,8 @@ function normalisasiSiswa_(d, seniDitawarkan, tahunSekarang) {
     nama: teks_(d.nama), panggilan: teks_(d.panggilan), jk: normalisasiJk_(d.jk),
     agama: normalisasiAgama_(d.agama) || teks_(d.agama), tempatLahir: teks_(d.tempatLahir),
     tanggalLahir: '', ayah: teks_(d.ayah), ibu: teks_(d.ibu), wali: teks_(d.wali), alamat: teks_(d.alamat),
+    pendidikanSebelumnya: teks_(d.pendidikanSebelumnya), pekerjaanAyah: teks_(d.pekerjaanAyah), pekerjaanIbu: teks_(d.pekerjaanIbu),
+    alamatOrtu: teks_(d.alamatOrtu), pekerjaanWali: teks_(d.pekerjaanWali), alamatWali: teks_(d.alamatWali),
     seni: normalisasiSeni_(d.seni, seniDitawarkan || PILIHAN_SENI)
   };
   var tgl = normalisasiTanggal_(d.tanggalLahir, tahunSekarang - 25, tahunSekarang - 3);
@@ -106,8 +120,12 @@ function normalisasiSiswa_(d, seniDitawarkan, tahunSekarang) {
   if (s.nama.length > 100) salah.push('nama terlalu panjang (maks. 100 karakter).');
   if (!s.panggilan && s.nama) s.panggilan = panggilanBawaan_(s.nama);
   if (s.panggilan.length > 30) salah.push('nama panggilan terlalu panjang (maks. 30 karakter).');
-  ['tempatLahir', 'ayah', 'ibu', 'wali'].forEach(function (k) { if (s[k].length > 100) salah.push(k + ' terlalu panjang.'); });
-  if (s.alamat.length > 300) salah.push('alamat terlalu panjang (maks. 300 karakter).');
+  ['tempatLahir', 'ayah', 'ibu', 'wali', 'pendidikanSebelumnya', 'pekerjaanAyah', 'pekerjaanIbu', 'pekerjaanWali'].forEach(function (k) {
+    if (s[k].length > 100) salah.push(KOLOM_SISWA[k].toLowerCase() + ' terlalu panjang (maks. 100 karakter).');
+  });
+  ['alamat', 'alamatOrtu', 'alamatWali'].forEach(function (k) {
+    if (s[k].length > 300) salah.push(KOLOM_SISWA[k].toLowerCase() + ' terlalu panjang (maks. 300 karakter).');
+  });
   return { siswa: s, salah: salah };
 }
 
@@ -465,7 +483,7 @@ function idBaru_(awalan, dipakai) {
 function dataSekolah_(npsn) {
   var ss = bukaSekolah_(npsn);
   var atur = aturSekolah_(ss);
-  var profil = bacaTabel_(ss, 'Profil Sekolah').map(function (r) {
+  var profil = profilLengkap_(bacaTabel_(ss, 'Profil Sekolah')).map(function (r) {
     return { kunci: teks_(r.Kunci), nilai: teks_(r.Nilai), ket: teks_(r.Keterangan), tetap: KUNCI_PROFIL_TETAP.indexOf(teks_(r.Kunci)) >= 0 };
   });
   var jumlah = {};
@@ -490,7 +508,7 @@ function daftarRombel_(ss, tahunAjaran) {
 function simpanProfil_(npsn, isian, semester, seni) {
   var ss = bukaSekolah_(npsn);
   return denganKunci_(function () {
-    var rows = bacaTabel_(ss, 'Profil Sekolah');
+    var rows = profilLengkap_(bacaTabel_(ss, 'Profil Sekolah'));
     var cek = cekProfil_(isian, rows.map(function (r) { return teks_(r.Kunci); }));
     var sem = Number(semester);
     if (semester !== undefined && sem !== 1 && sem !== 2) cek.salah.push('Semester harus 1 atau 2.');
