@@ -91,6 +91,15 @@ Satu akun untuk satu sekolah. Semua guru (wali kelas maupun guru mapel) masuk de
 Aplikasi tidak membatasi guru hanya pada kelasnya sendiri. Akibat akun bersama, misalnya nilai kelas lain yang terubah tanpa sengaja, menjadi tanggung jawab sekolah.
 Pengamannya: setiap perubahan nilai dicatat di Log beserta waktunya, dan kepala sekolah bisa mengunci rapor yang sudah final (tahap 5).
 
+### Aturan data siswa (tahap 3)
+
+- **Isian dirapikan sebelum disimpan.** "Laki-laki" menjadi `L`, "Budha" menjadi `Buddha`, "musik" menjadi `Seni Musik`. Tanggal `15/03/2016` disimpan sebagai `2016-03-15` dan ditampilkan lagi sebagai `15/03/2016`. Nama panggilan diisi dari kata pertama nama jika kosong.
+- **Satu kesalahan menolak seluruh simpanan.** Semua kesalahan dilaporkan sekaligus dengan nomor baris yang sama dengan tabel, dan tidak ada data yang tersimpan setengah jadi.
+- **NISN/NIS unik di satu sekolah.** Siswa tidak bisa berada di dua rombel pada tahun ajaran yang sama.
+- **Siswa yang dihapus dari rombel tidak dihapus datanya.** Jika siswa itu ditempel di rombel lain dengan NISN (atau NIS) yang sama, ia disambungkan ke data lamanya sehingga tidak ada siswa dobel.
+- **Rombel hanya bisa dihapus jika sudah kosong.** Satu rombel maksimal 100 siswa.
+- **Lebih dari 1.000 baris tetap aman.** Baris tambahan sheet dibuat otomatis, lengkap dengan format teksnya.
+
 ## 5. Pencegahan error (pelajaran dari rapor Excel lama)
 
 | Masalah di file lama | Penyebab | Penanganan di aplikasi baru |
@@ -120,7 +129,7 @@ Aturan umum:
 |---|---|---|
 | 1 | Mesin hitung + data referensi + uji otomatis | ✅ selesai (`apps-script/Hitung.gs`, `Referensi.gs`, `tes/`) |
 | 2 | Akun sekolah (daftar, verifikasi email, masuk, lupa & ganti kata sandi) dan pembuatan spreadsheet sekolah otomatis | ✅ selesai (`index.html`, `apps-script/Kode.gs`, `Akun.gs`, `Sekolah.gs`, `Narasi.gs`) |
-| 3 | Data sekolah: profil, rombel & wali kelas, siswa (dengan impor dari Excel/Dapodik), unduh salinan spreadsheet sekolah | berikutnya |
-| 4 | Halaman input nilai, TP, kokurikuler, ekstrakurikuler, presensi | |
+| 3 | Data sekolah: profil, rombel & wali kelas, siswa (tempel langsung dari Excel/Dapodik), unduh salinan Excel | ✅ selesai (`apps-script/Data.gs`, halaman Data Sekolah & Siswa) |
+| 4 | Halaman input nilai, TP, kokurikuler, ekstrakurikuler, presensi | berikutnya |
 | 5 | Cek kelengkapan, rekap/leger, cetak rapor PDF (sampul, rapor, transkrip, SKL), kunci rapor | |
 | 6 | Kenaikan kelas tahunan, uji coba di SDN Bugangin, lalu dibuka untuk sekolah lain | |

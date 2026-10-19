@@ -74,10 +74,7 @@ function isiSpreadsheetSekolah_(ss, d, tanggal) {
     sh.getRange(1, 1, 1, st.kolom.length).setValues([st.kolom])
       .setFontWeight('bold').setBackground('#12314f').setFontColor('#ffffff');
     sh.setFrozenRows(1);
-    // Kolom identitas disimpan sebagai teks: NISN "0012345678" tidak boleh berubah jadi angka 12345678.
-    (st.teks || []).forEach(function (nama) {
-      sh.getRange(2, st.kolom.indexOf(nama) + 1, sh.getMaxRows() - 1, 1).setNumberFormat('@');
-    });
+    formatTeks_(sh, st, 2);
   });
 
   tulisBaris_(ss, 'Profil Sekolah', [
@@ -125,6 +122,23 @@ function isiSpreadsheetSekolah_(ss, d, tanggal) {
 
   tulisBaris_(ss, 'Master Narasi', NARASI_BAWAAN);
   tulisBaris_(ss, 'Log', [[tanggal || new Date(), 'dibuat', 'Spreadsheet sekolah dibuat otomatis saat akun diaktifkan.']]);
+}
+
+/**
+ * Kolom identitas disimpan sebagai teks: NISN "0012345678" tidak boleh berubah jadi angka 12345678.
+ * Berlaku dari baris dariBaris sampai baris terakhir sheet.
+ */
+function formatTeks_(sh, st, dariBaris) {
+  var banyak = sh.getMaxRows() - dariBaris + 1;
+  if (banyak < 1) return;
+  (st.teks || []).forEach(function (nama) {
+    sh.getRange(dariBaris, st.kolom.indexOf(nama) + 1, banyak, 1).setNumberFormat('@');
+  });
+}
+
+function strukturSheet_(nama) {
+  for (var i = 0; i < STRUKTUR_SEKOLAH.length; i++) if (STRUKTUR_SEKOLAH[i].nama === nama) return STRUKTUR_SEKOLAH[i];
+  throw new Error('Struktur sheet tidak dikenal: ' + nama);
 }
 
 function tulisBaris_(ss, nama, baris) {
