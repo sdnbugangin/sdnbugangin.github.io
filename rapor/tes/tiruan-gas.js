@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 
-const BERKAS_GS = ['Referensi.gs', 'Narasi.gs', 'Hitung.gs', 'Kode.gs', 'Akun.gs', 'Sekolah.gs', 'Data.gs', 'Tp.gs', 'Nilai.gs', 'Kokurikuler.gs', 'WaliKelas.gs', 'Rapor.gs', 'Kunci.gs', 'Uji.gs'];
+const BERKAS_GS = ['Referensi.gs', 'Narasi.gs', 'Hitung.gs', 'Kode.gs', 'Akun.gs', 'Sekolah.gs', 'Data.gs', 'Tp.gs', 'Nilai.gs', 'Kokurikuler.gs', 'WaliKelas.gs', 'Rapor.gs', 'Kunci.gs', 'TahunAjaran.gs', 'Uji.gs'];
 const MAKS_BARIS = 1000;
 /* Penghitung sel yang dibaca/ditulis, untuk uji beban (mirip biaya panggilan Sheets yang sebenarnya). */
 const BEBAN = { baca: 0, tulis: 0, panggilBaca: 0, panggilTulis: 0 };
@@ -158,7 +158,14 @@ function buatGas() {
         if (!(id in lokasi)) throw new Error('Berkas tidak ditemukan: ' + id);
         return {
           moveTo: (f) => { if (gas.DriveApp.gagalPindah) throw new Error('Gagal memindah'); lokasi[id] = f.getId(); },
-          setTrashed: (v) => { if (berkas[id]) berkas[id].sampah = v; }
+          setTrashed: (v) => { if (berkas[id]) berkas[id].sampah = v; },
+          makeCopy: (nama, f) => {
+            if (gas.DriveApp.gagalSalin) throw new Error('Kuota Drive habis');
+            const asli = berkas[id].ss, salin = new Spreadsheet('ss' + (++nomor), nama);
+            salin.sheets = asli.sheets.map((sh) => { const b = new Sheet(sh.nama); b.data = sh.data.map((r) => r.slice()); b.format = { ...sh.format }; return b; });
+            berkas[salin.id] = { ss: salin, sampah: false }; lokasi[salin.id] = f.getId();
+            return { getId: () => salin.id, getName: () => nama };
+          }
         };
       }
     },

@@ -23,6 +23,8 @@ var STRUKTUR_SEKOLAH = [
     'Lingkup Materi', 'Tujuan Pembelajaran'], teks: ['Tahun Ajaran', 'Kode TP'] },
   { nama: 'Nilai', kolom: ['Tahun Ajaran', 'Semester', 'ID Siswa', 'Kode Mapel', 'Jenis', 'Kode', 'Nilai', 'Diubah Pada'],
     teks: ['Tahun Ajaran', 'ID Siswa', 'Kode'], tanggal: ['Diubah Pada'] },
+  { nama: 'Arsip Nilai', kolom: ['Tahun Ajaran', 'Semester', 'ID Siswa', 'Kode Mapel', 'Jenis', 'Kode', 'Nilai', 'Diubah Pada'],
+    teks: ['Tahun Ajaran', 'ID Siswa', 'Kode'], tanggal: ['Diubah Pada'] },
   { nama: 'Kokurikuler', kolom: ['Tahun Ajaran', 'Semester', 'Kelas', 'No', 'Dimensi', 'Subdimensi'], teks: ['Tahun Ajaran'] },
   { nama: 'Capaian Kokurikuler', kolom: ['Tahun Ajaran', 'Semester', 'ID Siswa', 'Subdimensi', 'Level'], teks: ['Tahun Ajaran', 'ID Siswa'] },
   { nama: 'Master Narasi', kolom: ['Subdimensi', 'Level', 'Narasi'] },

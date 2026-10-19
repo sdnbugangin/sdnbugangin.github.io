@@ -502,7 +502,8 @@ table.leger td.j{text-align:center;font-weight:800}
       <button type="button" data-tab="rombel">Rombel &amp; Siswa</button>
     </div>
 
-    <div id="p-profil" class="card">
+    <div id="p-profil">
+     <div class="card">
       <form id="f-profil">
         <div class="grid2" id="profil-isi"></div>
         <div class="grid2" style="margin-top:12px">
@@ -515,6 +516,21 @@ table.leger td.j{text-align:center;font-weight:800}
         <div class="toolbar"><button class="btn" type="submit" style="width:auto">Simpan profil</button></div>
         <div class="msg" id="p-msg"></div>
       </form>
+     </div>
+     <details class="card" id="ta-box" style="margin-top:14px">
+      <summary><b>Tahun ajaran baru</b> <span class="sub">— kenaikan kelas, kelulusan, dan mulai tahun ajaran berikutnya (sekali setahun)</span></summary>
+      <div class="panduan" style="margin-top:12px">Dilakukan <b>setelah rapor semester 2 dibagikan</b> dan keputusan naik/tinggal/lulus semua siswa diisi (menu Wali Kelas → Kenaikan).
+        Aplikasi akan: membuat <b>cadangan</b> data di Drive; menyiapkan rombel tahun baru dengan nama dan wali kelas yang sama;
+        memindahkan siswa yang naik ke kelas berikutnya (4A → 5A), siswa tinggal kelas tetap di kelasnya, dan kelas 6 yang lulus diberi status lulus;
+        menyalin mapel, TP, dan subdimensi kokurikuler; serta mengarsipkan nilai tahun lalu. Kelas 1 dikosongkan untuk siswa baru.</div>
+      <div class="toolbar"><button class="btn ghost small" type="button" id="ta-periksa">Periksa kesiapan</button></div>
+      <div id="ta-hasil"></div>
+      <div id="ta-jalan" class="hidden" style="margin-top:12px">
+        <label for="ta-konfirmasi" id="ta-label"></label>
+        <div class="aksi"><input type="text" id="ta-konfirmasi" autocomplete="off" style="max-width:260px"><button class="btn danger small" type="button" id="ta-mulai">Mulai tahun ajaran baru</button></div>
+      </div>
+      <div class="msg" id="ta-msg"></div>
+     </details>
     </div>
 
     <div id="p-mapel" class="hidden">
@@ -747,6 +763,44 @@ $('#mp-simpan').addEventListener('click', e => sibuk(e.target, async () => {
   if (res.sesiHabis) return;
   pesan('#m2-msg', res.pesan, res.ok, res.salah);
   if (res.ok) { MAPEL = res.mapel; renderMapel(); }
+}));
+
+/* ---------- tahun ajaran baru ---------- */
+let TA_BARU = '';
+$('#ta-periksa').addEventListener('click', e => sibuk(e.target, async () => {
+  $('#ta-msg').textContent = ''; $('#ta-jalan').classList.add('hidden');
+  const res = await api({ aksi:'taBaruPratinjau' });
+  if (res.sesiHabis) return;
+  if (!res.ok) return pesan('#ta-msg', res.pesan, false);
+  TA_BARU = res.taBaru;
+  const r = res.ringkas;
+  $('#ta-hasil').innerHTML =
+    (res.salah.length ? '<div class="msg err"><b>Belum bisa dimulai:</b><ul>' + res.salah.map(x => '<li>' + esc(x) + '</li>').join('') + '</ul></div>' : '') +
+    (res.peringatan.length ? '<div class="notice">' + res.peringatan.map(esc).join('<br>') + '</div>' : '') +
+    '<p style="margin:14px 0 8px"><b>' + esc(res.taLama) + ' → ' + esc(res.taBaru) + '</b>: ' + r.naik + ' siswa naik kelas, ' + r.tinggal + ' tinggal kelas, ' +
+      r.lulus + ' lulus' + (r.tidakLulus ? ', ' + r.tidakLulus + ' tidak lulus (tetap kelas 6)' : '') + '.</p>' +
+    '<div class="tbl"><table class="mapel"><thead><tr><th>Rombel ' + esc(res.taBaru) + '</th><th>Wali kelas</th><th>Siswa naik dari</th><th>Tinggal kelas</th><th>Jumlah</th></tr></thead><tbody>' +
+    res.rombel.map(x => '<tr><td><b>' + esc(x.label) + '</b></td><td>' + (esc(x.wali) || '<span class="sub">belum diisi</span>') + '</td><td>' +
+      (Object.entries(x.asal).map(([a, n]) => esc(a) + ' (' + n + ')').join(', ') || (x.kelas === 1 ? '<span class="sub">siswa baru diisi sendiri</span>' : '–')) +
+      '</td><td>' + (x.tinggal || '–') + '</td><td><b>' + x.jumlah + '</b></td></tr>').join('') + '</tbody></table></div>' +
+    (res.lulus.length ? '<p class="hint" style="margin-top:8px"><b>Lulus:</b> ' + res.lulus.map(esc).join(', ') + '</p>' : '');
+  if (!res.salah.length) {
+    $('#ta-label').innerHTML = 'Untuk memulai, ketik <b>MULAI ' + esc(res.taBaru) + '</b>';
+    $('#ta-konfirmasi').value = '';
+    $('#ta-jalan').classList.remove('hidden');
+  }
+}));
+$('#ta-mulai').addEventListener('click', e => sibuk(e.target, async () => {
+  if ($('#ta-konfirmasi').value.trim().toUpperCase() !== 'MULAI ' + TA_BARU) return pesan('#ta-msg', 'Ketik MULAI ' + TA_BARU + ' persis seperti itu.', false);
+  if (!confirm('Mulai tahun ajaran ' + TA_BARU + ' sekarang? Data lama dicadangkan dulu, lalu semua halaman beralih ke tahun ajaran baru semester 1.')) return;
+  pesan('#ta-msg', 'Memproses… jangan tutup halaman ini.', true);
+  const res = await api({ aksi:'taBaruJalankan', konfirmasi: $('#ta-konfirmasi').value });
+  if (res.sesiHabis) return;
+  if (!res.ok) return pesan('#ta-msg', res.pesan, false, res.salah);
+  $('#ta-jalan').classList.add('hidden'); $('#ta-hasil').innerHTML = '';
+  await bukaData('profil');
+  $('#ta-box').open = true;
+  pesan('#ta-msg', res.pesan, true);
 }));
 
 async function bukaData(tab){
