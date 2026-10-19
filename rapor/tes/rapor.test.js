@@ -112,6 +112,13 @@ test('rekapRombel: lengkap → siap cetak, seni ganda digabung, peringkat dan le
   assert.equal(seni.deskripsi.length, 2);
   assert.match(seni.deskripsi[0], /irama satu/);
   assert.match(seni.deskripsi[0], /gambar satu/, 'TP tertinggi tiap seni digabung dalam satu kalimat');
+  // TP tertinggi/terendah untuk e-Rapor: kode dan isi TP; seni satu per seni
+  const mtk = ani.mapel.find((m) => m.kode === 'MTK');
+  assert.deepEqual(JSON.parse(JSON.stringify(mtk.tpTinggi)), [{ kode: 'TP1', tp: 'TP pertama mtk', nilai: 90, seni: '' }]);
+  assert.deepEqual(JSON.parse(JSON.stringify(mtk.tpRendah)), [{ kode: 'TP2', tp: 'TP kedua mtk', nilai: 70, seni: '' }]);
+  assert.deepEqual(seni.tpTinggi.map((t) => [t.seni, t.tp]), [['Seni Musik', 'TP pertama irama'], ['Seni Rupa', 'TP pertama gambar']]);
+  const pabBudi = budi.mapel[0];
+  assert.equal(pabBudi.tpTinggi[0].tp, 'TP pertama doa', 'TP agama sesuai agama siswa');
   assert.match(ani.kokurikuler, /^Ananda Ani sudah baik dalam dimensi profil Kolaborasi/);
   assert.deepEqual(ani.ekskul, [{ kegiatan: 'Pramuka', keterangan: 'Baik dalam mengikuti kegiatan Pramuka.' }]);
   assert.equal(ani.kenaikan.tampil, false);

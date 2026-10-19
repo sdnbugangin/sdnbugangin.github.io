@@ -53,9 +53,20 @@ function nilaiMapelSiswa_(m, s, nilaiSiswa, tpPer, aturan) {
       if (!tpOf(varian).length) h.peringatan.unshift('TP belum disusun.');
     }
   }
+  // TP tertinggi/terendah lengkap dengan isi TP-nya, untuk dipilih guru di e-Rapor (seni: satu per seni).
+  var isiTp = function (t, seni) {
+    var cari = (tpOf(seni || (m.jenis === 'agama' ? s.agama : '')) || []).filter(function (x) { return x.kode === t.kode; })[0];
+    return { kode: t.kode, tp: cari ? cari.tp : '', nilai: t.nilai, seni: seni || '' };
+  };
+  var tinggi = [], rendah = [];
+  (h.rincian || [{ nama: '', hasil: h }]).forEach(function (r) {
+    if (r.hasil.tertinggi) tinggi.push(isiTp(r.hasil.tertinggi, r.nama));
+    if (r.hasil.terendah) rendah.push(isiTp(r.hasil.terendah, r.nama));
+  });
   return {
     kode: m.kode, nama: nama, jenis: m.jenis, nilai: h.nilai, predikat: h.predikat, lengkap: h.lengkap && !h.salah.length,
-    deskripsi: [h.deskripsiTinggi, h.deskripsiRendah].filter(String), peringatan: h.peringatan.concat(h.salah)
+    deskripsi: [h.deskripsiTinggi, h.deskripsiRendah].filter(String), peringatan: h.peringatan.concat(h.salah),
+    deskripsiTinggi: h.deskripsiTinggi, deskripsiRendah: h.deskripsiRendah, tpTinggi: tinggi, tpRendah: rendah
   };
 }
 
