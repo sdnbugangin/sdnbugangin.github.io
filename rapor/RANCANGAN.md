@@ -216,6 +216,14 @@ Pengamannya: setiap perubahan nilai dicatat di Log beserta waktunya, dan kepala 
   - simpan ketidakhadiran 3,2 dtk.
   
   Kesimpulannya: yang lambat adalah banyaknya pembacaan sheet, bukan penulisan.
+- **Kunci per sekolah:**
+  - `denganKunci_` mengunci per NPSN lewat CacheService. Kunci skrip hanya dipegang sesaat untuk mengambil kunci itu, sehingga sekolah berbeda bisa menyimpan bersamaan.
+  - Sekolah yang sama menunggu paling lama 20 dtk, lalu mendapat pesan "sedang disimpan dari perangkat lain".
+  - Kunci lepas sendiri setelah 60 dtk bila eksekusi terhenti.
+  - Urusan akun di Pusat tetap memakai kunci skrip.
+- Uji beban kedua (baca hemat tanpa Sheets API, 384 siswa, 1 tahun):
+  - buka layar nilai 4,8 dtk; simpan nilai 5,0–5,3 dtk; rekap 5,8 dtk; buka kokurikuler 2,3 dtk.
+  - Rinciannya: baca 1 sheet kecil 0,2 dtk; baca sheet Nilai 29.480 baris 2,1 dtk.
 - **`ujiBeban()` (Uji.gs)** dijalankan pengelola dari editor untuk mengukur waktu nyata di server Google:
   - membuat sekolah uji sementara berisi 384 siswa dengan nilai satu tahun;
   - mengukur operasi sehari-hari dan mencatat hasilnya ke Log Pusat ("uji beban");

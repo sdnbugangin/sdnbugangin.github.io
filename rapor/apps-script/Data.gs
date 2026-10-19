@@ -187,6 +187,7 @@ function bukaSekolah_(npsn) {
     throw galatPengguna_('Spreadsheet sekolah tidak bisa dibuka. Hubungi pengelola aplikasi.');
   }
   cache.put(kunci, id, 600);
+  SEKOLAH_AKTIF_ = npsn;
   if (BACA_AWAL_.length) bacaSekaligus_(ss, BACA_AWAL_);
   return ss;
 }
@@ -225,6 +226,7 @@ BACA_PER_AKSI_.kunciRapor = BACA_PER_AKSI_.bukaKunciRapor = SHEET_INTI_;
 
 /** Dipanggil di awal setiap permintaan: kosongkan isi sheet yang diingat dan tentukan sheet yang dibaca sekaligus. */
 function siapkanPermintaan_(aksi) {
+  SEKOLAH_AKTIF_ = '';
   ISI_SHEET_ = {};
   JUDUL_SHEET_ = {};
   BACA_AWAL_ = BACA_PER_AKSI_[aksi] || [];
@@ -246,8 +248,13 @@ function tanggalDariSerial_(serial, zona) {
  * Bila layanan belum diaktifkan, kuota habis, atau ada galat apa pun, tidak terjadi apa-apa:
  * bacaTabel_ membaca dengan cara biasa.
  */
+var GALAT_BACA_SEKALIGUS_ = ''; // sebab terakhir baca sekaligus tidak dipakai (untuk ujiBeban)
+
 function bacaSekaligus_(ss, daftar) {
-  if (typeof Sheets === 'undefined' || !Sheets || !Sheets.Spreadsheets) return false;
+  if (typeof Sheets === 'undefined' || !Sheets || !Sheets.Spreadsheets) {
+    GALAT_BACA_SEKALIGUS_ = 'layanan "Sheets" belum ditambahkan di proyek Apps Script';
+    return false;
+  }
   var perlu = daftar.filter(function (n) { return !ISI_SHEET_[kunciIsi_(ss, n)]; });
   if (!perlu.length) return true;
   try {
@@ -273,6 +280,7 @@ function bacaSekaligus_(ss, daftar) {
     Object.keys(hasil).forEach(function (n) { ISI_SHEET_[kunciIsi_(ss, n)] = hasil[n]; });
     return true;
   } catch (e) {
+    GALAT_BACA_SEKALIGUS_ = 'Sheets API galat: ' + e.message;
     return false;
   }
 }
