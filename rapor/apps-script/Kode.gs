@@ -55,7 +55,10 @@ function siapkan() {
     ['Folder Utama', '', 'ID folder "' + FOLDER_UTAMA + '" di Google Drive. Semua hasil aplikasi ada di dalamnya. Diisi otomatis.'],
     ['Folder Data Sekolah', '', 'ID subfolder tempat spreadsheet sekolah disimpan. Diisi otomatis.'],
     ['Pendaftaran Dibuka', 'Ya', 'Tidak = sekolah baru tidak bisa mendaftar (sekolah terdaftar tetap bisa masuk).'],
-    ['NPSN Sumber TP Bawaan', '', 'NPSN sekolah yang TP-nya dipakai sebagai TP bawaan: disalin ke sekolah baru dan bisa diambil sekolah lain lewat tombol "Pakai TP bawaan".']
+    ['NPSN Sumber TP Bawaan', '', 'NPSN sekolah yang TP-nya dipakai sebagai TP bawaan: disalin ke sekolah baru dan bisa diambil sekolah lain lewat tombol "Pakai TP bawaan".'],
+    ['Mode Pemeliharaan', 'Tidak', 'Ya = semua sekolah hanya bisa melihat data (tidak bisa menyimpan, mendaftar, atau mengganti sandi). Pakai saat memasang pembaruan besar. Berlaku paling lambat 1 menit.'],
+    ['Pesan Pemeliharaan', '', 'Pesan yang tampil saat mode pemeliharaan, misalnya "Sedang ada pembaruan sampai pukul 21.00 WIB." Kosong = pesan bawaan.'],
+    ['Pengumuman', '', 'Pengumuman untuk semua sekolah di halaman aplikasi, misalnya "Fitur baru: Transkrip & SKL kelas 6." Kosong = tidak ada pengumuman.']
   ];
   var ada = atur.getDataRange().getValues().map(function (r) { return r[0]; });
   bawaan.forEach(function (b) { if (ada.indexOf(b[0]) < 0) atur.appendRow(b); });
@@ -84,16 +87,25 @@ function buatSheet_(ss, nama, kolom) {
 
 function pusat_() { return SpreadsheetApp.getActive(); }
 
+/** Pengaturan Pusat, disimpan sementara 60 detik agar tidak membaca sheet pada setiap permintaan. */
 function pengaturanPusat_() {
-  var nilai = {};
-  var sh = pusat_().getSheetByName(PUSAT.atur);
-  if (sh) sh.getDataRange().getValues().forEach(function (r) { nilai[String(r[0]).trim()] = String(r[1]).trim(); });
+  var cache = CacheService.getScriptCache(), simpan = cache.get('aturPusat');
+  var nilai = simpan ? JSON.parse(simpan) : null;
+  if (!nilai) {
+    nilai = {};
+    var sh = pusat_().getSheetByName(PUSAT.atur);
+    if (sh) sh.getDataRange().getValues().forEach(function (r) { nilai[String(r[0]).trim()] = String(r[1]).trim(); });
+    cache.put('aturPusat', JSON.stringify(nilai), 60);
+  }
   var alamat = nilai['Alamat Halaman'] || 'https://sdnbugangin.github.io/rapor/';
   return {
     alamat: alamat.charAt(alamat.length - 1) === '/' ? alamat : alamat + '/',
     namaAplikasi: nilai['Nama Aplikasi'] || 'Rapor Digital SUPER',
     daftarDibuka: String(nilai['Pendaftaran Dibuka'] || 'Ya').toLowerCase() !== 'tidak',
-    sumberTp: String(nilai['NPSN Sumber TP Bawaan'] || '').trim().toUpperCase()
+    sumberTp: String(nilai['NPSN Sumber TP Bawaan'] || '').trim().toUpperCase(),
+    pemeliharaan: String(nilai['Mode Pemeliharaan'] || '').toLowerCase() === 'ya',
+    pesanPemeliharaan: String(nilai['Pesan Pemeliharaan'] || '').slice(0, 300),
+    pengumuman: String(nilai.Pengumuman || '').slice(0, 500)
   };
 }
 
@@ -143,6 +155,7 @@ function folderBagian_(kunci, nama) {
 }
 
 function tulisPengaturanPusat_(kunci, nilai) {
+  CacheService.getScriptCache().remove('aturPusat');
   var sh = pusat_().getSheetByName(PUSAT.atur);
   var rows = sh.getDataRange().getValues();
   for (var i = 0; i < rows.length; i++) {
@@ -164,11 +177,31 @@ function doPost(e) {
   return json_(layani_(req));
 }
 
+/*
+ * Aksi yang hanya membaca. Saat mode pemeliharaan hanya aksi ini yang dilayani, sehingga guru tetap bisa
+ * melihat dan mencetak, tetapi tidak ada data yang tersimpan setengah jalan selama pembaruan dipasang.
+ */
+var AKSI_BACA = ['info', 'statistik', 'masuk', 'sesi', 'keluar', 'dataSekolah', 'siswaRombel', 'mapelSekolah', 'unduhExcel',
+  'tpKelas', 'tpBawaan', 'tpEkspor', 'nilaiRombel', 'kokRombel', 'waliRombel', 'rekapRombel', 'lulusData', 'taBaruPratinjau'];
+
+var PESAN_PEMELIHARAAN = 'Aplikasi sedang dalam pemeliharaan. Data bisa dilihat dan dicetak, tetapi belum bisa disimpan. Silakan coba lagi nanti.';
+
+/** Info umum untuk semua halaman (tanpa masuk): pengumuman dan status pemeliharaan. */
+function info_() {
+  var atur = pengaturanPusat_();
+  return { ok: true, pemeliharaan: atur.pemeliharaan, pesanPemeliharaan: atur.pemeliharaan ? (atur.pesanPemeliharaan || PESAN_PEMELIHARAAN) : '',
+    pengumuman: atur.pengumuman };
+}
+
 /** Memproses satu permintaan. Dipisah dari doPost agar bisa diuji tanpa ContentService. */
 function layani_(req) {
   siapkanPermintaan_(req && req.aksi);
   try {
+    if (AKSI_BACA.indexOf(req.aksi) < 0 && pengaturanPusat_().pemeliharaan) {
+      return { ok: false, pemeliharaan: true, pesan: pengaturanPusat_().pesanPemeliharaan || PESAN_PEMELIHARAAN };
+    }
     switch (req.aksi) {
+      case 'info': return info_();
       case 'daftar': return daftar_(req.data || {});
       case 'verifikasi': return verifikasi_(req.token);
       case 'masuk': return masuk_(req.email, req.sandi);

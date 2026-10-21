@@ -27,7 +27,7 @@ function aktif(g, data = DATA) {
 test('siapkan aman dijalankan berulang', () => {
   const g = siap();
   g.ctx.siapkan();
-  assert.equal(g.pusat.getSheetByName('Pengaturan').data.length, 7);
+  assert.equal(g.pusat.getSheetByName('Pengaturan').data.length, 10);
   assert.equal(g.pusat.sheets.length, 4);
   assert.equal(Object.keys(g.folder).length, 2, 'tidak ada folder dobel');
 });
@@ -393,4 +393,25 @@ test('statistik ikut profil: kabupaten/provinsi yang diubah di Data Sekolah ters
   const baris = s.pusat.getSheetByName('Sekolah').data.find((r) => r[0] === '20321653');
   assert.equal(baris[12], 'Kota Pekalongan');
   assert.equal(s.minta({ aksi: 'statistik' }).rincian[0].kabupaten[0].nama, 'Kota Pekalongan', 'cache dibuang saat wilayah berubah');
+});
+
+test('mode pemeliharaan: hanya aksi baca yang dilayani; pengumuman lewat aksi info', () => {
+  const { sekolahAktif } = require('./tiruan-gas.js');
+  const s = sekolahAktif();
+  assert.deepEqual(s.minta({ aksi: 'info' }), { ok: true, pemeliharaan: false, pesanPemeliharaan: '', pengumuman: '' });
+  s.ctx.tulisPengaturanPusat_('Pengumuman', 'Fitur baru: Transkrip & SKL kelas 6.');
+  s.ctx.tulisPengaturanPusat_('Mode Pemeliharaan', 'Ya');
+  const i = s.minta({ aksi: 'info' });
+  assert.equal(i.pemeliharaan, true);
+  assert.match(i.pesanPemeliharaan, /pemeliharaan/);
+  assert.equal(i.pengumuman, 'Fitur baru: Transkrip & SKL kelas 6.');
+  const simpan = s.minta({ aksi: 'simpanProfil', profil: { Kecamatan: 'Kendal' } });
+  assert.equal(simpan.ok, false);
+  assert.equal(simpan.pemeliharaan, true);
+  assert.equal(s.minta({ aksi: 'dataSekolah' }).ok, true, 'membaca tetap bisa');
+  assert.equal(s.minta({ aksi: 'daftar', data: {} }).pemeliharaan, true, 'pendaftaran juga ditahan');
+  s.ctx.tulisPengaturanPusat_('Pesan Pemeliharaan', 'Pembaruan sampai pukul 21.00 WIB.');
+  assert.equal(s.minta({ aksi: 'simpanProfil', profil: {} }).pesan, 'Pembaruan sampai pukul 21.00 WIB.');
+  s.ctx.tulisPengaturanPusat_('Mode Pemeliharaan', 'Tidak');
+  assert.equal(s.minta({ aksi: 'simpanProfil', profil: { Kecamatan: 'Kendal' } }).ok, true);
 });
