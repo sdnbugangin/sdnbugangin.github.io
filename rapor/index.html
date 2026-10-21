@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#12314f">
 <meta name="robots" content="noindex">
-<title>Rapor SD | Pengolahan Nilai Kurikulum Merdeka</title>
+<title>Rapor Digital SUPER | Pengolahan Nilai Kurikulum Merdeka</title>
 <link rel="icon" type="image/png" href="../logo.png">
 <style>
 :root{--red:#d71920;--red-dark:#9e1117;--yellow:#ffd21f;--blue:#12314f;--cream:#fffaf0;--ink:#16202a;--muted:#64748b;--line:#eadfc7;--ok:#1d7a37;--bad:#b42318}
@@ -195,7 +195,7 @@ table.leger td.j{text-align:center;font-weight:800}
 <div class="topline"></div>
 <div class="wrap">
   <header>
-    <h1>Rapor SD</h1>
+    <h1>Rapor Digital SUPER</h1>
     <p>Pengolahan nilai dan rapor Kurikulum Merdeka kelas 1–6. Satu akun untuk satu sekolah, dipakai bersama semua guru.</p>
   </header>
 
@@ -229,7 +229,7 @@ table.leger td.j{text-align:center;font-weight:800}
       <div class="field"><label for="d-ulangi">Ulangi kata sandi</label><input id="d-ulangi" type="password" autocomplete="new-password" required></div>
       <label class="show"><input type="checkbox" data-show="d-sandi,d-ulangi"> Tampilkan kata sandi</label>
       <div class="field"><label class="check"><input id="d-setuju" type="checkbox">
-        <span>Saya, atas nama sekolah, menyetujui bahwa data sekolah, guru, dan siswa yang diisi disimpan di Google Drive pengelola aplikasi Rapor SD dan hanya dipakai untuk pengolahan nilai serta rapor sekolah ini. Akun dipakai bersama semua guru, sehingga sekolah bertanggung jawab atas siapa saja yang diberi kata sandi dan atas perubahan data yang dilakukan dengan akun ini.</span></label></div>
+        <span>Saya, atas nama sekolah, menyetujui bahwa data sekolah, guru, dan siswa yang diisi disimpan di Google Drive pengelola aplikasi Rapor Digital SUPER dan hanya dipakai untuk pengolahan nilai serta rapor sekolah ini. Akun dipakai bersama semua guru, sehingga sekolah bertanggung jawab atas siapa saja yang diberi kata sandi dan atas perubahan data yang dilakukan dengan akun ini.</span></label></div>
       <button class="btn" type="submit">Daftar</button>
       <div class="msg" id="d-msg"></div>
     </form>
@@ -694,7 +694,7 @@ table.leger td.j{text-align:center;font-weight:800}
     <datalist id="dl-seni"></datalist>
   </section>
 
-  <footer>Rapor SD · dikembangkan oleh SD N BUGANGIN · <a href="../" style="color:inherit">Beranda sekolah</a></footer>
+  <footer>Rapor Digital SUPER · dikembangkan oleh SD N BUGANGIN · <a href="../" style="color:inherit">Beranda sekolah</a></footer>
 </div>
 
 <script>
@@ -2073,7 +2073,7 @@ async function cetakLulus(buat, nama){
   await Promise.all([...areaCetak().querySelectorAll('img')].map(i => i.decode().catch(() => {})));
   document.title = nama + ' ' + LS.tahunAjaran.replace('/', '-');
   window.print();
-  document.title = 'Rapor SD';
+  document.title = 'Rapor Digital SUPER';
 }
 $('#ls-cetak-transkrip').addEventListener('click', () => cetakLulus(halamanTranskrip, 'Transkrip Nilai'));
 $('#ls-cetak-skl').addEventListener('click', () => cetakLulus(halamanSkl, 'SKL'));
@@ -2181,7 +2181,7 @@ $('#ct-segar').addEventListener('click', e => sibuk(e.target, muatCetak));
 /* ---------- unduh excel rapor ---------- */
 async function excelRapor(R){
   const wb = new ExcelJS.Workbook();
-  wb.creator = 'Rapor SD';
+  wb.creator = 'Rapor Digital SUPER';
   const judul = R.rombel.label + ' · Semester ' + R.semester + ' · Tahun Ajaran ' + R.tahunAjaran + ' · ' + R.sekolah.nama;
   /* kolom: [{ h: judul, w: lebar, teks: true (format teks, untuk NISN), bungkus: true }] */
   const sheet = (nama, kolom, baris) => {
@@ -2327,7 +2327,7 @@ $('#ct-sampul-btn').addEventListener('click', async () => {
   await Promise.all([...areaCetak().querySelectorAll('img')].map(i => i.decode().catch(() => {})));
   document.title = 'Sampul Rapor ' + CT.rombel.label + ' ' + CT.tahunAjaran.replace('/', '-');
   window.print();
-  document.title = 'Rapor SD';
+  document.title = 'Rapor Digital SUPER';
 });
 
 function areaCetak(){
@@ -2345,7 +2345,7 @@ $('#ct-cetak-btn').addEventListener('click', () => {
   areaCetak().innerHTML = siswa.map(halamanRapor).join('');
   document.title = 'Rapor ' + CT.rombel.label + ' Semester ' + CT.semester + ' ' + CT.tahunAjaran.replace('/', '-');
   window.print();
-  document.title = 'Rapor SD';
+  document.title = 'Rapor Digital SUPER';
 });
 $('#ct-cetak-leger').addEventListener('click', () => {
   const R = CT;
