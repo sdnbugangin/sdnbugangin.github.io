@@ -52,6 +52,11 @@ Jika folder terhapus, aplikasi membuatnya lagi di dalam folder utama. Spreadshee
 
 **Statistik pengguna** (aksi `statistik`, terbuka tanpa masuk): jumlah sekolah aktif, kabupaten/kota, dan provinsi, beserta rincian per provinsi → kabupaten/kota. Hanya angka dan nama wilayah, tanpa nama atau email sekolah; sekolah uji tidak dihitung; disimpan sementara 10 menit. Wilayah disimpan di tabel Sekolah (Pusat) saat daftar dan ikut diperbarui saat Kabupaten/Kota atau Provinsi di profil sekolah diubah. Nama dibakukan ("kab. kendal" → "Kabupaten Kendal").
 
+**Pemeliharaan dan pengumuman** (spreadsheet Pusat → Pengaturan, berlaku paling lambat 1 menit karena pengaturan disimpan sementara 60 detik):
+- `Mode Pemeliharaan` = Ya: hanya aksi baca yang dilayani (melihat, mencetak, mengunduh, masuk). Simpan, daftar, verifikasi, dan ganti sandi ditolak dengan `pemeliharaan: true` beserta `Pesan Pemeliharaan` (atau pesan bawaan). Dipakai saat memasang pembaruan besar.
+- `Pengumuman`: teks yang tampil di atas halaman aplikasi untuk semua sekolah.
+- Halaman memuat keduanya lewat aksi terbuka `info` saat dibuka dan setiap 5 menit.
+
 Keamanan:
 - Kata sandi disimpan sebagai hash HMAC-SHA256 berulang dengan garam acak. Token aktivasi, reset, dan sesi hanya disimpan hash-nya.
 - Pesan kesalahan masuk dan lupa kata sandi tidak membocorkan apakah sebuah email terdaftar.
