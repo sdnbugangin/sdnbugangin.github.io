@@ -38,6 +38,32 @@ function cekSandiBaru_(sandi, ulangi, larangan) {
   return salah;
 }
 
+/**
+ * Nama kabupaten/kota baku: "kab. kendal" / "KENDAL" → "Kabupaten Kendal", "kota semarang" → "Kota Semarang".
+ * Tanpa awalan dianggap kabupaten. Kosong bila tidak ada nama.
+ */
+function kabupatenBaku_(teks) {
+  var s = String(teks || '').replace(/\s+/g, ' ').trim();
+  var kota = /^kota\b/i.test(s);
+  s = s.replace(/^(kabupaten|kab\.?|kota)\s*/i, '').trim();
+  if (!s) return '';
+  var nama = s.toLowerCase().replace(/(^|[\s\-(])([a-z])/g, function (x, a, b) { return a + b.toUpperCase(); });
+  return (kota ? 'Kota ' : 'Kabupaten ') + nama;
+}
+
+/** Nama provinsi baku dari daftar PROVINSI (tidak peka huruf besar/kecil), atau '' bila tidak dikenal. */
+function provinsiBaku_(teks) {
+  var s = String(teks || '').replace(/\s+/g, ' ').trim().toLowerCase().replace(/^provinsi\s+/, '');
+  var alias = { 'jateng': 'jawa tengah', 'jabar': 'jawa barat', 'jatim': 'jawa timur', 'diy': 'di yogyakarta',
+    'daerah istimewa yogyakarta': 'di yogyakarta', 'yogyakarta': 'di yogyakarta', 'jakarta': 'dki jakarta',
+    'dki': 'dki jakarta', 'ntb': 'nusa tenggara barat', 'ntt': 'nusa tenggara timur', 'babel': 'kepulauan bangka belitung',
+    'bangka belitung': 'kepulauan bangka belitung', 'kepri': 'kepulauan riau', 'sumut': 'sumatera utara',
+    'sumbar': 'sumatera barat', 'sumsel': 'sumatera selatan', 'nad': 'aceh', 'nanggroe aceh darussalam': 'aceh' };
+  s = alias[s] || s;
+  for (var i = 0; i < PROVINSI.length; i++) if (PROVINSI[i].toLowerCase() === s) return PROVINSI[i];
+  return '';
+}
+
 /** Memeriksa isian formulir daftar. Hasil: daftar pesan kesalahan (kosong = benar). */
 function cekPendaftaran_(d) {
   var salah = [];
@@ -47,6 +73,9 @@ function cekPendaftaran_(d) {
   if (!/^[0-9A-Z]{8}$/.test(npsn)) salah.push('NPSN harus 8 karakter (umumnya 8 angka).');
   if (nama.length < 3 || nama.length > 100) salah.push('Nama sekolah wajib diisi (3–100 karakter).');
   if (!emailSah_(email)) salah.push('Alamat email tidak valid.');
+  var kab = kabupatenBaku_(d.kabupaten);
+  if (!kab || kab.length > 60) salah.push('Kabupaten/kota wajib diisi (misalnya Kabupaten Kendal).');
+  if (!provinsiBaku_(d.provinsi)) salah.push('Pilih provinsi sekolah.');
   salah = salah.concat(cekSandiBaru_(d.sandi, d.ulangi, [npsn, email]));
   if (d.setuju !== true) salah.push('Centang persetujuan pengelolaan data terlebih dahulu.');
   return salah;
@@ -90,7 +119,7 @@ function bacaSekolah_() {
     hasil.push({
       baris: i + 1, npsn: String(r[0]), nama: String(r[1]), email: String(r[2]), hash: String(r[3]), garam: String(r[4]),
       status: String(r[5]), spreadsheet: String(r[6]), terdaftar: r[7], diverifikasi: r[8], masukTerakhir: r[9],
-      gagal: Number(r[10]) || 0, terkunciSampai: r[11]
+      gagal: Number(r[10]) || 0, terkunciSampai: r[11], kabupaten: String(r[12] || ''), provinsi: String(r[13] || '')
     });
   }
   return hasil;
@@ -200,7 +229,8 @@ function daftar_(d) {
       else hapusBarisSekolah_(s.baris); // pendaftaran kedaluwarsa dengan email yang sama: dibuang
     }
     var garam = acak_();
-    var baris = [npsn, nama, email, hashSandi_(d.sandi, garam), garam, STATUS.menunggu, '', new Date(), '', '', 0, ''];
+    var baris = [npsn, nama, email, hashSandi_(d.sandi, garam), garam, STATUS.menunggu, '', new Date(), '', '', 0, '',
+      kabupatenBaku_(d.kabupaten), provinsiBaku_(d.provinsi)];
     if (lama) {
       var segar = cariSekolah_('npsn', npsn); // baris bisa bergeser setelah penghapusan di atas
       pusat_().getSheetByName(PUSAT.sekolah).getRange(segar.baris, 1, 1, baris.length).setValues([baris]);
@@ -235,7 +265,7 @@ function verifikasi_(token) {
   if (t.kedaluwarsa) return { ok: false, pesan: 'Tautan aktivasi sudah kedaluwarsa. Silakan daftar ulang.' };
 
   // Spreadsheet dibuat di luar kunci (butuh beberapa detik), lalu dicatat di dalam kunci.
-  var id = buatSpreadsheetSekolah_({ npsn: s.npsn, nama: s.nama, email: s.email, tp: tpSumber_() });
+  var id = buatSpreadsheetSekolah_({ npsn: s.npsn, nama: s.nama, email: s.email, kabupaten: s.kabupaten, provinsi: s.provinsi, tp: tpSumber_() });
   var hasil = denganKunci_(function () {
     var segar = cariSekolah_('npsn', t.npsn);
     if (segar && segar.status === STATUS.aktif) return 'sudah';
@@ -367,4 +397,60 @@ function simpanSandi_(s, sandi) {
   tulisKolom_(s.baris, 'Hash Sandi', hashSandi_(sandi, garam));
   tulisKolom_(s.baris, 'Gagal Masuk', 0);
   tulisKolom_(s.baris, 'Terkunci Sampai', '');
+}
+
+/* ---------- statistik pengguna (terbuka, tanpa masuk) ---------- */
+
+/**
+ * Wilayah sekolah di tabel Pusat ikut diperbarui saat profil sekolah disimpan,
+ * sehingga statistik memakai data terbaru. Gagal menulis tidak menggagalkan penyimpanan profil.
+ */
+function sinkronWilayah_(npsn, kabupaten, provinsi) {
+  try {
+    var s = cariSekolah_('npsn', npsn);
+    if (!s) return;
+    var kab = kabupaten === undefined ? null : kabupatenBaku_(kabupaten);
+    var prov = provinsi === undefined ? null : provinsiBaku_(provinsi);
+    if (kab && kab !== s.kabupaten) tulisKolom_(s.baris, 'Kabupaten/Kota', kab);
+    if (prov && prov !== s.provinsi) tulisKolom_(s.baris, 'Provinsi', prov);
+    if ((kab && kab !== s.kabupaten) || (prov && prov !== s.provinsi)) CacheService.getScriptCache().remove('statistik');
+  } catch (e) {
+    catatPusat_(npsn, 'galat sinkron wilayah', e.message);
+  }
+}
+
+/**
+ * Jumlah sekolah aktif per provinsi dan kabupaten/kota. Hanya angka dan nama wilayah, tanpa nama sekolah.
+ * Sekolah uji (NPSN berawalan UJI) tidak dihitung. Hasil disimpan sementara 10 menit.
+ */
+function hitungStatistik_(semua) {
+  var per = {}, kabSemua = {}, jumlah = 0;
+  semua.forEach(function (s) {
+    if (s.status !== STATUS.aktif || /^UJI/.test(s.npsn)) return;
+    jumlah++;
+    var prov = s.provinsi || 'Belum diisi', kab = s.kabupaten || 'Belum diisi';
+    var p = (per[prov] = per[prov] || { provinsi: prov, sekolah: 0, kab: {} });
+    p.sekolah++;
+    p.kab[kab] = (p.kab[kab] || 0) + 1;
+    if (s.kabupaten) kabSemua[prov + '|' + kab] = true;
+  });
+  var rincian = Object.keys(per).map(function (k) {
+    var p = per[k];
+    return { provinsi: p.provinsi, sekolah: p.sekolah, kabupaten: Object.keys(p.kab).map(function (n) { return { nama: n, sekolah: p.kab[n] }; })
+      .sort(function (a, b) { return b.sekolah - a.sekolah || a.nama.localeCompare(b.nama); }) };
+  }).sort(function (a, b) { return b.sekolah - a.sekolah || a.provinsi.localeCompare(b.provinsi); });
+  return {
+    ok: true, sekolah: jumlah, kabupaten: Object.keys(kabSemua).length,
+    provinsi: rincian.filter(function (p) { return p.provinsi !== 'Belum diisi'; }).length, rincian: rincian
+  };
+}
+
+function statistik_() {
+  var cache = CacheService.getScriptCache();
+  var simpan = cache.get('statistik');
+  if (simpan) return JSON.parse(simpan);
+  var hasil = hitungStatistik_(bacaSekolah_());
+  hasil.diperbarui = Utilities.formatDate(new Date(), 'Asia/Jakarta', 'yyyy-MM-dd HH:mm');
+  cache.put('statistik', JSON.stringify(hasil), 600);
+  return hasil;
 }

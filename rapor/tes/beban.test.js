@@ -140,7 +140,7 @@ test('baca sekaligus gagal atau tidak aktif: tetap berjalan dengan cara biasa', 
 test('kunci per sekolah: sekolah lain tidak menunggu, sekolah yang sama menunggu lalu diberi pesan jelas', () => {
   const { g, rb, id, nilai } = siapKecil();
   const npsnLain = '20321654';
-  const lain = sekolahAktif({ npsn: npsnLain, nama: 'SD LAIN', email: 'sdlain@gmail.com', sandi: 'rapor2026', ulangi: 'rapor2026', setuju: true }, g);
+  const lain = sekolahAktif({ npsn: npsnLain, nama: 'SD LAIN', email: 'sdlain@gmail.com', sandi: 'rapor2026', ulangi: 'rapor2026', setuju: true, kabupaten: 'Kab. Kendal', provinsi: 'Jawa Tengah' }, g);
   const rbLain = lain.minta({ aksi: 'simpanRombel', rombel: { kelas: 1, nama: '' } });
   // sekolah pertama "sedang menyimpan" dari perangkat lain
   g.cache.set('kunci:20321653', { isi: 'perangkat-lain', sampai: g.jam.sekarang + 60000 });

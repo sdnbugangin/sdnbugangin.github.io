@@ -36,7 +36,7 @@ var PUSAT = {
 };
 
 var KOLOM_SEKOLAH = ['NPSN', 'Nama Sekolah', 'Email', 'Hash Sandi', 'Garam', 'Status', 'ID Spreadsheet',
-  'Terdaftar Pada', 'Diverifikasi Pada', 'Masuk Terakhir', 'Gagal Masuk', 'Terkunci Sampai'];
+  'Terdaftar Pada', 'Diverifikasi Pada', 'Masuk Terakhir', 'Gagal Masuk', 'Terkunci Sampai', 'Kabupaten/Kota', 'Provinsi'];
 var KOLOM_TOKEN = ['Hash Token', 'NPSN', 'Jenis', 'Kedaluwarsa', 'Dipakai Pada'];
 var KOLOM_LOG_PUSAT = ['Waktu', 'NPSN', 'Aksi', 'Rincian'];
 
@@ -51,7 +51,7 @@ function siapkan() {
   var atur = buatSheet_(ss, PUSAT.atur, ['Kunci', 'Nilai', 'Keterangan']);
   var bawaan = [
     ['Alamat Halaman', 'https://sdnbugangin.github.io/rapor/', 'Alamat halaman aplikasi. Dipakai untuk tautan di email verifikasi dan lupa kata sandi.'],
-    ['Nama Aplikasi', 'Rapor SD', 'Nama yang tampil di email.'],
+    ['Nama Aplikasi', 'Rapor Digital SUPER', 'Nama yang tampil di email.'],
     ['Folder Utama', '', 'ID folder "' + FOLDER_UTAMA + '" di Google Drive. Semua hasil aplikasi ada di dalamnya. Diisi otomatis.'],
     ['Folder Data Sekolah', '', 'ID subfolder tempat spreadsheet sekolah disimpan. Diisi otomatis.'],
     ['Pendaftaran Dibuka', 'Ya', 'Tidak = sekolah baru tidak bisa mendaftar (sekolah terdaftar tetap bisa masuk).'],
@@ -91,7 +91,7 @@ function pengaturanPusat_() {
   var alamat = nilai['Alamat Halaman'] || 'https://sdnbugangin.github.io/rapor/';
   return {
     alamat: alamat.charAt(alamat.length - 1) === '/' ? alamat : alamat + '/',
-    namaAplikasi: nilai['Nama Aplikasi'] || 'Rapor SD',
+    namaAplikasi: nilai['Nama Aplikasi'] || 'Rapor Digital SUPER',
     daftarDibuka: String(nilai['Pendaftaran Dibuka'] || 'Ya').toLowerCase() !== 'tidak',
     sumberTp: String(nilai['NPSN Sumber TP Bawaan'] || '').trim().toUpperCase()
   };
@@ -174,6 +174,7 @@ function layani_(req) {
       case 'masuk': return masuk_(req.email, req.sandi);
       case 'lupaSandi': return lupaSandi_(req.email);
       case 'resetSandi': return resetSandi_(req.token, req.sandi, req.ulangi);
+      case 'statistik': return statistik_();
     }
     var sesi = bacaSesi_(req.sesi);
     if (!sesi) return { ok: false, sesiHabis: true, pesan: 'Sesi berakhir. Silakan masuk lagi.' };

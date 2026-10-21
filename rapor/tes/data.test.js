@@ -4,7 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { buatGas } = require('./tiruan-gas.js');
 
-const DATA = { npsn: '20321653', nama: 'SD N BUGANGIN', email: 'sdnbugangin@gmail.com', sandi: 'rapor2026', ulangi: 'rapor2026', setuju: true };
+const DATA = { npsn: '20321653', nama: 'SD N BUGANGIN', email: 'sdnbugangin@gmail.com', sandi: 'rapor2026', ulangi: 'rapor2026', setuju: true, kabupaten: 'Kab. Kendal', provinsi: 'Jawa Tengah' };
 const salin = (x) => JSON.parse(JSON.stringify(x));
 
 /** Sekolah aktif yang sudah masuk. g.minta otomatis membawa sesi. */

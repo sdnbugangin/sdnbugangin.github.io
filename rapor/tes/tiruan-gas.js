@@ -244,7 +244,7 @@ function buatGas() {
  * Bila g sudah ada (mis. untuk sekolah kedua di Pusat yang sama), sekolah baru didaftarkan di g itu.
  */
 function sekolahAktif(data, g) {
-  data = data || { npsn: '20321653', nama: 'SD N BUGANGIN', email: 'sdnbugangin@gmail.com', sandi: 'rapor2026', ulangi: 'rapor2026', setuju: true };
+  data = data || { npsn: '20321653', nama: 'SD N BUGANGIN', email: 'sdnbugangin@gmail.com', sandi: 'rapor2026', ulangi: 'rapor2026', setuju: true, kabupaten: 'Kab. Kendal', provinsi: 'Jawa Tengah' };
   if (!g) { g = buatGas(); g.ctx.siapkan(); }
   const panggil = (req) => JSON.parse(JSON.stringify(g.ctx.layani_(req)));
   panggil({ aksi: 'daftar', data });
