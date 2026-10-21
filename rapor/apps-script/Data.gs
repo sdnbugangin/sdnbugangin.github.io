@@ -539,6 +539,7 @@ function simpanProfil_(npsn, isian, semester, seni) {
       });
       tulisTabel_(ss, 'Pengaturan', pengaturan);
     }
+    if ('Kabupaten/Kota' in cek.bersih || 'Provinsi' in cek.bersih) sinkronWilayah_(npsn, cek.bersih['Kabupaten/Kota'], cek.bersih.Provinsi);
     catatSekolah_(ss, 'ubah profil', Object.keys(cek.bersih).join(', ') + (sem ? '; semester ' + sem : '') +
       (cekSeni ? '; seni ' + cekSeni.seni.join(', ') : ''));
     return { ok: true, pesan: 'Profil sekolah tersimpan.' };

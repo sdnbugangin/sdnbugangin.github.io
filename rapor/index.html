@@ -29,6 +29,10 @@ input:focus{outline:2px solid var(--yellow);border-color:var(--yellow)}
 .msg ul{margin:6px 0 0;padding-left:18px}
 .notice{background:#fff3c0;border:1px solid #f0d77a;color:#5c4400;padding:12px 14px;border-radius:14px;font-size:14px;line-height:1.5;margin-top:16px}
 .hidden{display:none!important}
+.tab-akun{max-width:460px;margin:22px auto 0;display:grid;grid-template-columns:1fr 1fr;gap:8px}.tab-akun a{display:block;text-align:center;padding:13px 10px;border-radius:14px;border:2px solid var(--blue);color:var(--blue);background:#fff;font-weight:800;font-size:15px;text-decoration:none}.tab-akun a:hover{background:#eef3f8}.tab-akun a.on{background:var(--blue);color:#fff}
+.tab-akun+.form{margin-top:12px}
+.stat{max-width:460px;margin:16px auto 0;padding:18px 20px}.stat h3{margin:0 0 4px;font-size:15px;color:var(--blue)}.stat .angka{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}.stat .angka div{background:#fff8e1;border-radius:12px;padding:10px 6px;text-align:center}.stat .angka b{display:block;font-size:24px;color:var(--red)}.stat .angka span{font-size:12px;color:var(--muted)}
+.stat details{border-top:1px solid var(--line);padding:8px 0;font-size:13.5px}.stat summary{cursor:pointer;font-weight:700;color:var(--blue)}.stat ul{margin:6px 0 0;padding-left:20px;color:var(--ink);line-height:1.6}.stat .sub{font-size:12px;color:var(--muted);margin-top:8px}
 .bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:22px 0 14px}.bar h2{margin:0;font-size:22px}.bar .sub{color:var(--muted);font-size:13px;margin-top:3px}
 .menu{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
 .tile{background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px}.tile b{display:block;font-size:16px;color:var(--blue);margin-bottom:4px}.tile span{display:block;font-size:13px;color:var(--muted);line-height:1.5}
@@ -201,6 +205,11 @@ table.leger td.j{text-align:center;font-weight:800}
 
   <div id="cfg-notice" class="notice hidden">Sistem belum tersambung. Isi <code>API_URL</code> di berkas <code>rapor/index.html</code> dengan URL Aplikasi web dari Apps Script (lihat <code>rapor/apps-script/Kode.gs</code>).</div>
 
+  <nav id="tab-akun" class="tab-akun hidden" aria-label="Masuk atau daftar">
+    <a href="#masuk" id="tab-masuk">Masuk</a>
+    <a href="#daftar" id="tab-daftar">Daftar akun baru</a>
+  </nav>
+
   <!-- MASUK -->
   <section id="v-masuk" class="card form hidden">
     <h2>Masuk</h2>
@@ -212,16 +221,18 @@ table.leger td.j{text-align:center;font-weight:800}
       <button class="btn" type="submit">Masuk</button>
       <div class="msg" id="m-msg"></div>
     </form>
-    <div class="links"><a href="#daftar">Daftarkan sekolah</a><a href="#lupa">Lupa kata sandi?</a></div>
+    <div class="links"><a href="#lupa">Lupa kata sandi?</a></div>
   </section>
 
   <!-- DAFTAR -->
   <section id="v-daftar" class="card form hidden">
     <h2>Daftarkan sekolah</h2>
-    <p>Diisi sekali oleh operator sekolah. Setelah email diverifikasi, spreadsheet rapor sekolah dibuat otomatis untuk kelas 1–6.</p>
+    <p>Gratis untuk semua SD. Diisi sekali oleh operator sekolah. Setelah email diverifikasi, spreadsheet rapor sekolah dibuat otomatis untuk kelas 1–6.</p>
     <form id="f-daftar">
       <div class="field"><label for="d-npsn">NPSN</label><input id="d-npsn" type="text" inputmode="numeric" maxlength="8" required></div>
       <div class="field"><label for="d-nama">Nama sekolah</label><input id="d-nama" type="text" maxlength="100" placeholder="Contoh: SD N BUGANGIN" required></div>
+      <div class="field"><label for="d-kab">Kabupaten/Kota</label><input id="d-kab" type="text" maxlength="60" placeholder="Contoh: Kabupaten Kendal atau Kota Semarang" required></div>
+      <div class="field"><label for="d-prov">Provinsi</label><select id="d-prov" required><option value="">Pilih provinsi…</option></select></div>
       <div class="field"><label for="d-email">Email sekolah</label><input id="d-email" type="email" autocomplete="username" required>
         <div class="hint">Tautan aktivasi dan lupa kata sandi dikirim ke email ini. Satu email untuk satu sekolah.</div></div>
       <div class="field"><label for="d-sandi">Buat kata sandi aplikasi</label><input id="d-sandi" type="password" autocomplete="new-password" required>
@@ -233,7 +244,6 @@ table.leger td.j{text-align:center;font-weight:800}
       <button class="btn" type="submit">Daftar</button>
       <div class="msg" id="d-msg"></div>
     </form>
-    <div class="links"><a href="#masuk">Sudah punya akun? Masuk</a></div>
   </section>
 
   <!-- LUPA -->
@@ -246,6 +256,13 @@ table.leger td.j{text-align:center;font-weight:800}
       <div class="msg" id="l-msg"></div>
     </form>
     <div class="links"><a href="#masuk">Kembali ke Masuk</a></div>
+  </section>
+
+  <section id="statistik" class="card stat hidden" aria-live="polite">
+    <h3>Dipakai sekolah di Indonesia</h3>
+    <div class="angka"><div><b id="st-sekolah">0</b><span>sekolah</span></div><div><b id="st-kab">0</b><span>kabupaten/kota</span></div><div><b id="st-prov">0</b><span>provinsi</span></div></div>
+    <div id="st-rincian"></div>
+    <div class="sub" id="st-waktu"></div>
   </section>
 
   <!-- RESET -->
@@ -746,8 +763,39 @@ async function api(body){
   }
 }
 
+const PROVINSI = ['Aceh','Sumatera Utara','Sumatera Barat','Riau','Kepulauan Riau','Jambi','Bengkulu','Sumatera Selatan',
+  'Kepulauan Bangka Belitung','Lampung','Banten','DKI Jakarta','Jawa Barat','Jawa Tengah','DI Yogyakarta','Jawa Timur','Bali',
+  'Nusa Tenggara Barat','Nusa Tenggara Timur','Kalimantan Barat','Kalimantan Tengah','Kalimantan Selatan','Kalimantan Timur',
+  'Kalimantan Utara','Sulawesi Utara','Gorontalo','Sulawesi Tengah','Sulawesi Barat','Sulawesi Selatan','Sulawesi Tenggara',
+  'Maluku','Maluku Utara','Papua','Papua Barat','Papua Barat Daya','Papua Tengah','Papua Pegunungan','Papua Selatan'];
+$('#d-prov').insertAdjacentHTML('beforeend', PROVINSI.map(p => '<option>' + esc(p) + '</option>').join(''));
+
+/* Statistik pengguna: dimuat sekali saat halaman masuk/daftar tampil; disembunyikan bila gagal atau masih kosong. */
+let STAT_DIMUAT = false;
+async function muatStatistik(){
+  if (STAT_DIMUAT || !API_URL) return;
+  STAT_DIMUAT = true;
+  const res = await api({ aksi:'statistik' });
+  if (!res.ok || !res.sekolah) return;
+  $('#st-sekolah').textContent = res.sekolah;
+  $('#st-kab').textContent = res.kabupaten;
+  $('#st-prov').textContent = res.provinsi;
+  $('#st-rincian').innerHTML = res.rincian.map(p => '<details><summary>' + esc(p.provinsi) + ' · ' + p.sekolah + ' sekolah</summary><ul>' +
+    p.kabupaten.map(k => '<li>' + esc(k.nama) + ': ' + k.sekolah + ' sekolah</li>').join('') + '</ul></details>').join('');
+  $('#st-waktu').textContent = res.diperbarui ? 'Diperbarui ' + res.diperbarui + ' WIB.' : '';
+  $('#statistik').classList.toggle('hidden', !['masuk','daftar','lupa'].includes(TAMPIL));
+}
+
+let TAMPIL = '';
 function tampil(v){
+  TAMPIL = v;
   VIEWS.forEach(x => $('#v-' + x).classList.toggle('hidden', x !== v));
+  const akun = ['masuk','daftar','lupa'].includes(v);
+  $('#tab-akun').classList.toggle('hidden', !akun);
+  $('#tab-masuk').classList.toggle('on', v === 'masuk' || v === 'lupa');
+  $('#tab-daftar').classList.toggle('on', v === 'daftar');
+  $('#statistik').classList.toggle('hidden', !akun || !Number($('#st-sekolah').textContent));
+  if (akun) muatStatistik();
   const fokus = { masuk:'#m-email', daftar:'#d-npsn', lupa:'#l-email', reset:'#r-sandi' }[v];
   if (fokus) setTimeout(() => $(fokus).focus(), 0);
 }
@@ -786,9 +834,10 @@ $('#f-masuk').addEventListener('submit', e => { e.preventDefault(); kirim(e.targ
 $('#f-daftar').addEventListener('submit', e => { e.preventDefault(); kirim(e.target, async () => {
   const res = await api({ aksi:'daftar', data: {
     npsn: $('#d-npsn').value, nama: $('#d-nama').value, email: $('#d-email').value,
+    kabupaten: $('#d-kab').value, provinsi: $('#d-prov').value,
     sandi: $('#d-sandi').value, ulangi: $('#d-ulangi').value, setuju: $('#d-setuju').checked } });
   pesan('#d-msg', res.pesan, res.ok, res.salah);
-  if (res.ok) { e.target.querySelectorAll('input').forEach(i => { if (i.type === 'checkbox') i.checked = false; else i.value = ''; }); }
+  if (res.ok) { $('#d-prov').value = ''; e.target.querySelectorAll('input').forEach(i => { if (i.type === 'checkbox') i.checked = false; else i.value = ''; }); }
 }); });
 
 $('#f-lupa').addEventListener('submit', e => { e.preventDefault(); kirim(e.target, async () => {

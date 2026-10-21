@@ -36,7 +36,7 @@ var PUSAT = {
 };
 
 var KOLOM_SEKOLAH = ['NPSN', 'Nama Sekolah', 'Email', 'Hash Sandi', 'Garam', 'Status', 'ID Spreadsheet',
-  'Terdaftar Pada', 'Diverifikasi Pada', 'Masuk Terakhir', 'Gagal Masuk', 'Terkunci Sampai'];
+  'Terdaftar Pada', 'Diverifikasi Pada', 'Masuk Terakhir', 'Gagal Masuk', 'Terkunci Sampai', 'Kabupaten/Kota', 'Provinsi'];
 var KOLOM_TOKEN = ['Hash Token', 'NPSN', 'Jenis', 'Kedaluwarsa', 'Dipakai Pada'];
 var KOLOM_LOG_PUSAT = ['Waktu', 'NPSN', 'Aksi', 'Rincian'];
 
@@ -174,6 +174,7 @@ function layani_(req) {
       case 'masuk': return masuk_(req.email, req.sandi);
       case 'lupaSandi': return lupaSandi_(req.email);
       case 'resetSandi': return resetSandi_(req.token, req.sandi, req.ulangi);
+      case 'statistik': return statistik_();
     }
     var sesi = bacaSesi_(req.sesi);
     if (!sesi) return { ok: false, sesiHabis: true, pesan: 'Sesi berakhir. Silakan masuk lagi.' };

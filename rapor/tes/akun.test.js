@@ -4,7 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { buatGas } = require('./tiruan-gas.js');
 
-const DATA = { npsn: '20321653', nama: 'SD N BUGANGIN', email: 'sdnbugangin@gmail.com', sandi: 'rapor2026', ulangi: 'rapor2026', setuju: true };
+const DATA = { npsn: '20321653', nama: 'SD N BUGANGIN', email: 'sdnbugangin@gmail.com', sandi: 'rapor2026', ulangi: 'rapor2026', setuju: true, kabupaten: 'Kab. Kendal', provinsi: 'Jawa Tengah' };
 const JAM = 3600000;
 
 function siap() {
@@ -352,4 +352,45 @@ test('tahun ajaran dan semester dari tanggal', () => {
   assert.deepEqual(ta('2026-12-31T00:00:00'), { tahunAjaran: '2026/2027', semester: 1 });
   assert.deepEqual(ta('2027-01-02T00:00:00'), { tahunAjaran: '2026/2027', semester: 2 });
   assert.deepEqual(ta('2027-06-30T00:00:00'), { tahunAjaran: '2026/2027', semester: 2 });
+});
+
+test('wilayah sekolah: nama baku kabupaten/kota dan provinsi, wajib saat daftar', () => {
+  const g = siap();
+  assert.equal(g.ctx.kabupatenBaku_('kab.  kendal'), 'Kabupaten Kendal');
+  assert.equal(g.ctx.kabupatenBaku_('KENDAL'), 'Kabupaten Kendal');
+  assert.equal(g.ctx.kabupatenBaku_('kota semarang'), 'Kota Semarang');
+  assert.equal(g.ctx.kabupatenBaku_('Kabupaten'), '');
+  assert.equal(g.ctx.provinsiBaku_('jawa tengah'), 'Jawa Tengah');
+  assert.equal(g.ctx.provinsiBaku_('Provinsi DIY'), 'DI Yogyakarta');
+  assert.equal(g.ctx.provinsiBaku_('Narnia'), '');
+  assert.match(g.minta({ aksi: 'daftar', data: { ...DATA, kabupaten: '' } }).pesan, /Kabupaten\/kota wajib/);
+  assert.match(g.minta({ aksi: 'daftar', data: { ...DATA, provinsi: 'Narnia' } }).pesan, /Pilih provinsi/);
+  aktif(g);
+  const baris = g.barisSekolah()[0];
+  assert.deepEqual([baris[12], baris[13]], ['Kabupaten Kendal', 'Jawa Tengah']);
+});
+
+test('statistik terbuka: jumlah sekolah aktif per provinsi dan kabupaten, tanpa nama sekolah', () => {
+  const g = siap();
+  aktif(g);
+  aktif(g, { ...DATA, npsn: '20300001', email: 'b@gmail.com', kabupaten: 'Kendal' });
+  aktif(g, { ...DATA, npsn: '20300002', email: 'c@gmail.com', kabupaten: 'Kota Semarang' });
+  aktif(g, { ...DATA, npsn: '20300003', email: 'd@gmail.com', kabupaten: 'Sleman', provinsi: 'DI Yogyakarta' });
+  g.minta({ aksi: 'daftar', data: { ...DATA, npsn: '20300004', email: 'e@gmail.com' } }); // belum verifikasi: tidak dihitung
+  const h = g.minta({ aksi: 'statistik' });
+  assert.equal(h.ok, true);
+  assert.deepEqual([h.sekolah, h.kabupaten, h.provinsi], [4, 3, 2]);
+  assert.deepEqual(h.rincian[0], { provinsi: 'Jawa Tengah', sekolah: 3,
+    kabupaten: [{ nama: 'Kabupaten Kendal', sekolah: 2 }, { nama: 'Kota Semarang', sekolah: 1 }] });
+  assert.doesNotMatch(JSON.stringify(h), /BUGANGIN|@/);
+});
+
+test('statistik ikut profil: kabupaten/provinsi yang diubah di Data Sekolah tersalin ke Pusat', () => {
+  const { sekolahAktif } = require('./tiruan-gas.js');
+  const s = sekolahAktif();
+  assert.equal(s.minta({ aksi: 'statistik' }).rincian[0].kabupaten[0].nama, 'Kabupaten Kendal');
+  assert.equal(s.minta({ aksi: 'simpanProfil', profil: { 'Kabupaten/Kota': 'Kota Pekalongan', Provinsi: 'Jawa Tengah' } }).ok, true);
+  const baris = s.pusat.getSheetByName('Sekolah').data.find((r) => r[0] === '20321653');
+  assert.equal(baris[12], 'Kota Pekalongan');
+  assert.equal(s.minta({ aksi: 'statistik' }).rincian[0].kabupaten[0].nama, 'Kota Pekalongan', 'cache dibuang saat wilayah berubah');
 });

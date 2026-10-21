@@ -44,11 +44,13 @@ Jika folder terhapus, aplikasi membuatnya lagi di dalam folder utama. Spreadshee
 
 ### Alur akun
 
-1. **Daftar:** operator mengisi NPSN, nama sekolah, email, dan kata sandi aplikasi, lalu menyetujui pengelolaan data.
+1. **Daftar:** operator mengisi NPSN, nama sekolah, kabupaten/kota, provinsi, email, dan kata sandi aplikasi, lalu menyetujui pengelolaan data. Halaman awal punya tab **Masuk** dan **Daftar akun baru** di atas formulir.
 2. **Verifikasi:** tautan aktivasi dikirim ke email sekolah dan berlaku 48 jam. Saat diklik, akun aktif dan spreadsheet sekolah dibuat. Pendaftaran yang tidak diverifikasi dalam 48 jam boleh ditimpa, supaya NPSN tidak "tersandera" oleh salah ketik email.
 3. **Masuk:** email dan kata sandi. Salah 5 kali, akun dikunci 15 menit. Sesi berakhir setelah 6 jam tidak dipakai.
 4. **Ganti kata sandi** (misalnya saat ada guru pindah): semua perangkat lain otomatis keluar.
 5. **Lupa kata sandi:** tautan reset dikirim ke email sekolah, berlaku 1 jam dan hanya sekali pakai.
+
+**Statistik pengguna** (aksi `statistik`, terbuka tanpa masuk): jumlah sekolah aktif, kabupaten/kota, dan provinsi, beserta rincian per provinsi → kabupaten/kota. Hanya angka dan nama wilayah, tanpa nama atau email sekolah; sekolah uji tidak dihitung; disimpan sementara 10 menit. Wilayah disimpan di tabel Sekolah (Pusat) saat daftar dan ikut diperbarui saat Kabupaten/Kota atau Provinsi di profil sekolah diubah. Nama dibakukan ("kab. kendal" → "Kabupaten Kendal").
 
 Keamanan:
 - Kata sandi disimpan sebagai hash HMAC-SHA256 berulang dengan garam acak. Token aktivasi, reset, dan sesi hanya disimpan hash-nya.

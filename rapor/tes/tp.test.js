@@ -104,7 +104,7 @@ test('TP bawaan: disalin ke sekolah baru dan bisa diambil sekolah lain', () => {
   sumber.minta({ aksi: 'simpanTp', kelas: 5, semester: 1, mapel: 'MTK', varian: '', tp: TP_MTK });
   sumber.minta({ aksi: 'simpanTp', kelas: 5, semester: 1, mapel: 'PAB', varian: 'Islam', tp: [{ tp: 'Membaca surah pendek', materi: 'Surah pendek' }] });
   // sekolah yang mendaftar sebelum sumber diatur: belum punya TP, tapi bisa mengambil TP bawaan
-  const lama = sekolahAktif({ npsn: '20300001', nama: 'SD LAMA', email: 'sd.lama@gmail.com', sandi: 'rapor2026', ulangi: 'rapor2026', setuju: true }, sumber);
+  const lama = sekolahAktif({ npsn: '20300001', nama: 'SD LAMA', email: 'sd.lama@gmail.com', sandi: 'rapor2026', ulangi: 'rapor2026', setuju: true, kabupaten: 'Kab. Kendal', provinsi: 'Jawa Tengah' }, sumber);
   assert.equal(lama.isi('Tujuan Pembelajaran').length, 0);
   assert.match(lama.minta({ aksi: 'tpBawaan', kelas: 5, semester: 1, mapel: 'MTK', varian: '' }).pesan, /belum tersedia/);
 
@@ -117,7 +117,7 @@ test('TP bawaan: disalin ke sekolah baru dan bisa diambil sekolah lain', () => {
   assert.match(lama.minta({ aksi: 'tpBawaan', kelas: 4, semester: 1, mapel: 'MTK', varian: '' }).pesan, /belum ada/);
 
   // sekolah yang mendaftar setelah sumber diatur: TP bawaan langsung terpasang
-  const baru = sekolahAktif({ npsn: '20300002', nama: 'SD BARU', email: 'sd.baru@gmail.com', sandi: 'rapor2026', ulangi: 'rapor2026', setuju: true }, sumber);
+  const baru = sekolahAktif({ npsn: '20300002', nama: 'SD BARU', email: 'sd.baru@gmail.com', sandi: 'rapor2026', ulangi: 'rapor2026', setuju: true, kabupaten: 'Kab. Kendal', provinsi: 'Jawa Tengah' }, sumber);
   const tp = baru.minta({ aksi: 'tpKelas', kelas: 5 }).tp;
   assert.deepEqual(tp['MTK|'].map((t) => t.tp), TP_MTK.map((t) => t.tp));
   assert.equal(tp['PAB|Islam'][0].materi, 'Surah pendek');
@@ -129,7 +129,7 @@ test('TP bawaan: disalin ke sekolah baru dan bisa diambil sekolah lain', () => {
 test('TP bawaan: sumber yang salah atau tidak bisa dibuka tidak menggagalkan pendaftaran', () => {
   const g = sekolahAktif();
   g.ctx.tulisPengaturanPusat_('NPSN Sumber TP Bawaan', '99999999');
-  const baru = sekolahAktif({ npsn: '20300003', nama: 'SD C', email: 'sd.c@gmail.com', sandi: 'rapor2026', ulangi: 'rapor2026', setuju: true }, g);
+  const baru = sekolahAktif({ npsn: '20300003', nama: 'SD C', email: 'sd.c@gmail.com', sandi: 'rapor2026', ulangi: 'rapor2026', setuju: true, kabupaten: 'Kab. Kendal', provinsi: 'Jawa Tengah' }, g);
   assert.equal(baru.isi('Tujuan Pembelajaran').length, 0);
   assert.match(baru.minta({ aksi: 'tpBawaan', kelas: 5, semester: 1, mapel: 'MTK', varian: '' }).pesan, /belum ada/);
 });
