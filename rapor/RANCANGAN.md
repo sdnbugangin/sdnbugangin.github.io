@@ -80,7 +80,7 @@ Dengan cara ini tidak ada batas 15 TP atau 60 siswa, dan tidak ada 21 sheet beri
 | Log | waktu, pengguna, aksi, rincian |
 
 Struktur mapel per kelas (bawaan, bisa diubah sekolah) ada di `apps-script/Referensi.gs`:
-IPAS mulai kelas 3; Bahasa Inggris aktif bawaan kelas 3–6; Koding & KA serta Mulok diaktifkan sekolah bila ada.
+IPAS mulai kelas 3; Bahasa Inggris aktif bawaan kelas 3–6; Muatan Lokal 1 = Bahasa Jawa aktif bawaan kelas 1–6 (sekolah di luar Jawa Tengah bisa menonaktifkan atau mengganti namanya); Koding & KA serta mulok lain diaktifkan sekolah bila ada.
 Mapel agama dan seni dinilai sesuai agama dan seni pilihan masing-masing siswa, tetapi tampil sebagai satu baris di rapor.
 
 Kolom identitas (NIS, NISN, ID, tahun ajaran) berformat teks, supaya NISN `0012345678` tidak berubah menjadi angka `12345678`.

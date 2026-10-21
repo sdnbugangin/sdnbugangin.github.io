@@ -44,7 +44,7 @@ test('nilai otomatis: kelas 5 dari arsip tahun lalu, kelas 6 tahun ini; rata-rat
   const { M, id } = siapLulus();
   const d = M({ aksi: 'lulusData' });
   assert.equal(d.tahunAjaran, '2027/2028');
-  assert.deepEqual(d.mapel.map((m) => m.kode), ['PAB', 'PP', 'BIND', 'MTK', 'IPAS', 'PJOK', 'SENI']);
+  assert.deepEqual(d.mapel.map((m) => m.kode), ['PAB', 'PP', 'BIND', 'MTK', 'IPAS', 'PJOK', 'SENI', 'MULOK1']);
   const ani = d.siswa.find((s) => s.id === id.ANI);
   assert.deepEqual(ani.nilai.MTK.auto, { '5-1': 80, '5-2': 90, '6-1': 71, '6-2': 85 }, '6-1: (70+71)/2 = 70,5 → nilai rapor tercetak 71');
   assert.equal(ani.nilai.MTK.akhir, 81.5);
@@ -61,14 +61,14 @@ test('nilai otomatis: kelas 5 dari arsip tahun lalu, kelas 6 tahun ini; rata-rat
 test('praktik dan isian manual ikut dirata-rata; manual menimpa nilai aplikasi; kosong kembali ke aplikasi', () => {
   const { M, id } = siapLulus();
   const semua = (v) => ({ '5-1': v, '5-2': v, '6-1': v, '6-2': v, PRAKTIK: '' });
-  const nilai = { PAB: semua('80'), PP: semua('82'), BIND: semua('84'), MTK: { PRAKTIK: '88' }, IPAS: semua('86'), PJOK: semua('90'), SENI: semua('85,5') };
+  const nilai = { PAB: semua('80'), PP: semua('82'), BIND: semua('84'), MTK: { PRAKTIK: '88' }, IPAS: semua('86'), PJOK: semua('90'), SENI: semua('85,5'), MULOK1: semua('83') };
   let h = M({ aksi: 'simpanLulus', isian: { [id.ANI]: { ijazah: 'DN-03/D-SD/0001234', nilai } } });
   let ani = h.siswa.find((s) => s.id === id.ANI);
   assert.equal(ani.nilai.MTK.akhir, 82.8, '(80+90+71+85+88)/5');
   assert.equal(ani.nilai.SENI.akhir, 85.5);
   assert.equal(ani.ijazah, 'DN-03/D-SD/0001234');
-  assert.equal(ani.rata, Math.round(((80 + 82 + 84 + 82.8 + 86 + 90 + 85.5) / 7) * 100) / 100);
-  assert.equal(ani.jumlah, 590.3);
+  assert.equal(ani.rata, Math.round(((80 + 82 + 84 + 82.8 + 86 + 90 + 85.5 + 83) / 8) * 100) / 100);
+  assert.equal(ani.jumlah, 673.3);
   // menimpa nilai aplikasi, lalu dikosongkan lagi
   h = M({ aksi: 'simpanLulus', isian: { [id.ANI]: { nilai: { MTK: { '5-1': '60', PRAKTIK: '88' } } } } });
   ani = h.siswa.find((s) => s.id === id.ANI);
@@ -110,7 +110,7 @@ test('pengaturan: logo divalidasi, mapel tambahan hanya bila dicentang dan diaja
   M({ aksi: 'simpanAturLulus', atur: { logoSekolah: 'data:image/png;base64,iVBORw0KGgo=', mapelTambahan: ['BING', 'KKA', 'XYZ'] } });
   const d = M({ aksi: 'lulusData' });
   assert.equal(d.atur.logoSekolah, 'data:image/png;base64,iVBORw0KGgo=');
-  assert.deepEqual(d.mapel.map((m) => m.kode), ['PAB', 'PP', 'BIND', 'MTK', 'IPAS', 'PJOK', 'SENI', 'BING'], 'KKA tidak diajarkan di kelas 6 → tidak muncul');
+  assert.deepEqual(d.mapel.map((m) => m.kode), ['PAB', 'PP', 'BIND', 'MTK', 'IPAS', 'PJOK', 'SENI', 'BING', 'MULOK1'], 'KKA tidak diajarkan di kelas 6 → tidak muncul');
   assert.deepEqual(d.mapelPilihan.map((m) => m.kode), ['BING']);
   // logo berlaku lintas tahun (Tahun Ajaran "*")
   assert.ok(g.isi('Kelulusan').some((r) => r[0] === '*' && r[2] === 'logoSekolah'));

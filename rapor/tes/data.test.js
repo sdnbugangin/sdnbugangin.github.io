@@ -380,7 +380,7 @@ test('simpanMapel: sekolah yang belum mengajar Bahasa Inggris & sudah mengajar K
   assert.deepEqual(mapelDari(h, 'BING').kelas, { 1: false, 2: false, 3: false, 4: false, 5: false, 6: false });
   assert.deepEqual(mapelDari(h, 'KKA').kelas, { 5: true, 6: true });
   const aktif5 = g.isi('Mapel Aktif').filter((r) => r[1] === 5 && r[6] === 'Ya').map((r) => r[2]);
-  assert.deepEqual(aktif5, ['PAB', 'PP', 'BIND', 'MTK', 'IPAS', 'SENI', 'PJOK', 'KKA']);
+  assert.deepEqual(aktif5, ['PAB', 'PP', 'BIND', 'MTK', 'IPAS', 'SENI', 'PJOK', 'KKA', 'MULOK1']);
 });
 
 test('simpanMapel: mapel wajib tetap aktif walau dikirim tidak dicentang', () => {
