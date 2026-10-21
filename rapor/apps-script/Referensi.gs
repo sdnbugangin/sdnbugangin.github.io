@@ -76,7 +76,8 @@ var MAPEL_BAWAAN = [
   { kode: 'PJOK', nama: 'Pendidikan Jasmani, Olahraga, dan Kesehatan', jenis: 'umum', kelas: [1, 2, 3, 4, 5, 6], aktifBawaan: [1, 2, 3, 4, 5, 6] },
   { kode: 'BING', nama: 'Bahasa Inggris', jenis: 'umum', kelas: [1, 2, 3, 4, 5, 6], aktifBawaan: [3, 4, 5, 6], pilihan: true },
   { kode: 'KKA', nama: 'Koding dan Kecerdasan Artifisial', jenis: 'umum', kelas: [5, 6], aktifBawaan: [], pilihan: true },
-  { kode: 'MULOK1', nama: 'Muatan Lokal 1', jenis: 'mulok', kelas: [1, 2, 3, 4, 5, 6], aktifBawaan: [], pilihan: true },
+  // Bahasa Jawa langsung aktif (mulok wajib Jawa Tengah); sekolah di luar Jawa Tengah bisa menonaktifkan atau mengganti namanya.
+  { kode: 'MULOK1', nama: 'Bahasa Jawa', jenis: 'mulok', kelas: [1, 2, 3, 4, 5, 6], aktifBawaan: [1, 2, 3, 4, 5, 6], pilihan: true },
   { kode: 'MULOK2', nama: 'Muatan Lokal 2', jenis: 'mulok', kelas: [1, 2, 3, 4, 5, 6], aktifBawaan: [], pilihan: true }
 ];
 

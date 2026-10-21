@@ -4,7 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { sekolahAktif } = require('./tiruan-gas.js');
 
-const MAPEL_K5 = ['PAB', 'PP', 'BIND', 'MTK', 'IPAS', 'SENI', 'PJOK', 'BING'];
+const MAPEL_K5 = ['PAB', 'PP', 'BIND', 'MTK', 'IPAS', 'SENI', 'PJOK', 'BING', 'MULOK1'];
 
 /** Kelas 5 dengan dua siswa; semua TP disusun satu per mapel/varian. */
 function siapRapor() {
@@ -122,10 +122,10 @@ test('rekapRombel: lengkap → siap cetak, seni ganda digabung, peringkat dan le
   assert.match(ani.kokurikuler, /^Ananda Ani sudah baik dalam dimensi profil Kolaborasi/);
   assert.deepEqual(ani.ekskul, [{ kegiatan: 'Pramuka', keterangan: 'Baik dalam mengikuti kegiatan Pramuka.' }]);
   assert.equal(ani.kenaikan.tampil, false);
-  assert.equal(ani.jumlah, 80 * 7 + 75);
+  assert.equal(ani.jumlah, 80 * 8 + 75);
   assert.equal(ani.peringkat, 1);
   assert.equal(budi.peringkat, 2);
-  assert.equal(budi.rataRata, Math.round(((70 * 7 + 85) / 8) * 100) / 100);
+  assert.equal(budi.rataRata, Math.round(((70 * 8 + 85) / 9) * 100) / 100);
 });
 
 test('rekapRombel: semester 2 menuntut keputusan kenaikan, peringkat hanya untuk yang lengkap', () => {

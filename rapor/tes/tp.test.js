@@ -40,7 +40,7 @@ test('tpKelas: mapel aktif kelas, varian agama/seni, agama siswa', () => {
   assert.equal(h.ok, true);
   assert.equal(h.fase, 'C');
   assert.equal(h.semester, 1);
-  assert.deepEqual(h.mapel.map((m) => m.kode), ['PAB', 'PP', 'BIND', 'MTK', 'IPAS', 'SENI', 'PJOK', 'BING']);
+  assert.deepEqual(h.mapel.map((m) => m.kode), ['PAB', 'PP', 'BIND', 'MTK', 'IPAS', 'SENI', 'PJOK', 'BING', 'MULOK1']);
   assert.equal(h.mapel[0].varian.length, 7);
   assert.deepEqual(h.mapel.find((m) => m.kode === 'SENI').varian, ['Seni Musik', 'Seni Rupa', 'Seni Tari', 'Seni Teater']);
   assert.deepEqual(h.mapel.find((m) => m.kode === 'MTK').varian, ['']);
