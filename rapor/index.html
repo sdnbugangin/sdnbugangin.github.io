@@ -29,6 +29,12 @@ input:focus{outline:2px solid var(--yellow);border-color:var(--yellow)}
 .msg ul{margin:6px 0 0;padding-left:18px}
 .notice{background:#fff3c0;border:1px solid #f0d77a;color:#5c4400;padding:12px 14px;border-radius:14px;font-size:14px;line-height:1.5;margin-top:16px}
 .hidden{display:none!important}
+dialog.profil{border:0;border-radius:22px;padding:0;max-width:440px;width:calc(100% - 32px);box-shadow:0 24px 60px rgba(18,49,79,.3)}dialog.profil::backdrop{background:rgba(18,49,79,.45)}
+.profil .kepala{background:linear-gradient(135deg,var(--blue),#1f4f7a);color:#fff;padding:20px 22px}.profil .kepala small{color:#d6e2ee;font-weight:700;letter-spacing:.06em;font-size:11.5px}.profil .kepala h3{margin:6px 0 2px;font-size:19px}.profil .kepala p{margin:0;color:#d6e2ee;font-size:13.5px}
+.profil dl{margin:0;padding:16px 22px;display:grid;grid-template-columns:110px 1fr;gap:8px 12px;font-size:14px}.profil dt{color:var(--muted)}.profil dd{margin:0;font-weight:600}.profil dd a{color:var(--blue)}
+.profil .tombol{display:flex;gap:8px;padding:0 22px 20px;flex-wrap:wrap}.profil .tombol .btn{width:auto;flex:1}.profil .dukung{margin:0 22px 16px;padding:12px 14px;border-radius:14px;background:#fff8e1;border:1px solid #f0d77a;font-size:13px;line-height:1.55;color:#5c4400}.profil .dukung b{display:block;color:var(--blue);font-size:13.5px;margin-bottom:3px}.btn.wa{background:#1fa855}.btn.wa:hover{background:#178a45}
+.bantuan{max-width:460px;margin:12px auto 0;text-align:center;font-size:13.5px;color:var(--muted);line-height:1.7}.bantuan a,.bantuan button.link{color:var(--blue);font-weight:700;text-decoration:underline;white-space:nowrap;font-size:inherit}
+footer button.link{color:inherit;text-decoration:underline;font-size:inherit}
 .tab-akun{max-width:460px;margin:22px auto 0;display:grid;grid-template-columns:1fr 1fr;gap:8px}.tab-akun a{display:block;text-align:center;padding:13px 10px;border-radius:14px;border:2px solid var(--blue);color:var(--blue);background:#fff;font-weight:800;font-size:15px;text-decoration:none}.tab-akun a:hover{background:#eef3f8}.tab-akun a.on{background:var(--blue);color:#fff}
 .tab-akun+.form{margin-top:12px}
 .stat{max-width:460px;margin:16px auto 0;padding:18px 20px}.stat h3{margin:0 0 4px;font-size:15px;color:var(--blue)}.stat .angka{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}.stat .angka div{background:#fff8e1;border-radius:12px;padding:10px 6px;text-align:center}.stat .angka b{display:block;font-size:24px;color:var(--red)}.stat .angka span{font-size:12px;color:var(--muted)}
@@ -264,6 +270,7 @@ table.leger td.j{text-align:center;font-weight:800}
     <div id="st-rincian"></div>
     <div class="sub" id="st-waktu"></div>
   </section>
+  <p class="bantuan hidden" id="bantuan">Butuh bantuan? Narahubung: <b>Yos Putra Kurniawan, S.Pd.</b> · <a href="https://wa.me/6282220044779" target="_blank" rel="noopener">WA 0822-2004-4779</a> · <button type="button" class="link buka-profil">Profil pengembang</button></p>
 
   <!-- RESET -->
   <section id="v-reset" class="card form hidden">
@@ -711,7 +718,21 @@ table.leger td.j{text-align:center;font-weight:800}
     <datalist id="dl-seni"></datalist>
   </section>
 
-  <footer>Rapor Digital SUPER · dikembangkan oleh SD N BUGANGIN · <a href="../" style="color:inherit">Beranda sekolah</a></footer>
+  <footer>Rapor Digital SUPER · dikembangkan oleh SD N BUGANGIN · <button type="button" class="link buka-profil">Profil pengembang &amp; narahubung</button> · <a href="../" style="color:inherit">Beranda sekolah</a></footer>
+
+  <dialog id="profil" class="profil" aria-labelledby="pf-nama">
+    <div class="kepala"><small>PROFIL PENGEMBANG</small><h3 id="pf-nama">Yos Putra Kurniawan, S.Pd.</h3><p>Kepala Sekolah SD N BUGANGIN · Kabupaten Kendal, Jawa Tengah</p></div>
+    <dl>
+      <dt>Pendidikan</dt><dd>S1 PGSD</dd>
+      <dt>Pengalaman</dt><dd>Google Certified Trainer; Fasilitator KKA</dd>
+      <dt>WhatsApp</dt><dd><a href="https://wa.me/6282220044779" target="_blank" rel="noopener">0822-2004-4779</a></dd>
+      <dt>Email</dt><dd><a href="mailto:bopodyos@gmail.com">bopodyos@gmail.com</a></dd>
+      <dt>Media sosial</dt><dd>Instagram <a href="https://www.instagram.com/yoslegend/" target="_blank" rel="noopener">@yoslegend</a><br>Facebook: Bopo D. Yos</dd>
+    </dl>
+    <p class="hint" style="margin:0;padding:0 22px 12px">Untuk informasi pembaruan, pertanyaan, atau kendala penggunaan aplikasi, silakan hubungi narahubung melalui WhatsApp.</p>
+    <div class="dukung"><b>Dukung Rapor Digital SUPER</b>Rapor Digital SUPER gratis dan akan tetap gratis untuk semua SD. Jika aplikasi ini membantu, dukungan terbaik Bapak/Ibu adalah membagikannya ke sekolah lain dan mengirim masukan lewat WhatsApp. Bagi yang ingin ikut mendukung biaya pemeliharaan secara sukarela, silakan hubungi narahubung. Terima kasih.</div>
+    <div class="tombol"><a class="btn wa" href="https://wa.me/6282220044779?text=Halo%20Pak%20Yos%2C%20saya%20ingin%20bertanya%20tentang%20Rapor%20Digital%20SUPER." target="_blank" rel="noopener">Chat WhatsApp</a><button type="button" class="btn ghost" id="pf-tutup">Tutup</button></div>
+  </dialog>
 </div>
 
 <script>
@@ -794,6 +815,7 @@ function tampil(v){
   $('#tab-akun').classList.toggle('hidden', !akun);
   $('#tab-masuk').classList.toggle('on', v === 'masuk' || v === 'lupa');
   $('#tab-daftar').classList.toggle('on', v === 'daftar');
+  $('#bantuan').classList.toggle('hidden', !akun);
   $('#statistik').classList.toggle('hidden', !akun || !Number($('#st-sekolah').textContent));
   if (akun) muatStatistik();
   const fokus = { masuk:'#m-email', daftar:'#d-npsn', lupa:'#l-email', reset:'#r-sandi' }[v];
@@ -2649,6 +2671,10 @@ $('#b-keluar').addEventListener('click', async () => {
 document.querySelectorAll('[data-show]').forEach(cb => cb.addEventListener('change', () => {
   cb.dataset.show.split(',').forEach(id => { $('#' + id).type = cb.checked ? 'text' : 'password'; });
 }));
+
+document.querySelectorAll('.buka-profil').forEach(b => b.addEventListener('click', () => $('#profil').showModal()));
+$('#pf-tutup').addEventListener('click', () => $('#profil').close());
+$('#profil').addEventListener('click', e => { if (e.target === $('#profil')) $('#profil').close(); });
 
 /* ---------- navigasi ---------- */
 document.querySelectorAll('a[href^="#"]').forEach(a => a.addEventListener('click', e => {
