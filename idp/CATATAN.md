@@ -83,3 +83,29 @@ Catatan atas template resmi:
    kebutuhan bangkom ke Korwil / Disdikbud.
 3. PIN per guru menggantikan satu password bersama.
 4. Unduhan PDF/Excel dibuat langsung oleh skrip (tanpa membagikan file ke publik).
+
+## 6. Membagikan ke SD lain
+
+Setiap SD memakai **salinan sendiri**: data, Drive, password, dan API key Gemini milik sekolah itu.
+
+**Menyiapkan master (sekali, oleh SD N Bugangin):**
+1. Spreadsheet IDP asli → **File → Buat salinan**. Biarkan nama "Salinan dari …".
+2. Di salinan: tempel kode terbaru (`Kode.gs`, `Index.html`, dan file baru `Pengaturan.html`), lalu simpan.
+3. Muat ulang salinan → menu **IDP Guru → Siapkan salinan bersih untuk dibagikan ke SD lain** → ketik `KOSONGKAN`.
+   Sheet FORM 1/FORM 2 dari template ikut dimasukkan (tersembunyi). Data guru, isian IDP, password,
+   API key, dan data kepala sekolah dihapus. Fungsi ini menolak berjalan bila nama file tidak mengandung
+   "Salinan"/"Copy", agar spreadsheet asli tidak ikut terhapus.
+4. Bagikan master dengan akses **"Siapa saja yang memiliki link: Pelihat"** (bukan Editor).
+5. Tempel link master ke `LINK_MASTER` di `idp/panduan.html`, lalu bagikan link panduan:
+   **sdnbugangin.github.io/idp/panduan.html**
+
+**Di sekolah lain:** File → Buat salinan → menu **IDP Guru → 0. Pengaturan Sekolah & API Gemini**
+(isi data sekolah, password, API key — ada petunjuk langkah demi langkah) → Deploy sebagai Aplikasi web.
+
+Yang disesuaikan agar bisa dipakai umum:
+- Nama sekolah, kepala sekolah, wilayah, dan kabupaten tidak lagi tertulis di kode; diambil dari Pengaturan.
+- Template IDP dibuat otomatis dari sheet FORM 1/FORM 2 yang terbawa di master (tidak perlu TEMPLATE_URL).
+- API key disimpan di Script Properties (tersembunyi), diuji ke Google sebelum disimpan.
+- Fungsi admin (pengaturan, setup, buat ulang, cek AI) hanya bisa dijalankan pemilik spreadsheet,
+  tidak bisa dipanggil pengunjung Web App.
+- Aplikasi menampilkan "belum disiapkan oleh admin" bila data sekolah/password belum diisi.

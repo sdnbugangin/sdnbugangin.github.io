@@ -137,7 +137,7 @@
         <div><label>GAP Pendidikan</label><input id="qGap" disabled></div>
       </div>
       <label>Keterangan GAP Pendidikan (jika ada)</label><input id="qKet">
-      <p class="info hidden" id="qInfo">Ada GAP kualifikasi: tindak lanjutnya melalui <b>izin belajar</b> atau <b>tugas belajar</b> (Perbup Kendal No. 59 Tahun 2021), bukan pelatihan. Bicarakan dengan atasan langsung.</p>
+      <p class="info hidden" id="qInfo">Ada GAP kualifikasi: tindak lanjutnya melalui <b>izin belajar</b> atau <b>tugas belajar</b> sesuai peraturan daerah (di Kabupaten Kendal: Perbup No. 59 Tahun 2021), bukan pelatihan. Bicarakan dengan atasan langsung.</p>
     </div>
 
     <div class="card">
@@ -195,7 +195,8 @@ function run(fn,args,ok,fail){var r=google.script.run.withSuccessHandler(ok).wit
 // ---------- AWAL ----------
 run('getInit',[],function(res){
   INIT=res;loading(false);
-  $('hdrSekolah').textContent=res.sekolah+' · Korwilcambiddik Kec. Kendal';
+  $('hdrSekolah').textContent=(res.sekolah||'')+(res.wilayah?' · '+res.wilayah:'');
+  if(!res.siap){pesan('loginMsg','Aplikasi belum disiapkan oleh admin sekolah.\nAdmin: buka spreadsheet → menu IDP Guru → 0. Pengaturan Sekolah & API Gemini.');$('vLogin').classList.remove('hidden');$('btnLogin').disabled=true;return}
   res.guru.forEach(function(n){var o=document.createElement('option');o.value=n;o.textContent=n;$('lgNama').appendChild(o)});
   $('vLogin').classList.remove('hidden');
   if(!res.aiAktif){$('aiRencanaInfo').textContent=$('aiCatatanInfo').textContent='Mode saran bawaan (AI belum diaktifkan oleh admin).'}

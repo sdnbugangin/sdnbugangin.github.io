@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Panduan Pemasangan | Aplikasi IDP Guru SD</title>
+<meta name="description" content="Panduan bagi kepala sekolah/operator untuk memasang aplikasi IDP Guru SD di sekolah sendiri, termasuk membuat API key Gemini.">
+<link rel="icon" type="image/png" href="../logo.png">
+<style>
+:root{--red:#d71920;--yellow:#ffd21f;--blue:#12314f;--cream:#fffaf0;--ink:#16202a;--muted:#64748b;--line:#eadfc7;--ok:#1d7a37}
+*{box-sizing:border-box}
+body{margin:0;background:var(--cream);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:15px;line-height:1.6}
+.topline{height:6px;background:linear-gradient(90deg,var(--red) 0 42%,var(--yellow) 42% 68%,var(--blue) 68%)}
+.wrap{max-width:820px;margin:auto;padding:22px 16px 40px}
+header{padding:22px 24px;border-radius:22px;background:linear-gradient(135deg,var(--blue),#1f4f7a);color:#fff}
+header small{color:#ffd21f;font-weight:800;letter-spacing:.08em;font-size:12px}
+h1{margin:4px 0 6px;font-size:clamp(1.5rem,4vw,2.1rem);letter-spacing:-.02em}
+header p{margin:0;color:#d6e2ee;font-size:14px}
+nav.isi{margin:16px 0 0;background:#fff;border:1px solid var(--line);border-radius:18px;padding:14px 18px}
+nav.isi b{display:block;color:var(--blue);margin-bottom:4px}
+nav.isi ol{margin:0;padding-left:20px;columns:2;column-gap:24px}
+code{font-size:13px;background:#f2eee4;border-radius:5px;padding:0 5px}
+nav.isi a{color:var(--blue);text-decoration:none}nav.isi a:hover{color:var(--red)}
+section{background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px 22px;margin-top:14px;break-inside:avoid-page}
+h2{margin:0 0 4px;font-size:19px;color:var(--blue);display:flex;gap:10px;align-items:center}
+h2 .no{flex:none;width:30px;height:30px;border-radius:10px;background:var(--red);color:#fff;display:grid;place-items:center;font-size:15px}
+.siapa{display:inline-block;font-size:12px;font-weight:800;padding:2px 10px;border-radius:999px;background:#eef3f8;color:var(--blue);margin:2px 0 8px}
+ol.langkah{margin:6px 0 0;padding-left:22px}ol.langkah li{margin:4px 0}
+.menu{font-weight:700;color:var(--blue);white-space:nowrap}
+.kotak{background:#fff8e1;border:1px solid #f0d77a;border-radius:12px;padding:10px 14px;margin-top:10px;font-size:14px;color:#5c4400}
+.kotak.hijau{background:#e9f6ec;border-color:#b8dfc3;color:#1d4d2b}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-top:6px}
+th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:var(--blue);color:#fff;font-size:13px}
+kbd{font:inherit;font-size:12.5px;font-weight:700;background:#f2eee4;border:1px solid #d9cfb8;border-bottom-width:2px;border-radius:6px;padding:0 6px}
+footer{margin-top:18px;text-align:center;font-size:13px;color:var(--muted)}
+footer a{color:var(--blue)}
+.cetak{display:inline-block;margin-top:12px;background:#fff;color:var(--blue);border:1px solid #fff;border-radius:10px;padding:7px 14px;font:inherit;font-weight:800;font-size:13px;cursor:pointer}
+@media(max-width:560px){nav.isi ol{columns:1}section{padding:16px}.menu{white-space:normal}}
+@page{size:A4;margin:14mm 14mm}
+@media print{
+  body{background:#fff;font-size:10pt;line-height:1.4}h2{font-size:13pt}table{font-size:9.5pt}.kotak{font-size:9.5pt;padding:6px 10px;margin-top:6px}ol.langkah li{margin:2px 0}
+  .wrap{max-width:none;padding:0}.topline,.cetak,nav.isi{display:none}
+  header{border-radius:10px;padding:12px 16px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  section{border-radius:10px;padding:10px 14px;margin-top:8px;break-inside:auto}h2,.siapa{break-after:avoid}li,tr,.kotak{break-inside:avoid}
+  h2 .no,th,.kotak,.siapa{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  a{color:inherit;text-decoration:none}
+}
+</style>
+</head>
+<body>
+<div class="topline"></div>
+<div class="wrap">
+  <header>
+    <small>PANDUAN KEPALA SEKOLAH / OPERATOR</small>
+    <h1>Memasang Aplikasi IDP Guru SD di Sekolah Anda</h1>
+    <p>Aplikasi pengisian Formulir 1 &amp; 2 Individual Development Plan, lengkap dengan saran AI Gemini. Gratis, berjalan di Google Drive milik sekolah sendiri. Waktu pemasangan ±20 menit.</p>
+    <button class="cetak" type="button" onclick="window.print()">Cetak / Simpan PDF panduan ini</button>
+  </header>
+
+  <nav class="isi" aria-label="Daftar isi">
+    <b>Isi panduan</b>
+    <ol>
+      <li><a href="#siap">Yang perlu disiapkan</a></li>
+      <li><a href="#salin">Buat salinan aplikasi</a></li>
+      <li><a href="#izin">Buka Pengaturan &amp; beri izin</a></li>
+      <li><a href="#data">Isi data sekolah</a></li>
+      <li><a href="#gemini">Membuat API key Gemini</a></li>
+      <li><a href="#terbit">Terbitkan aplikasi</a></li>
+      <li><a href="#guru">Bagikan ke guru</a></li>
+      <li><a href="#aman">Keamanan data</a></li>
+      <li><a href="#masalah">Masalah umum</a></li>
+    </ol>
+  </nav>
+
+  <section id="siap">
+    <h2><span class="no">1</span>Yang perlu disiapkan</h2>
+    <ol class="langkah">
+      <li><b>Akun Google milik sekolah</b> (disarankan) atau akun kepala sekolah. Semua file IDP guru akan tersimpan di Google Drive akun ini.</li>
+      <li><b>Link spreadsheet master</b> aplikasi IDP: <span id="master"></span></li>
+      <li>Laptop/komputer dengan browser Chrome. Pemasangan tidak bisa dari HP; guru nanti boleh mengisi dari HP.</li>
+      <li>Data kepala sekolah: nama dengan gelar dan NIP.</li>
+    </ol>
+  </section>
+
+  <section id="salin">
+    <h2><span class="no">2</span>Buat salinan aplikasi</h2>
+    <div class="siapa">Sekali saja</div>
+    <ol class="langkah">
+      <li>Buka link master dalam keadaan sudah masuk ke akun Google sekolah.</li>
+      <li>Klik menu <span class="menu">File → Buat salinan</span>.</li>
+      <li>Ganti nama menjadi, misalnya, <b>IDP Guru SD Negeri ...</b> (hapus kata “Salinan dari”). Klik <span class="menu">Buat salinan</span>.</li>
+      <li>Salinan terbuka di tab baru. Mulai sekarang selalu bekerja di <b>salinan milik sekolah Anda</b> ini.</li>
+    </ol>
+    <div class="kotak">Kode aplikasi ikut tersalin otomatis. Data dari sekolah asal <b>tidak</b> ikut, karena master sudah dikosongkan.</div>
+  </section>
+
+  <section id="izin">
+    <h2><span class="no">3</span>Buka Pengaturan &amp; beri izin</h2>
+    <ol class="langkah">
+      <li>Tunggu beberapa detik sampai menu <span class="menu">IDP Guru</span> muncul di deretan menu atas (setelah menu Bantuan). Bila tidak muncul, muat ulang halaman.</li>
+      <li>Klik <span class="menu">IDP Guru → 0. Pengaturan Sekolah &amp; API Gemini</span>.</li>
+      <li>Pertama kali akan muncul <b>“Otorisasi diperlukan”</b>: klik <span class="menu">Lanjutkan</span> lalu pilih akun sekolah.</li>
+      <li>Bila muncul <b>“Google belum memverifikasi aplikasi ini”</b>: klik <span class="menu">Lanjutan</span> → <span class="menu">Buka … (tidak aman)</span> → <span class="menu">Izinkan</span>.</li>
+      <li>Ulangi klik <span class="menu">0. Pengaturan Sekolah &amp; API Gemini</span>. Panel pengaturan terbuka di sisi kanan.</li>
+    </ol>
+    <div class="kotak">Peringatan “belum diverifikasi” itu wajar. Skrip ini milik sekolah Anda sendiri (hasil salinan), bukan aplikasi pihak luar. Izin dipakai untuk membuat file IDP di Drive dan menghubungi layanan Gemini.</div>
+  </section>
+
+  <section id="data">
+    <h2><span class="no">4</span>Isi data sekolah</h2>
+    <div class="siapa">Di panel Pengaturan, bagian 1</div>
+    <ol class="langkah">
+      <li>Isi <b>nama sekolah</b>, <b>wilayah</b> (mis. Korwilcambiddik Kec. ...), <b>kabupaten</b>, dan <b>tempat tanda tangan</b>.</li>
+      <li>Isi <b>nama kepala sekolah</b> (dengan gelar), <b>NIP 18 digit</b>, dan jabatan (<i>Kepala Sekolah</i> atau <i>Plt. Kepala Sekolah</i>).</li>
+      <li>Periksa bagian <span class="menu">Atasan Kepala Sekolah</span>. Bagian ini sudah terisi untuk Kabupaten Kendal; ubah bila berbeda.</li>
+      <li>Buat <b>password guru</b> (min. 6 karakter). Satu password dipakai semua guru di sekolah Anda.</li>
+      <li>Klik <span class="menu">Simpan data sekolah</span>. Folder Drive dan template IDP dibuat otomatis, dan daftar status di atas panel berubah menjadi ✔.</li>
+    </ol>
+  </section>
+
+  <section id="gemini">
+    <h2><span class="no">5</span>Membuat API key Gemini</h2>
+    <div class="siapa">Opsional, gratis · di panel Pengaturan, bagian 2</div>
+    <p style="margin:0">API key membuat tombol <b>✨ Saran AI</b> bisa menyusun kalimat catatan dan rekomendasi. Tanpa key, aplikasi tetap jalan dengan kalimat bawaan.</p>
+    <ol class="langkah">
+      <li>Buka <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener"><b>aistudio.google.com/apikey</b></a> dan masuk dengan akun Google.</li>
+      <li>Bila diminta, centang persetujuan persyaratan layanan, lalu lanjutkan.</li>
+      <li>Klik <span class="menu">Create API key</span> (Buat kunci API). Bila diminta memilih project, pilih yang ada atau buat project baru.</li>
+      <li>Key muncul berupa deretan huruf dan angka panjang. Klik ikon <b>salin</b> di sebelahnya.</li>
+      <li>Kembali ke spreadsheet. Di panel Pengaturan bagian 2, tempel key di kotak <b>Tempel API key</b>, lalu klik <span class="menu">Tambah</span>. Aplikasi menguji key itu ke Google sebelum menyimpannya.</li>
+      <li>Klik <span class="menu">Tes semua key</span>. Hasil yang benar: <code>Key 1 (…xxxx): OK – model gemini-...</code></li>
+    </ol>
+    <div class="kotak hijau"><b>Tips agar kuota tidak cepat habis:</b> tambahkan 2–3 key dari <b>akun Google yang berbeda</b> (mis. akun sekolah, akun kepala sekolah, akun operator). Kuota gratis dihitung per project/akun. Bila satu key habis, aplikasi otomatis memakai key berikutnya, dan kuota pulih setiap hari ±pukul 14.00–15.00 WIB.</div>
+    <div class="kotak">Jangan membagikan API key ke orang lain atau menempelkannya di grup WhatsApp. Key disimpan tersembunyi dan tidak tampil di sheet.</div>
+  </section>
+
+  <section id="terbit">
+    <h2><span class="no">6</span>Terbitkan aplikasi</h2>
+    <div class="siapa">Sekali saja</div>
+    <ol class="langkah">
+      <li>Klik menu <span class="menu">Ekstensi → Apps Script</span>. Editor kode terbuka di tab baru; kode tidak perlu diubah.</li>
+      <li>Klik tombol biru <span class="menu">Terapkan (Deploy) → Deployment baru</span>.</li>
+      <li>Klik ikon roda gigi di samping “Pilih jenis”, lalu pilih <span class="menu">Aplikasi web</span>.</li>
+      <li>Isi: <b>Jalankan sebagai: Saya</b> · <b>Yang memiliki akses: Siapa saja</b>. Klik <span class="menu">Terapkan</span>.</li>
+      <li>Bila diminta izin lagi, ulangi langkah izin seperti di bagian 3.</li>
+      <li>Salin <b>URL aplikasi web</b> yang berakhiran <code>/exec</code>. Inilah alamat aplikasi untuk guru.</li>
+    </ol>
+    <div class="kotak">Pilihan “Siapa saja” membuat guru bisa membuka aplikasi tanpa akun Google. Guru tetap harus memasukkan password sekolah, dan guru tidak bisa membuka spreadsheet.</div>
+  </section>
+
+  <section id="guru">
+    <h2><span class="no">7</span>Bagikan ke guru</h2>
+    <ol class="langkah">
+      <li>Kirim <b>URL aplikasi</b> (…/exec) dan <b>password</b> ke guru, misalnya lewat grup WA sekolah.</li>
+      <li>Guru membuka URL, klik <span class="menu">Daftar di sini</span>, lalu mengisi nama, NIP, jenjang, status, dan password.</li>
+      <li>Guru mengisi skor GAP bersama kepala sekolah (IDP adalah <b>hasil dialog atasan–bawahan</b>), lalu memakai ✨ Saran AI untuk draf catatan dan rekomendasi.</li>
+      <li>Guru menekan <span class="menu">Simpan &amp; Buat File Excel</span>, lalu mengunduh Excel atau PDF Formulir 1 dan 2.</li>
+    </ol>
+    <div class="kotak hijau">Kepala sekolah juga bisa mengisi IDP-nya sendiri: pilih “Mendaftar sebagai: Kepala Sekolah” (NIP harus sama dengan di Pengaturan).</div>
+  </section>
+
+  <section id="aman">
+    <h2><span class="no">8</span>Keamanan data</h2>
+    <ol class="langkah">
+      <li><b>Jangan membagikan spreadsheet</b> sekolah Anda ke siapa pun. Pastikan <span class="menu">Bagikan → Akses umum</span> = <b>Dibatasi</b>. Guru cukup memakai URL aplikasi.</li>
+      <li>Spreadsheet berisi nama, NIP, dan hasil penilaian guru (data pribadi, UU No. 27 Tahun 2022). Siapa pun yang bisa mengedit spreadsheet juga bisa mengubah kode aplikasi.</li>
+      <li>Ingatkan guru agar tidak menulis nama siswa atau data pribadi lain di kolom “ceritakan kondisi Anda”, karena teks itu dikirim ke layanan AI.</li>
+      <li>Ganti password guru bila ada guru pindah tugas.</li>
+    </ol>
+  </section>
+
+  <section id="masalah">
+    <h2><span class="no">9</span>Masalah umum</h2>
+    <table>
+      <tr><th>Gejala</th><th>Penyelesaian</th></tr>
+      <tr><td>Menu <i>IDP Guru</i> tidak muncul</td><td>Muat ulang halaman spreadsheet dan tunggu ±10 detik.</td></tr>
+      <tr><td>Aplikasi menampilkan “belum disiapkan oleh admin sekolah”</td><td>Lengkapi nama sekolah, nama kepala sekolah, dan password di Pengaturan, lalu klik Simpan.</td></tr>
+      <tr><td>Saran AI bertuliskan “dipakai kalimat bawaan”</td><td>Belum ada API key, atau semua key sedang habis kuota. Klik <i>Tes semua key</i>, dan tambahkan key dari akun lain bila perlu.</td></tr>
+      <tr><td>Tes key: <code>HTTP 429</code></td><td>Kuota harian key itu habis. Pulih otomatis ±pukul 14.00–15.00 WIB, atau tambahkan key dari akun lain.</td></tr>
+      <tr><td>Tes key: <code>HTTP 400/403</code></td><td>Key salah salin atau sudah dihapus. Hapus key itu dan buat yang baru.</td></tr>
+      <tr><td>Tes key: <code>HTTP 404</code> model tidak tersedia</td><td>Kosongkan isian “Model Gemini” di bagian Lanjutan. Aplikasi akan memilih model terbaru sendiri.</td></tr>
+      <tr><td>Saat dijalankan dari editor Apps Script, ikon terus berputar</td><td>Lihat tab spreadsheet; mungkin ada kotak pesan yang menunggu diklik OK.</td></tr>
+      <tr><td>Kode diperbarui tetapi aplikasi belum berubah</td><td>Terapkan → Kelola deployment → ikon pensil → Versi: <b>Versi baru</b> → Terapkan.</td></tr>
+    </table>
+  </section>
+
+  <footer>
+    Butuh bantuan? Narahubung: <b>Yos Putra Kurniawan, S.Pd.</b> · WhatsApp <a href="https://wa.me/6282220044779" target="_blank" rel="noopener">0822-2004-4779</a><br>
+    Aplikasi IDP Guru SD · dikembangkan oleh SD N BUGANGIN
+  </footer>
+</div>
+<script>
+// Isi dengan link spreadsheet master (akses "Siapa saja yang memiliki link: Pelihat").
+var LINK_MASTER = '';
+document.getElementById('master').innerHTML = LINK_MASTER
+  ? '<a href="' + LINK_MASTER + '" target="_blank" rel="noopener"><b>buka spreadsheet master</b></a>'
+  : 'minta ke narahubung di bagian bawah halaman ini.';
+</script>
+</body>
+</html>
