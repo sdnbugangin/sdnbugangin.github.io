@@ -461,7 +461,7 @@ function buatUlangSemua() {
 
 // ====================== AI (GEMINI) ======================
 var GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/';
-var MODEL_CADANGAN = ['gemini-2.5-flash', 'gemini-2.5-flash-lite'];
+var MODEL_CADANGAN = ['gemini-flash-latest', 'gemini-flash-lite-latest'];
 var AI_MAKS_PANGGILAN = 6;      // batas permintaan HTTP ke Google per satu klik guru
 var AI_MAKS_WAKTU = 25000;      // ms; lewat dari ini langsung pakai saran bawaan
 var AI_SIMPAN_DETIK = 21600;    // jawaban disimpan 6 jam (batas maksimal CacheService)
@@ -552,7 +552,11 @@ function panggilGemini_(prompt, cfg, skema, garam) {
       galat = 'HTTP ' + h.kode + (h.pesan ? ' – ' + h.pesan.slice(0, 120) : '');
       if (h.kode === 429) { istirahatkan_(kunci, models[b], lamaRehat_(h), 'kuota'); continue; }
       if (h.kode === 401 || h.kode === 403 || /API.?KEY/i.test(h.pesan)) { istirahatkan_(kunci, null, 21600, 'key tidak valid'); break; }
-      if (h.kode === 404 && !sudahSegarkan) { sudahSegarkan = true; models = daftarModel_(cfg, kunci, true); b = -1; continue; }
+      if (h.kode === 404) {                                           // model sudah dihentikan → jangan dipakai lagi
+        tandaiModelMati_(models[b]);
+        if (!sudahSegarkan) { sudahSegarkan = true; models = daftarModel_(cfg, kunci, true); b = -1; }
+        continue;
+      }
       if ([500, 503, 504].indexOf(h.kode) >= 0) { Utilities.sleep(600); continue; }
       throw new Error(galat);                                         // kesalahan lain: tidak akan beres dengan ganti key
     }
@@ -624,7 +628,16 @@ function daftarModel_(cfg, kunci, segarkan) {
   }
   if (!list.length) list = MODEL_CADANGAN.slice();
   if (cfg.GEMINI_MODEL) list = [cfg.GEMINI_MODEL].concat(list.filter(function (m) { return m !== cfg.GEMINI_MODEL; }));
-  return list;
+  var mati = JSON.parse(props.getProperty('MODEL_MATI') || '[]');
+  var hidup = list.filter(function (m) { return mati.indexOf(m) < 0; });
+  return hidup.length ? hidup : list;
+}
+
+/** Model yang dijawab 404 ("no longer available") dicatat agar tidak dicoba lagi, termasuk bila tertulis di GEMINI_MODEL. */
+function tandaiModelMati_(model) {
+  var props = PropertiesService.getScriptProperties();
+  var mati = JSON.parse(props.getProperty('MODEL_MATI') || '[]');
+  if (mati.indexOf(model) < 0) { mati.push(model); props.setProperty('MODEL_MATI', JSON.stringify(mati.slice(-30))); }
 }
 
 /** Jalankan dari editor / menu: menguji setiap API key satu per satu. Lihat hasilnya di Log eksekusi. */
@@ -633,13 +646,23 @@ function cekAI() {
   var semua = daftarKunci_(cfg);
   var baris = [];
   if (!semua.length) baris.push('GEMINI_API_KEY belum diisi di _PENGATURAN.');
+  PropertiesService.getScriptProperties().deleteProperty('MODEL_MATI');   // uji ulang dari awal
   semua.forEach(function (k, i) {
     var label = 'Key ' + (i + 1) + ' (…' + k.slice(-4) + ')';
-    var models = daftarModel_(cfg, k, i === 0);
-    var h = kirimGemini_(models[0], 'Balas HANYA JSON: {"ok": true}', k, null, false);
-    if (h.kode === 200) baris.push(label + ': OK – model ' + models[0]);
-    else baris.push(label + ': GAGAL HTTP ' + h.kode + ' – ' + String(h.pesan).slice(0, 140));
+    var models = daftarModel_(cfg, k, i === 0), catatan = [];
+    for (var m = 0; m < models.length; m++) {                            // coba model satu per satu sampai berhasil
+      var h = kirimGemini_(models[m], 'Balas HANYA JSON: {"ok": true}', k, null, false);
+      if (h.kode === 200) { baris.push(label + ': OK – model ' + models[m] + (catatan.length ? ' (dilewati: ' + catatan.join('; ') + ')' : '')); return; }
+      if (h.kode === 404) { tandaiModelMati_(models[m]); catatan.push(models[m] + ' sudah tidak tersedia'); continue; }
+      if (h.kode === 429) { catatan.push(models[m] + ' kuota habis'); continue; }
+      if ([500, 503, 504].indexOf(h.kode) >= 0) { catatan.push(models[m] + ' sibuk'); continue; }
+      catatan.push('HTTP ' + h.kode + ' – ' + String(h.pesan).slice(0, 140));
+      break;                                                             // key salah dsb.: model lain juga akan gagal
+    }
+    baris.push(label + ': GAGAL – ' + catatan.join('; '));
   });
+  if (cfg.GEMINI_MODEL && JSON.parse(PropertiesService.getScriptProperties().getProperty('MODEL_MATI') || '[]').indexOf(cfg.GEMINI_MODEL) >= 0)
+    baris.push('PERHATIAN: GEMINI_MODEL di _PENGATURAN berisi "' + cfg.GEMINI_MODEL + '" yang sudah tidak tersedia. Kosongkan sel tersebut agar model dipilih otomatis.');
   baris.push('Urutan model: ' + daftarModel_(cfg, semua[0] || '', false).join(', '));
   Logger.log(baris.join('\n'));
   try { SpreadsheetApp.getUi().alert(baris.join('\n\n')); } catch (e) { /* dijalankan dari editor */ }
