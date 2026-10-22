@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html>
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<style>
+  :root{--biru:#1565c0;--biru2:#e3f0fd;--kuning:#fff3c4;--hijau:#2e7d32;--merah:#c62828;--abu:#f4f6f9;--garis:#dde3ea;--teks:#1f2933}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Segoe UI,Roboto,Arial,sans-serif;background:var(--abu);color:var(--teks);font-size:15px}
+  header{background:var(--biru);color:#fff;padding:14px 18px}
+  header h1{margin:0;font-size:18px}
+  header p{margin:2px 0 0;font-size:13px;opacity:.9}
+  main{max-width:960px;margin:0 auto;padding:16px}
+  .card{background:#fff;border:1px solid var(--garis);border-radius:10px;padding:16px;margin-bottom:14px}
+  .card h2{margin:0 0 4px;font-size:16px;color:var(--biru)}
+  .card .sub{margin:0 0 12px;font-size:13px;color:#5b6b7b}
+  label{display:block;font-size:13px;font-weight:600;margin:8px 0 4px}
+  input,select,textarea{width:100%;padding:9px 10px;border:1px solid #c7d0da;border-radius:7px;font:inherit;background:#fff}
+  textarea{min-height:58px;resize:vertical}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+  button{font:inherit;cursor:pointer;border:none;border-radius:7px;padding:9px 14px}
+  .btn{background:var(--biru);color:#fff;font-weight:600}
+  .btn:disabled{opacity:.5;cursor:wait}
+  .btn-hijau{background:var(--hijau);color:#fff;font-weight:600}
+  .btn-ai{background:#6a1b9a;color:#fff;font-size:13px;padding:7px 11px}
+  .btn-garis{background:#fff;border:1px solid var(--biru);color:var(--biru)}
+  .komp{border:1px solid var(--garis);border-radius:9px;padding:12px;margin-bottom:10px}
+  .komp.nonaktif{opacity:.45}
+  .komp .judul{font-weight:700}
+  .komp .def{font-size:12.5px;color:#5b6b7b;margin:2px 0 8px}
+  .skor{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+  .skor button{background:#eef2f6;border:1px solid #cfd8e3;padding:6px 10px;font-size:13px;min-width:92px}
+  .skor button.on{background:var(--biru);color:#fff;border-color:var(--biru)}
+  .ai-row{display:flex;gap:8px;margin-top:6px;align-items:stretch}
+  .ai-row input{flex:1}
+  .info{font-size:12.5px;color:#6a1b9a;margin-top:4px}
+  .pill{display:inline-block;font-size:12px;padding:2px 8px;border-radius:20px;background:var(--kuning);margin-left:6px;font-weight:600}
+  .tahun{display:flex;gap:12px;flex-wrap:wrap;margin-top:4px}
+  .tahun label{display:flex;align-items:center;gap:4px;font-weight:400;margin:0}
+  .tahun input{width:auto}
+  .cek{display:flex;align-items:center;gap:8px;font-weight:700}
+  .cek input{width:18px;height:18px}
+  #bar{position:sticky;bottom:0;background:#fff;border-top:1px solid var(--garis);padding:10px 16px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;z-index:5}
+  .msg{padding:10px 12px;border-radius:8px;margin-bottom:12px;white-space:pre-line;font-size:14px}
+  .msg.err{background:#fdecea;color:var(--merah)}
+  .msg.ok{background:#e8f5e9;color:var(--hijau)}
+  .unduh a{display:inline-block;margin:4px 6px 4px 0;padding:8px 12px;border-radius:7px;background:var(--biru2);color:var(--biru);text-decoration:none;font-weight:600}
+  .login{max-width:420px;margin:40px auto}
+  .hidden{display:none}
+  .counter{font-weight:700}
+  #loading{position:fixed;inset:0;background:rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--biru);z-index:50}
+</style>
+</head>
+<body>
+<header>
+  <h1>Individual Development Plan (IDP) Guru</h1>
+  <p id="hdrSekolah">Memuat…</p>
+</header>
+
+<div id="loading">Memuat…</div>
+
+<main>
+  <!-- LOGIN -->
+  <div id="vLogin" class="card login hidden">
+    <h2>Masuk</h2>
+    <p class="sub">Pilih nama Anda, lalu masukkan password.</p>
+    <div id="loginMsg"></div>
+    <label>Nama Guru</label>
+    <select id="lgNama"><option value="">— pilih nama —</option></select>
+    <label>Password</label>
+    <input id="lgPw" type="password" autocomplete="current-password">
+    <div style="margin-top:14px"><button class="btn" id="btnLogin" style="width:100%">Masuk</button></div>
+    <p class="sub" style="margin-top:14px;text-align:center">Nama Anda belum ada di daftar? <a href="#" id="keDaftar">Daftar di sini</a></p>
+  </div>
+
+  <!-- DAFTAR MANDIRI -->
+  <div id="vDaftar" class="card login hidden">
+    <h2>Pendaftaran Guru ASN</h2>
+    <p class="sub">Isi data diri Anda dengan benar. Data ini dipakai pada Formulir IDP.</p>
+    <div id="daftarMsg"></div>
+    <label>Mendaftar sebagai</label>
+    <select id="dPeran"><option>Guru</option><option>Kepala Sekolah</option></select>
+    <p class="sub" id="dPeranInfo" style="margin:4px 0 0"></p>
+    <label>Nama Lengkap dengan Gelar</label>
+    <input id="dNama" placeholder="contoh: Siti Aminah, S.Pd.">
+    <label>NIP (18 digit, tanpa spasi)</label>
+    <input id="dNip" inputmode="numeric" maxlength="22" placeholder="199001012019032001">
+    <label>Jenjang Jabatan Fungsional Guru</label>
+    <select id="dJenjang"><option value="">— pilih —</option><option value="Ahli Pertama">Guru Ahli Pertama</option><option value="Ahli Muda">Guru Ahli Muda</option><option value="Ahli Madya">Guru Ahli Madya</option><option value="Ahli Utama">Guru Ahli Utama</option></select>
+    <label>Status Kepegawaian</label>
+    <select id="dStatus"><option value="">— pilih —</option><option>PNS</option><option>PPPK</option></select>
+    <label>Pendidikan Terakhir</label>
+    <select id="dPend"><option>S1</option><option>D4</option><option>S2</option><option>S3</option><option>D3</option><option>D2</option><option>SMA/SPG</option></select>
+    <label>Password</label>
+    <input id="dPw" type="password" placeholder="password dari kepala sekolah">
+    <div style="margin-top:14px"><button class="btn" id="btnDaftar" style="width:100%">Daftar &amp; Masuk</button></div>
+    <p class="sub" style="margin-top:14px;text-align:center"><a href="#" id="keLogin">← Kembali ke halaman masuk</a></p>
+  </div>
+
+  <!-- FORM -->
+  <div id="vForm" class="hidden">
+    <div id="formMsg"></div>
+    <div id="fileBox" class="card hidden"></div>
+
+    <div class="card">
+      <h2>A. Identitas &amp; Jabatan</h2>
+      <p class="sub">Atasan langsung: <b id="ksNama"></b>. Data atasan terisi otomatis.</p>
+      <p class="sub hidden" id="ksInfo" style="color:#6a1b9a">Anda mengisi IDP sebagai <b>Kepala Sekolah</b>. Formulir akan ditandatangani oleh atasan Anda di Dinas.</p>
+      <div class="grid">
+        <div><label>Nama Pegawai</label><input id="fNama" disabled></div>
+        <div><label>NIP Pegawai</label><input id="fNip" inputmode="numeric" placeholder="18 digit"></div>
+        <div><label>Status Kepegawaian</label>
+          <select id="fStatus"><option>PNS</option><option>PPPK</option></select></div>
+      </div>
+      <div class="grid">
+        <div><label>Jenjang Jabatan Saat Ini</label>
+          <select id="fJenjang"><option value="Ahli Pertama">Guru Ahli Pertama</option><option value="Ahli Muda">Guru Ahli Muda</option><option value="Ahli Madya">Guru Ahli Madya</option><option value="Ahli Utama">Guru Ahli Utama</option></select></div>
+        <div><label>Target Jabatan</label>
+          <select id="fTarget"><option>Ahli Muda</option><option>Ahli Madya</option><option>Ahli Utama</option><option>Ahli Pertama</option></select></div>
+        <div><label>Tanggal Penilaian</label><input id="fTanggal" type="date"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>B. GAP Kinerja &amp; Kualifikasi</h2>
+      <div class="grid">
+        <div><label>Tahun Penilaian Kinerja</label><input id="kTahun" type="number" value="2025"></div>
+        <div><label>Predikat Kinerja</label>
+          <select id="kPredikat"><option value="">— pilih —</option><option>Sangat Baik</option><option>Baik</option><option>Butuh Perbaikan</option><option>Kurang</option><option>Sangat Kurang</option></select></div>
+        <div><label>GAP Kinerja</label><input id="kGap" disabled></div>
+      </div>
+      <label>Keterangan GAP Kinerja (jika ada)</label><input id="kKet">
+      <div class="grid" style="margin-top:6px">
+        <div><label>Syarat Pendidikan Jabatan</label><input id="qSyarat" value="S1"></div>
+        <div><label>Pendidikan Terakhir</label>
+          <select id="qPend"><option value="">— pilih —</option><option>SMA/SPG</option><option>D2</option><option>D3</option><option>S1</option><option>D4</option><option>S2</option><option>S3</option></select></div>
+        <div><label>GAP Pendidikan</label><input id="qGap" disabled></div>
+      </div>
+      <label>Keterangan GAP Pendidikan (jika ada)</label><input id="qKet">
+      <p class="info hidden" id="qInfo">Ada GAP kualifikasi: tindak lanjutnya melalui <b>izin belajar</b> atau <b>tugas belajar</b> (Perbup Kendal No. 59 Tahun 2021), bukan pelatihan. Bicarakan dengan atasan langsung.</p>
+    </div>
+
+    <div class="card">
+      <h2>Bantuan AI</h2>
+      <p class="sub">Pilih dulu skor GAP setiap kompetensi bersama atasan langsung (IDP adalah hasil dialog atasan–bawahan). Setelah itu, AI bisa menyusun draf catatan yang masih kosong sekaligus dalam satu kali proses. Hasil AI hanya draf — periksa dan sesuaikan dengan kondisi nyata.</p>
+      <button class="btn-ai" id="btnAiCatatan">✨ Isi semua catatan yang masih kosong</button>
+      <div id="aiCatatanInfo" class="info"></div>
+      <p class="sub" style="margin:8px 0 0">Jangan menulis nama siswa, NIK/NIP, atau data pribadi lain di kolom “ceritakan kondisi Anda”.</p>
+    </div>
+
+    <div class="card">
+      <h2>C1. Kompetensi Manajerial</h2>
+      <p class="sub">Pilih tingkat GAP: <b>0</b> sudah memenuhi standar, <b>1</b> rendah, <b>2</b> sedang, <b>3</b> tinggi, <b>4</b> sangat tinggi. Skor 1–4 wajib diberi catatan. Tidak yakin? Ceritakan kondisi Anda singkat lalu tekan <b>✨ Saran AI</b>.</p>
+      <div id="listM"></div>
+    </div>
+
+    <div class="card">
+      <h2>C2. Kompetensi Teknis <span class="pill">Pilih tepat 4 dari 5 · <span class="counter" id="cntT">0</span>/4</span></h2>
+      <p class="sub">Sesuaikan dengan hasil rapor kompetensi guru Anda.</p>
+      <div id="listT"></div>
+    </div>
+
+    <div class="card">
+      <h2>C3. Kompetensi Sosial Kultural</h2>
+      <div id="listS"></div>
+    </div>
+
+    <div class="card">
+      <h2>D. Rencana Pengembangan (Formulir 2)</h2>
+      <p class="sub">Muncul otomatis untuk setiap kompetensi yang memiliki GAP (skor 1–4).</p>
+      <button class="btn-ai" id="btnAiRencana">✨ Isi semua rekomendasi dengan AI</button>
+      <div id="aiRencanaInfo" class="info"></div>
+      <div id="listR" style="margin-top:10px"></div>
+    </div>
+  </div>
+</main>
+
+<div id="bar" class="hidden">
+  <button class="btn-garis" id="btnDraf">💾 Simpan Draf</button>
+  <button class="btn-hijau" id="btnFile">📄 Simpan &amp; Buat File Excel</button>
+  <button class="btn-garis" id="btnKeluar">Keluar</button>
+</div>
+
+<script>
+var INIT=null, SESI={nama:'',pw:''}, D=null, PERAN='Guru';
+var $=function(id){return document.getElementById(id)};
+var NEXT={'Ahli Pertama':'Ahli Muda','Ahli Muda':'Ahli Madya','Ahli Madya':'Ahli Utama','Ahli Utama':'Ahli Utama'};
+var PEND_OK=['S1','D4','S2','S3'];
+
+function loading(on,teks){$('loading').style.display=on?'flex':'none';$('loading').textContent=teks||'Memuat…'}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function pesan(el,teks,jenis){$(el).innerHTML=teks?'<div class="msg '+(jenis||'err')+'">'+esc(teks)+'</div>':''}
+function run(fn,args,ok,fail){var r=google.script.run.withSuccessHandler(ok).withFailureHandler(function(e){loading(false);(fail||function(e){alert(e.message||e)})(e)});r[fn].apply(r,args)}
+
+// ---------- AWAL ----------
+run('getInit',[],function(res){
+  INIT=res;loading(false);
+  $('hdrSekolah').textContent=res.sekolah+' · Korwilcambiddik Kec. Kendal';
+  res.guru.forEach(function(n){var o=document.createElement('option');o.value=n;o.textContent=n;$('lgNama').appendChild(o)});
+  $('vLogin').classList.remove('hidden');
+  if(!res.aiAktif){$('aiRencanaInfo').textContent=$('aiCatatanInfo').textContent='Mode saran bawaan (AI belum diaktifkan oleh admin).'}
+});
+
+$('btnLogin').onclick=function(){
+  var n=$('lgNama').value,p=$('lgPw').value;
+  if(!n){pesan('loginMsg','Pilih nama terlebih dahulu.');return}
+  loading(true,'Masuk…');
+  run('login',[n,p],function(res){masuk(res,n,p)},function(e){pesan('loginMsg',e.message||String(e))});
+};
+function masuk(res,n,p){
+  loading(false);SESI={nama:n,pw:p};
+  D=res.data||dataBaru(res.profil);
+  $('vLogin').classList.add('hidden');$('vDaftar').classList.add('hidden');
+  $('vForm').classList.remove('hidden');$('bar').classList.remove('hidden');
+  PERAN=res.profil.peran||'Guru';
+  $('ksNama').textContent=res.atasan.nama+' ('+res.atasan.jabatan+')';
+  $('ksInfo').classList.toggle('hidden',PERAN!=='Kepala Sekolah');
+  if(PERAN==='Kepala Sekolah'){document.querySelector('header h1').textContent='Individual Development Plan (IDP) Kepala Sekolah'}
+  $('fNama').value=res.profil.nama;
+  tampilkanFile(res.file,res.terakhir);
+  isiForm();
+}
+$('keDaftar').onclick=function(e){e.preventDefault();$('vLogin').classList.add('hidden');$('vDaftar').classList.remove('hidden')};
+$('dPeran').onchange=function(){$('dPeranInfo').textContent=this.value==='Kepala Sekolah'?'Hanya untuk kepala sekolah (NIP harus sesuai data di pengaturan). Atasan langsung: Kabid Pembinaan Ketenagaan, Disdikbud.':''};
+$('keLogin').onclick=function(e){e.preventDefault();$('vDaftar').classList.add('hidden');$('vLogin').classList.remove('hidden')};
+$('btnDaftar').onclick=function(){
+  var f={peran:$('dPeran').value,nama:$('dNama').value.trim(),nip:$('dNip').value.replace(/\D/g,''),jenjang:$('dJenjang').value,status:$('dStatus').value,pendidikan:$('dPend').value},p=$('dPw').value;
+  if(!f.nama||f.nip.length!==18||!f.jenjang||!f.status){pesan('daftarMsg','Lengkapi semua isian. NIP harus 18 digit angka.');return}
+  if(!confirm('Pastikan data sudah benar:\n\n'+f.nama+'\nNIP '+f.nip+'\n'+f.peran+' · Guru '+f.jenjang+' · '+f.status+' · '+f.pendidikan+'\n\nLanjutkan?'))return;
+  loading(true,'Mendaftarkan…');
+  run('daftar',[f,p],function(res){masuk(res,res.profil.nama,p)},function(e){pesan('daftarMsg',e.message||String(e))});
+};
+$('lgPw').addEventListener('keydown',function(e){if(e.key==='Enter')$('btnLogin').click()});
+$('btnKeluar').onclick=function(){if(confirm('Keluar? Perubahan yang belum disimpan akan hilang.'))location.reload()};
+
+function dataBaru(p){
+  var jab=String(p.jabatan||'Guru Ahli Pertama');
+  var jenjang=p.jenjang||'Ahli Pertama';
+  return{
+    identitas:{nip:p.nip||'',jabatan:jab,jenjang:jenjang,target:NEXT[jenjang]||'Ahli Muda',status:p.status||'PNS'},
+    kinerja:{tahun:2025,predikat:'',ada:false,ket:''},
+    kualifikasi:{syarat:'S1',pendidikan:p.pendidikan||'',ada:false,ket:''},
+    manajerial:INIT.manajerial.map(function(){return{skor:'',catatan:'',konteks:''}}),
+    teknis:INIT.teknis.map(function(_,i){return{pilih:i<4,skor:'',catatan:'',konteks:''}}),
+    sosio:INIT.sosio.map(function(){return{skor:'',catatan:'',konteks:''}}),
+    rencana:{},
+    tanggal:new Date(Date.now()+7*3600e3).toISOString().slice(0,10)
+  };
+}
+
+// ---------- ISI & BACA FORM ----------
+function isiForm(){
+  var id=D.identitas;
+  $('fNip').value=id.nip;$('fStatus').value=id.status;$('fJenjang').value=id.jenjang;$('fTarget').value=id.target;$('fTanggal').value=D.tanggal;
+  $('kTahun').value=D.kinerja.tahun;$('kPredikat').value=D.kinerja.predikat;$('kKet').value=D.kinerja.ket||'';
+  $('qSyarat').value=D.kualifikasi.syarat||'S1';$('qPend').value=D.kualifikasi.pendidikan||'';$('qKet').value=D.kualifikasi.ket||'';
+  hitungGap();
+  renderList('m',INIT.manajerial,D.manajerial,'listM');
+  renderList('t',INIT.teknis,D.teknis,'listT');
+  renderList('s',INIT.sosio,D.sosio,'listS');
+  renderRencana();
+}
+['fNip','fStatus','fJenjang','fTarget','fTanggal','kTahun','kPredikat','kKet','qSyarat','qPend','qKet'].forEach(function(id){
+  $(id).addEventListener('change',function(){
+    if(id==='fJenjang'){$('fTarget').value=NEXT[$('fJenjang').value]}
+    bacaAtas();hitungGap();
+  });
+});
+function bacaAtas(){
+  var j=$('fJenjang').value;
+  D.identitas={nip:$('fNip').value.replace(/\s/g,''),jabatan:PERAN==='Kepala Sekolah'?D.identitas.jabatan:'Guru '+j,jenjang:j,target:$('fTarget').value,status:$('fStatus').value};
+  D.tanggal=$('fTanggal').value;
+  D.kinerja.tahun=Number($('kTahun').value)||2025;D.kinerja.predikat=$('kPredikat').value;D.kinerja.ket=$('kKet').value;
+  D.kualifikasi.syarat=$('qSyarat').value;D.kualifikasi.pendidikan=$('qPend').value;D.kualifikasi.ket=$('qKet').value;
+}
+function hitungGap(){
+  var p=$('kPredikat').value;D.kinerja.ada=!!p&&['Sangat Baik','Baik'].indexOf(p)<0;
+  $('kGap').value=p?(D.kinerja.ada?'Ada':'Tidak Ada'):'';
+  var q=$('qPend').value;D.kualifikasi.ada=!!q&&PEND_OK.indexOf(q)<0;
+  $('qGap').value=q?(D.kualifikasi.ada?'Ada':'Tidak Ada'):'';
+  $('qInfo').classList.toggle('hidden',!D.kualifikasi.ada);
+}
+
+function renderList(kat,defs,arr,elId){
+  var html='';
+  defs.forEach(function(k,i){
+    var x=arr[i],aktif=kat!=='t'||x.pilih;
+    html+='<div class="komp'+(aktif?'':' nonaktif')+'" id="k_'+kat+i+'">';
+    if(kat==='t') html+='<label class="cek"><input type="checkbox" data-pilih="'+i+'"'+(x.pilih?' checked':'')+'> '+(i+1)+'. '+esc(k.nama)+(i===4?' <span style="font-weight:400">(opsional)</span>':'')+'</label>';
+    else html+='<div class="judul">'+(i+1)+'. '+esc(k.nama)+'</div>';
+    html+='<div class="def">'+esc(k.def)+'</div>';
+    html+='<div class="skor">';
+    INIT.predikat.forEach(function(lbl,s){html+='<button type="button" data-kat="'+kat+'" data-i="'+i+'" data-s="'+s+'" class="'+(String(x.skor)===String(s)?'on':'')+'"'+(aktif?'':' disabled')+'>'+s+' · '+lbl+'</button>'});
+    html+='</div>';
+    html+='<textarea data-cat="'+kat+i+'" placeholder="Catatan / justifikasi (skor 0 cukup “-”)"'+(aktif?'':' disabled')+'>'+esc(x.catatan)+'</textarea>';
+    html+='<div class="ai-row"><input data-kon="'+kat+i+'" placeholder="Opsional: ceritakan kondisi Anda (mis. sudah pakai PID tapi belum buat kuis interaktif)" value="'+esc(x.konteks||'')+'"'+(aktif?'':' disabled')+'><button class="btn-ai" type="button" data-ai="'+kat+'" data-i="'+i+'"'+(aktif?'':' disabled')+'>✨ Saran AI</button></div>';
+    html+='<div class="info" id="inf_'+kat+i+'"></div></div>';
+  });
+  $(elId).innerHTML=html;
+  if(kat==='t') $('cntT').textContent=D.teknis.filter(function(x){return x.pilih}).length;
+}
+function arrOf(kat){return kat==='m'?D.manajerial:kat==='t'?D.teknis:D.sosio}
+function listId(kat){return kat==='m'?'listM':kat==='t'?'listT':'listS'}
+function defsOf(kat){return kat==='m'?INIT.manajerial:kat==='t'?INIT.teknis:INIT.sosio}
+
+document.addEventListener('click',function(e){
+  var b=e.target.closest('button');if(!b)return;
+  if(b.dataset.s!==undefined&&b.dataset.kat){
+    var kat=b.dataset.kat,i=+b.dataset.i,s=+b.dataset.s,x=arrOf(kat)[i];
+    x.skor=s;
+    if(s===0)x.catatan='-';else if(x.catatan==='-')x.catatan='';
+    renderList(kat,defsOf(kat),arrOf(kat),listId(kat));renderRencana();
+  }
+  if(b.dataset.ai){mintaCatatan(b.dataset.ai,+b.dataset.i,b)}
+});
+document.addEventListener('input',function(e){
+  var t=e.target;
+  if(t.dataset.cat){var kat=t.dataset.cat[0],i=+t.dataset.cat.slice(1);arrOf(kat)[i].catatan=t.value}
+  if(t.dataset.kon){var k2=t.dataset.kon[0],j=+t.dataset.kon.slice(1);arrOf(k2)[j].konteks=t.value}
+  if(t.dataset.rk){var r=D.rencana[t.dataset.rk]=D.rencana[t.dataset.rk]||{};r[t.dataset.f]=t.value}
+});
+document.addEventListener('change',function(e){
+  var t=e.target;
+  if(t.dataset.pilih!==undefined){
+    var i=+t.dataset.pilih,n=D.teknis.filter(function(x){return x.pilih}).length;
+    if(t.checked&&n>=4){t.checked=false;alert('Maksimal 4 kompetensi teknis. Hilangkan centang salah satu terlebih dahulu.');return}
+    D.teknis[i].pilih=t.checked;
+    renderList('t',INIT.teknis,D.teknis,'listT');renderRencana();
+  }
+  if(t.dataset.rk&&t.dataset.f==='jenis'){var r=D.rencana[t.dataset.rk];r.jenis=t.value;r.jalur='';renderRencana()}
+  if(t.dataset.rk&&t.dataset.f==='jalur'){D.rencana[t.dataset.rk].jalur=t.value}
+  if(t.dataset.th){var rr=D.rencana[t.dataset.th]=D.rencana[t.dataset.th]||{};var th=+t.value;rr.tahun=(rr.tahun||[]).filter(function(y){return y!==th});if(t.checked)rr.tahun.push(th);rr.tahun.sort()}
+});
+
+// ---------- AI ----------
+function mintaCatatan(kat,i,btn){
+  var x=arrOf(kat)[i];btn.disabled=true;btn.textContent='⏳ Memproses…';
+  run('saranAI',[SESI.nama,SESI.pw,{mode:'catatan',kategori:kat,idx:i,skor:x.skor,konteks:x.konteks||'',jabatan:D.identitas.jabatan}],function(r){
+    x.skor=r.skor;x.catatan=r.catatan;
+    renderList(kat,defsOf(kat),arrOf(kat),listId(kat));renderRencana();
+    $('inf_'+kat+i).textContent=(r.sumber==='ai'?'✨ Saran AI dipakai — silakan sesuaikan bila perlu. ':'Saran dari contoh kalimat bawaan — silakan sesuaikan. ')+(r.info||'');
+  },function(e){btn.disabled=false;btn.textContent='✨ Saran AI';alert(e.message||e)});
+}
+
+var LABEL_AI_CATATAN='✨ Isi semua catatan yang masih kosong';
+$('btnAiCatatan').onclick=function(){
+  var items=[];
+  ['m','t','s'].forEach(function(kat){arrOf(kat).forEach(function(x,i){
+    if((kat!=='t'||x.pilih)&&+x.skor>0&&!String(x.catatan||'').trim())items.push({kategori:kat,idx:i,skor:+x.skor,konteks:x.konteks||''});
+  })});
+  if(!items.length){alert('Tidak ada catatan kosong untuk kompetensi dengan skor GAP 1–4.\nPilih skor terlebih dahulu; catatan yang sudah terisi tidak akan ditimpa.');return}
+  var b=this;b.disabled=true;b.textContent='⏳ Menyusun '+items.length+' catatan…';
+  run('saranAI',[SESI.nama,SESI.pw,{mode:'catatanSemua',jabatan:D.identitas.jabatan,items:items}],function(res){
+    items.forEach(function(it,n){arrOf(it.kategori)[it.idx].catatan=res.hasil[n].catatan});
+    ['m','t','s'].forEach(function(k){renderList(k,defsOf(k),arrOf(k),listId(k))});renderRencana();
+    b.disabled=false;b.textContent=LABEL_AI_CATATAN;
+    $('aiCatatanInfo').textContent=(res.sumber==='ai'?'✨ '+items.length+' catatan dari AI — periksa dan sesuaikan. ':items.length+' catatan dari kalimat bawaan — periksa dan sesuaikan. ')+(res.info||'');
+  },function(e){b.disabled=false;b.textContent=LABEL_AI_CATATAN;alert(e.message||e)});
+};
+
+function itemGap(){
+  var out=[];
+  D.manajerial.forEach(function(x,i){if(+x.skor>0)out.push({key:'m'+i,kategori:'m',idx:i,nama:INIT.manajerial[i].nama,skor:+x.skor,catatan:x.catatan})});
+  D.teknis.forEach(function(x,i){if(x.pilih&&+x.skor>0)out.push({key:'t'+i,kategori:'t',idx:i,nama:INIT.teknis[i].nama,skor:+x.skor,catatan:x.catatan})});
+  D.sosio.forEach(function(x,i){if(+x.skor>0)out.push({key:'s'+i,kategori:'s',idx:i,nama:INIT.sosio[i].nama,skor:+x.skor,catatan:x.catatan})});
+  return out;
+}
+function renderRencana(){
+  var items=itemGap(),html='';
+  if(!items.length){$('listR').innerHTML='<p class="sub">Belum ada kompetensi dengan GAP 1–4.</p>';return}
+  items.forEach(function(it){
+    var r=D.rencana[it.key]=D.rencana[it.key]||{rekomendasi:'',jenis:'',jalur:'',tahun:[]};
+    html+='<div class="komp"><div class="judul">'+esc(it.nama)+' <span class="pill">GAP '+it.skor+' · '+INIT.predikat[it.skor]+'</span></div>';
+    html+='<div class="def">'+esc(it.catatan||'(catatan belum diisi)')+'</div>';
+    html+='<label>Rekomendasi</label><textarea data-rk="'+it.key+'" data-f="rekomendasi">'+esc(r.rekomendasi)+'</textarea>';
+    html+='<div class="grid"><div><label>Jenis</label><select data-rk="'+it.key+'" data-f="jenis"><option value="">— pilih —</option>';
+    Object.keys(INIT.jalur).forEach(function(j){html+='<option'+(r.jenis===j?' selected':'')+'>'+j+'</option>'});
+    html+='</select></div><div><label>Jalur</label><select data-rk="'+it.key+'" data-f="jalur"><option value="">— pilih —</option>';
+    (INIT.jalur[r.jenis]||[]).forEach(function(j){html+='<option'+(r.jalur===j?' selected':'')+'>'+j+'</option>'});
+    html+='</select></div></div><label>Tahun Pelaksanaan</label><div class="tahun">';
+    INIT.tahun.forEach(function(t){html+='<label><input type="checkbox" data-th="'+it.key+'" value="'+t+'"'+((r.tahun||[]).map(Number).indexOf(t)>=0?' checked':'')+'> '+t+'</label>'});
+    html+='</div></div>';
+  });
+  $('listR').innerHTML=html;
+}
+$('btnAiRencana').onclick=function(){
+  var items=itemGap();if(!items.length){alert('Belum ada kompetensi dengan GAP 1–4.');return}
+  var adaIsi=items.some(function(it){var r=D.rencana[it.key];return r&&r.rekomendasi});
+  if(adaIsi&&!confirm('Rekomendasi yang sudah ada akan ditimpa saran baru. Lanjutkan?'))return;
+  var b=this;b.disabled=true;b.textContent='⏳ Menyusun rekomendasi…';
+  run('saranAI',[SESI.nama,SESI.pw,{mode:'rencana',jabatan:D.identitas.jabatan,items:items}],function(res){
+    items.forEach(function(it,n){D.rencana[it.key]=res.hasil[n]});
+    renderRencana();b.disabled=false;b.textContent='✨ Isi semua rekomendasi dengan AI';
+    $('aiRencanaInfo').textContent=(res.sumber==='ai'?'✨ Rekomendasi dari AI — periksa dan sesuaikan. ':'Rekomendasi dari pola bawaan — periksa dan sesuaikan. ')+(res.info||'');
+  },function(e){b.disabled=false;b.textContent='✨ Isi semua rekomendasi dengan AI';alert(e.message||e)});
+};
+
+// ---------- SIMPAN ----------
+function kirim(buatFile){
+  bacaAtas();hitungGap();
+  var data=JSON.parse(JSON.stringify(D));
+  var keys=itemGap().map(function(i){return i.key});
+  Object.keys(data.rencana).forEach(function(k){if(keys.indexOf(k)<0)delete data.rencana[k]});
+  loading(true,buatFile?'Menyimpan & membuat file Excel… (±20 detik)':'Menyimpan draf…');
+  run('simpan',[SESI.nama,SESI.pw,data,buatFile],function(r){
+    loading(false);
+    if(!r.ok){pesan('formMsg',r.pesan,'err');window.scrollTo(0,0);return}
+    var t=buatFile?'File IDP berhasil dibuat ('+r.waktu+'). Unduh di bawah ini.':'Draf tersimpan ('+r.waktu+').'+(r.lengkap?' Isian sudah lengkap, tekan “Simpan & Buat File Excel”.':'\nMasih perlu dilengkapi:\n• '+r.masalah.join('\n• '));
+    pesan('formMsg',t,'ok');tampilkanFile(r.file,r.waktu);window.scrollTo(0,0);
+  });
+}
+$('btnDraf').onclick=function(){kirim(false)};
+$('btnFile').onclick=function(){kirim(true)};
+
+function tampilkanFile(f,waktu){
+  if(!f){$('fileBox').classList.add('hidden');return}
+  $('fileBox').classList.remove('hidden');
+  $('fileBox').innerHTML='<h2>File IDP Anda</h2><p class="sub">Terakhir disimpan: '+esc(waktu||'-')+'. Jika Anda mengubah isian, tekan lagi “Simpan &amp; Buat File Excel” agar file ikut diperbarui.</p>'+
+    '<div class="unduh"><a href="'+f.xlsx+'" target="_blank">⬇️ Unduh Excel (.xlsx)</a><a href="'+f.pdf1+'" target="_blank">PDF Formulir 1</a><a href="'+f.pdf2+'" target="_blank">PDF Formulir 2</a><a href="'+f.sheet+'" target="_blank">Lihat di Google Sheets</a></div>';
+}
+</script>
+</body>
+</html>
