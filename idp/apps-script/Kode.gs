@@ -112,7 +112,7 @@ function onOpen() {
   SpreadsheetApp.getUi().createMenu('IDP Guru')
     .addItem('1. Setup awal', 'setup')
     .addItem('2. Buat ulang semua file Excel guru', 'buatUlangSemua')
-    .addItem('3. Cek status API key AI', 'cekAI')
+    .addItem('3. Cek status API key AI', 'cekAIMenu')
     .addToUi();
 }
 
@@ -461,7 +461,7 @@ function buatUlangSemua() {
 
 // ====================== AI (GEMINI) ======================
 var GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/';
-var MODEL_CADANGAN = ['gemini-flash-latest', 'gemini-flash-lite-latest'];
+var MODEL_CADANGAN = ['gemini-flash-lite-latest', 'gemini-flash-latest'];
 var AI_MAKS_PANGGILAN = 6;      // batas permintaan HTTP ke Google per satu klik guru
 var AI_MAKS_WAKTU = 25000;      // ms; lewat dari ini langsung pakai saran bawaan
 var AI_SIMPAN_DETIK = 21600;    // jawaban disimpan 6 jam (batas maksimal CacheService)
@@ -616,9 +616,11 @@ function daftarModel_(cfg, kunci, segarkan) {
         }).map(function (m) {
           var n = m.name.replace('models/', '');
           var ver = parseFloat((n.match(/gemini-(\d+(?:\.\d+)?)/) || [0, 0])[1]) || 0;
-          var skor = ver * 100 - (/lite/i.test(n) ? 10 : 0) - (/(preview|exp)/i.test(n) ? 200 : 0) - (/latest/i.test(n) ? 1 : 0);
+          // Flash-Lite didahulukan: kuota gratisnya lebih besar & lebih cepat, cukup untuk kalimat pendek IDP.
+          // Flash biasa menjadi cadangan. Model preview/exp paling belakang.
+          var skor = ver * 100 + (/lite/i.test(n) ? 1000 : 0) - (/(preview|exp)/i.test(n) ? 2000 : 0) - (/latest/i.test(n) ? 1 : 0);
           return { n: n, skor: skor };
-        }).sort(function (x, y) { return y.skor - x.skor; }).slice(0, 4).map(function (x) { return x.n; });
+        }).sort(function (x, y) { return y.skor - x.skor; }).slice(0, 5).map(function (x) { return x.n; });
         if (list.length) {
           props.setProperty('MODEL_DAFTAR', JSON.stringify(list));
           props.setProperty('MODEL_WAKTU', String(Date.now()));
@@ -640,7 +642,16 @@ function tandaiModelMati_(model) {
   if (mati.indexOf(model) < 0) { mati.push(model); props.setProperty('MODEL_MATI', JSON.stringify(mati.slice(-30))); }
 }
 
-/** Jalankan dari editor / menu: menguji setiap API key satu per satu. Lihat hasilnya di Log eksekusi. */
+/** Dari menu spreadsheet: hasil ditampilkan dalam kotak pesan. */
+function cekAIMenu() {
+  SpreadsheetApp.getUi().alert(cekAI());
+}
+
+/**
+ * Jalankan dari editor: menguji setiap API key satu per satu. Hasil di Log eksekusi.
+ * (Tidak memakai kotak pesan, karena dari editor kotak itu muncul di tab spreadsheet dan
+ *  eksekusi menunggu sampai tombol OK diklik — terlihat seperti "muter terus".)
+ */
 function cekAI() {
   var cfg = getCfg_();
   var semua = daftarKunci_(cfg);
@@ -665,7 +676,7 @@ function cekAI() {
     baris.push('PERHATIAN: GEMINI_MODEL di _PENGATURAN berisi "' + cfg.GEMINI_MODEL + '" yang sudah tidak tersedia. Kosongkan sel tersebut agar model dipilih otomatis.');
   baris.push('Urutan model: ' + daftarModel_(cfg, semua[0] || '', false).join(', '));
   Logger.log(baris.join('\n'));
-  try { SpreadsheetApp.getUi().alert(baris.join('\n\n')); } catch (e) { /* dijalankan dari editor */ }
+  return baris.join('\n\n');
 }
 
 function kompetensi_(kat, idx) {

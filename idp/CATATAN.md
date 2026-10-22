@@ -20,7 +20,7 @@ Kode Apps Script ada di `idp/apps-script/` (`Kode.gs` dan `Index.html`).
 |---|---|
 | Satu key habis → harus ganti key manual | Bisa banyak key; key yang habis kuota otomatis diistirahatkan sampai kuotanya pulih (reset harian ± pukul 14.00/15.00 WIB), key berikutnya langsung dipakai |
 | Saat error 429, model yang sama dicoba ulang 3x → kuota makin cepat habis | 429 tidak diulang; langsung pindah ke model/key lain. Maksimal 6 permintaan per klik |
-| Model "preview" bisa terpilih (kuota gratisnya sangat kecil) | Model stabil diutamakan, preview paling belakang, "pro" tidak dipakai |
+| Model "preview" bisa terpilih (kuota gratisnya sangat kecil) | Flash-Lite diutamakan (kuota lebih besar, lebih cepat), Flash biasa sebagai cadangan, preview paling belakang, "pro" tidak dipakai |
 | Gemini 2.5 "berpikir" dulu → lambat, boros token | Mode berpikir dimatikan (2.5) / dibuat rendah (3.x) |
 | Setiap kompetensi = 1 permintaan (±14 per guru) | Tombol **"Isi semua catatan yang masih kosong"** = 1 permintaan untuk semuanya |
 | Klik ulang = permintaan baru | Jawaban disimpan 6 jam; klik ulang dengan isian sama tidak memakai kuota |
