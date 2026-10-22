@@ -7,7 +7,7 @@ Kode Apps Script ada di `idp/apps-script/` (`Kode.gs` dan `Index.html`).
 1. Buka spreadsheet IDP → **Ekstensi → Apps Script**.
 2. Ganti seluruh isi `Kode.gs` dan `Index.html` dengan berkas di folder ini, lalu simpan.
 3. Di sheet `_PENGATURAN`, baris **GEMINI_API_KEY**: isi beberapa key sekaligus,
-   dipisah koma. Contoh: `AIza...aaa, AIza...bbb, AIza...ccc`
+   dipisah koma. Contoh: `key1, key2, key3`
 4. Menu **IDP Guru → 3. Cek status API key AI** untuk menguji semua key.
 5. **Deploy → Kelola deployment → ikon pensil → Versi: Versi baru → Deploy** (URL tetap sama).
 
