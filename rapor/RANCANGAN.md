@@ -56,6 +56,9 @@ Jika folder terhapus, aplikasi membuatnya lagi di dalam folder utama. Spreadshee
 - `Mode Pemeliharaan` = Ya: hanya aksi baca yang dilayani (melihat, mencetak, mengunduh, masuk). Simpan, daftar, verifikasi, dan ganti sandi ditolak dengan `pemeliharaan: true` beserta `Pesan Pemeliharaan` (atau pesan bawaan). Dipakai saat memasang pembaruan besar.
 - `Pengumuman`: teks yang tampil di atas halaman aplikasi untuk semua sekolah.
 - Halaman memuat keduanya lewat aksi terbuka `info` saat dibuka dan setiap 5 menit.
+- `Kode Akses` (mis. sdsuper): bila diisi, aksi `cekKode`, `masuk`, `daftar`, dan `lupaSandi` wajib membawa kode ini (tidak peka huruf besar). Halaman menampilkan layar **Kode akses** lebih dulu dan mengingat kode yang benar di perangkat. Sesi yang sudah berjalan tidak terganggu.
+- Sekolah berstatus **Nonaktif** (diubah pengelola di sheet Sekolah) tidak bisa masuk dan sesi lamanya langsung putus, dengan pesan "akses … sudah ditutup, hubungi pengembang: `Narahubung`". Data sekolah tetap utuh dan bisa dibuka lagi dengan mengubah status ke Aktif.
+- `Pendaftaran Dibuka` = Tidak: tab Daftar dan statistik disembunyikan.
 
 Keamanan:
 - Kata sandi disimpan sebagai hash HMAC-SHA256 berulang dengan garam acak. Token aktivasi, reset, dan sesi hanya disimpan hash-nya.

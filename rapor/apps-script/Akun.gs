@@ -307,7 +307,7 @@ function masuk_(email, sandi) {
     if (s.status === STATUS.menunggu) {
       return { ok: false, pesan: 'Akun belum aktif. Klik tautan aktivasi yang dikirim ke ' + s.email + '.' };
     }
-    if (s.status !== STATUS.aktif) return { ok: false, pesan: 'Akun sekolah ini dinonaktifkan. Hubungi pengelola aplikasi.' };
+    if (s.status !== STATUS.aktif) return { ok: false, ditutup: true, pesan: pesanDitutup_() };
     if (s.gagal) tulisKolom_(s.baris, 'Gagal Masuk', 0);
     tulisKolom_(s.baris, 'Masuk Terakhir', new Date());
     var sesi = acak_();
@@ -327,6 +327,7 @@ function bacaSesi_(sesi) {
   var isi = cache.get(kunci);
   if (!isi) return null;
   var s = cariSekolah_('npsn', String(isi).split('|')[0]);
+  if (s && s.status === STATUS.nonaktif) { cache.remove(kunci); return { ditutup: true }; }
   if (!s || s.status !== STATUS.aktif || isi !== isiSesi_(s)) { cache.remove(kunci); return null; }
   cache.put(kunci, isi, DETIK_SESI);
   return { npsn: s.npsn };
