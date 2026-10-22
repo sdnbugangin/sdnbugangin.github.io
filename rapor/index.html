@@ -217,6 +217,18 @@ table.leger td.j{text-align:center;font-weight:800}
 
   <div id="cfg-notice" class="notice hidden">Sistem belum tersambung. Isi <code>API_URL</code> di berkas <code>rapor/index.html</code> dengan URL Aplikasi web dari Apps Script (lihat <code>rapor/apps-script/Kode.gs</code>).</div>
 
+  <!-- GERBANG: kode akses -->
+  <section id="v-gerbang" class="card form hidden">
+    <h2>Kode akses</h2>
+    <p>Aplikasi ini saat ini khusus untuk sekolah tertentu. Masukkan kode akses dari operator sekolah untuk melanjutkan.</p>
+    <form id="f-gerbang">
+      <div class="field"><label for="g-kode">Kode akses</label><input id="g-kode" type="password" autocomplete="off" required></div>
+      <label class="show"><input type="checkbox" data-show="g-kode"> Tampilkan kode</label>
+      <button class="btn" type="submit">Lanjut</button>
+      <div class="msg" id="g-msg"></div>
+    </form>
+  </section>
+
   <nav id="tab-akun" class="tab-akun hidden" aria-label="Masuk atau daftar">
     <a href="#masuk" id="tab-masuk">Masuk</a>
     <a href="#daftar" id="tab-daftar">Daftar akun baru</a>
@@ -749,7 +761,9 @@ const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const ls = { get:k=>{try{return localStorage.getItem(k)||''}catch(e){return ''}}, set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}, del:k=>{try{localStorage.removeItem(k)}catch(e){}} };
 const KUNCI_SESI = 'rapor-sesi';
-const VIEWS = ['masuk','daftar','lupa','reset','verifikasi','beranda','data','siswa','tp','nilai','kok','wk','cetak','lulus'];
+const KUNCI_KODE = 'rapor-kode';
+let INFO = { kodeAkses: false, daftarDibuka: true };
+const VIEWS = ['gerbang','masuk','daftar','lupa','reset','verifikasi','beranda','data','siswa','tp','nilai','kok','wk','cetak','lulus'];
 let TOKEN_RESET = '';
 let DATA = null, ROMBEL = null, SISWA = [], UBAH = false, SENI_SEKOLAH = [], TARGET = 0;
 const SEMUA_SENI = ['Seni Musik', 'Seni Rupa', 'Seni Tari', 'Seni Teater'];
@@ -782,10 +796,11 @@ const tglTampil = v => /^\d{4}-\d{2}-\d{2}$/.test(v || '') ? v.split('-').revers
 async function api(body){
   if (!API_URL) return { ok:false, pesan:'Sistem belum tersambung ke Apps Script.' };
   try {
-    const r = await fetch(API_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify({ sesi: ls.get(KUNCI_SESI), ...body }) });
+    const r = await fetch(API_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify({ sesi: ls.get(KUNCI_SESI), kodeAkses: ls.get(KUNCI_KODE), ...body }) });
     const res = await r.json();
     if (res.sesiHabis) { ls.del(KUNCI_SESI); tampil('masuk'); pesan('#m-msg', res.pesan, false); }
     if (res.pemeliharaan) tampilUmum({ pemeliharaan: true, pesanPemeliharaan: res.pesan });
+    if (res.kodeSalah && body.aksi !== 'cekKode') { ls.del(KUNCI_KODE); tampil('gerbang'); pesan('#g-msg', res.pesan, false); }
     return res;
   } catch (e) {
     return { ok:false, pesan:'Tidak bisa terhubung ke server. Periksa koneksi internet lalu coba lagi.' };
@@ -814,12 +829,18 @@ function tampilUmum(i){
 async function muatInfo(){
   if (!API_URL) return;
   const res = await api({ aksi:'info' });
-  if (res.ok) tampilUmum(res);
+  if (!res.ok) return;
+  INFO = res;
+  tampilUmum(res);
+  // Pendaftaran ditutup: tab Daftar dan statistik disembunyikan.
+  $('#tab-daftar').classList.toggle('hidden', !res.daftarDibuka);
+  $('#tab-akun').style.gridTemplateColumns = res.daftarDibuka ? '' : '1fr';
+  if (!res.daftarDibuka) { $('#statistik').classList.add('hidden'); if (TAMPIL === 'daftar') tampil('masuk'); }
 }
 
 let STAT_DIMUAT = false;
 async function muatStatistik(){
-  if (STAT_DIMUAT || !API_URL) return;
+  if (STAT_DIMUAT || !API_URL || !INFO.daftarDibuka) return;
   STAT_DIMUAT = true;
   const res = await api({ aksi:'statistik' });
   if (!res.ok || !res.sekolah) return;
@@ -829,7 +850,7 @@ async function muatStatistik(){
   $('#st-rincian').innerHTML = res.rincian.map(p => '<details><summary>' + esc(p.provinsi) + ' · ' + p.sekolah + ' sekolah</summary><ul>' +
     p.kabupaten.map(k => '<li>' + esc(k.nama) + ': ' + k.sekolah + ' sekolah</li>').join('') + '</ul></details>').join('');
   $('#st-waktu').textContent = res.diperbarui ? 'Diperbarui ' + res.diperbarui + ' WIB.' : '';
-  $('#statistik').classList.toggle('hidden', !['masuk','daftar','lupa'].includes(TAMPIL));
+  $('#statistik').classList.toggle('hidden', !['masuk','daftar','lupa'].includes(TAMPIL) || !INFO.daftarDibuka);
 }
 
 let TAMPIL = '';
@@ -841,9 +862,10 @@ function tampil(v){
   $('#tab-masuk').classList.toggle('on', v === 'masuk' || v === 'lupa');
   $('#tab-daftar').classList.toggle('on', v === 'daftar');
   $('#bantuan').classList.toggle('hidden', !akun);
-  $('#statistik').classList.toggle('hidden', !akun || !Number($('#st-sekolah').textContent));
+  $('#statistik').classList.toggle('hidden', !akun || !INFO.daftarDibuka || !Number($('#st-sekolah').textContent));
   if (akun) muatStatistik();
   const fokus = { masuk:'#m-email', daftar:'#d-npsn', lupa:'#l-email', reset:'#r-sandi' }[v];
+  if (v === 'gerbang') setTimeout(() => $('#g-kode').focus(), 0);
   if (fokus) setTimeout(() => $(fokus).focus(), 0);
 }
 
@@ -870,6 +892,16 @@ function masukBeranda(sekolah){
 }
 
 /* ---------- formulir ---------- */
+$('#f-gerbang').addEventListener('submit', e => { e.preventDefault(); kirim(e.target, async () => {
+  const kode = $('#g-kode').value.trim();
+  const res = await api({ aksi:'cekKode', kodeAkses: kode });
+  if (!res.ok) return pesan('#g-msg', res.pesan, false);
+  ls.set(KUNCI_KODE, kode);
+  $('#g-kode').value = ''; $('#g-msg').textContent = '';
+  const h = location.hash.slice(1);
+  tampil(['daftar','lupa'].includes(h) && INFO.daftarDibuka ? h : 'masuk');
+}); });
+
 $('#f-masuk').addEventListener('submit', e => { e.preventDefault(); kirim(e.target, async () => {
   const res = await api({ aksi:'masuk', email: $('#m-email').value, sandi: $('#m-sandi').value });
   if (!res.ok) return pesan('#m-msg', res.pesan, false);
@@ -2712,7 +2744,7 @@ document.querySelectorAll('a[href^="#"]').forEach(a => a.addEventListener('click
 
 async function mulai(){
   if (!API_URL) $('#cfg-notice').classList.remove('hidden');
-  muatInfo();
+  const infoSiap = muatInfo();
   setInterval(muatInfo, 5 * 60 * 1000); // pengumuman/pemeliharaan baru ikut tampil tanpa memuat ulang halaman
   const q = new URLSearchParams(location.search);
   if (q.get('verifikasi') || q.get('reset')) history.replaceState(null, '', location.pathname); // token tidak tertinggal di riwayat
@@ -2733,8 +2765,10 @@ async function mulai(){
     if (!res.sesiHabis) { tampil('masuk'); pesan('#m-msg', res.pesan, false); }
     return;
   }
+  await infoSiap;
+  if (INFO.kodeAkses && !ls.get(KUNCI_KODE)) return tampil('gerbang');
   const h = location.hash.slice(1);
-  tampil(['daftar','lupa'].includes(h) ? h : 'masuk');
+  tampil(h === 'lupa' || (h === 'daftar' && INFO.daftarDibuka) ? h : 'masuk');
 }
 mulai();
 </script>

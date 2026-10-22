@@ -27,7 +27,7 @@ function aktif(g, data = DATA) {
 test('siapkan aman dijalankan berulang', () => {
   const g = siap();
   g.ctx.siapkan();
-  assert.equal(g.pusat.getSheetByName('Pengaturan').data.length, 10);
+  assert.equal(g.pusat.getSheetByName('Pengaturan').data.length, 12);
   assert.equal(g.pusat.sheets.length, 4);
   assert.equal(Object.keys(g.folder).length, 2, 'tidak ada folder dobel');
 });
@@ -325,8 +325,31 @@ test('akun dinonaktifkan pengelola: tidak bisa masuk, sesi lama putus', () => {
   aktif(g);
   const { sesi } = g.minta({ aksi: 'masuk', email: DATA.email, sandi: DATA.sandi });
   g.pusat.getSheetByName('Sekolah').data[1][5] = 'Nonaktif';
-  assert.equal(g.minta({ aksi: 'sesi', sesi }).sesiHabis, true);
-  assert.match(g.minta({ aksi: 'masuk', email: DATA.email, sandi: DATA.sandi }).pesan, /dinonaktifkan/);
+  const putus = g.minta({ aksi: 'sesi', sesi });
+  assert.equal(putus.sesiHabis, true);
+  assert.equal(putus.ditutup, true);
+  assert.match(putus.pesan, /sudah ditutup.*hubungi pengembang: Yos Putra Kurniawan, S\.Pd\. \(WhatsApp 0822-2004-4779\)/);
+  assert.equal(g.minta({ aksi: 'sesi', sesi }).ditutup, undefined, 'sesi sudah dibuang');
+  const m = g.minta({ aksi: 'masuk', email: DATA.email, sandi: DATA.sandi });
+  assert.equal(m.ditutup, true);
+  assert.match(m.pesan, /sudah ditutup/);
+});
+
+test('kode akses: wajib untuk cekKode/masuk/daftar/lupa sandi bila diisi; sesi yang sudah ada tidak terganggu', () => {
+  const g = siap();
+  aktif(g);
+  const { sesi } = g.minta({ aksi: 'masuk', email: DATA.email, sandi: DATA.sandi });
+  assert.equal(g.minta({ aksi: 'info' }).kodeAkses, false);
+  g.ctx.tulisPengaturanPusat_('Kode Akses', 'sdsuper');
+  assert.equal(g.minta({ aksi: 'info' }).kodeAkses, true);
+  assert.equal(g.minta({ aksi: 'cekKode' }).kodeSalah, true);
+  assert.match(g.minta({ aksi: 'cekKode', kodeAkses: 'salah' }).pesan, /Kode akses salah/);
+  assert.equal(g.minta({ aksi: 'cekKode', kodeAkses: ' SDSuper ' }).ok, true, 'tidak peka huruf besar dan spasi');
+  assert.equal(g.minta({ aksi: 'masuk', email: DATA.email, sandi: DATA.sandi }).kodeSalah, true);
+  assert.equal(g.minta({ aksi: 'masuk', email: DATA.email, sandi: DATA.sandi, kodeAkses: 'sdsuper' }).ok, true);
+  assert.equal(g.minta({ aksi: 'lupaSandi', email: DATA.email }).kodeSalah, true);
+  assert.equal(g.minta({ aksi: 'sesi', sesi }).ok, true, 'guru yang sudah masuk tetap bisa bekerja');
+  assert.equal(g.minta({ aksi: 'statistik' }).ok, true);
 });
 
 test('permintaan aneh dan galat server tidak membocorkan detail', () => {
@@ -398,7 +421,7 @@ test('statistik ikut profil: kabupaten/provinsi yang diubah di Data Sekolah ters
 test('mode pemeliharaan: hanya aksi baca yang dilayani; pengumuman lewat aksi info', () => {
   const { sekolahAktif } = require('./tiruan-gas.js');
   const s = sekolahAktif();
-  assert.deepEqual(s.minta({ aksi: 'info' }), { ok: true, pemeliharaan: false, pesanPemeliharaan: '', pengumuman: '' });
+  assert.deepEqual(s.minta({ aksi: 'info' }), { ok: true, pemeliharaan: false, pesanPemeliharaan: '', pengumuman: '', kodeAkses: false, daftarDibuka: true });
   s.ctx.tulisPengaturanPusat_('Pengumuman', 'Fitur baru: Transkrip & SKL kelas 6.');
   s.ctx.tulisPengaturanPusat_('Mode Pemeliharaan', 'Ya');
   const i = s.minta({ aksi: 'info' });
