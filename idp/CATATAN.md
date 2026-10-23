@@ -1,4 +1,4 @@
-# Aplikasi IDP Guru — Catatan Perbaikan & Regulasi
+# Aplikasi IDP ASN — Catatan Perbaikan & Regulasi
 
 Kode Apps Script ada di `idp/apps-script/` (`Kode.gs` dan `Index.html`).
 
@@ -98,6 +98,15 @@ Catatan atas template resmi:
 4. Unduhan PDF/Excel dibuat langsung oleh skrip (tanpa membagikan file ke publik).
 
 ## 6. Catatan aplikasi bersama
+
+- **Semua ASN, bukan hanya guru.** Unit kerja bisa sekolah (NPSN) atau dinas/badan/kantor/unit lain
+  (kode unit otomatis `UK` + 6 digit, disimpan di kolom NPSN). Kolom `JENIS_UNIT` di `_SEKOLAH`.
+- **Pegawai guru vs non-guru** (`_GURU` kolom I `JENIS PEGAWAI`, J `JENIS JABATAN`). Guru memakai 5 modul
+  kompetensi teknis guru; ASN non-guru mengisi 1–5 kompetensi teknis sesuai Standar Kompetensi Jabatan
+  (PermenPANRB 38/2017; JF mengacu instansi pembina), dengan usulan AI dari nama jabatan.
+  Di Formulir 1, baris B36–B41 ditulis ulang dengan nama kompetensi isian pegawai.
+- **Atasan langsung per pegawai:** bawaan kepala unit; pegawai dapat menggantinya (disimpan di `data.atasan`).
+- **GAP kualifikasi** dihitung dari urutan jenjang: pendidikan terakhir < syarat pendidikan jabatan.
 
 - **Pendaftaran bebas dengan NPSN** (sesuai pilihan). Pengamannya: NPSN harus 8 digit dan unik,
   maksimal 20 sekolah baru per jam (`BATAS_DAFTAR_PER_JAM`), dan pemilik bisa menonaktifkan sekolah.

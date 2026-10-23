@@ -1,9 +1,14 @@
 /**
- * APLIKASI IDP GURU SD – APLIKASI BERSAMA BANYAK SEKOLAH
+ * APLIKASI IDP ASN – APLIKASI BERSAMA BANYAK UNIT KERJA (sekolah, dinas, badan, kantor)
  * Formulir 1 & 2 Individual Development Plan (dikembangkan oleh SD Negeri Bugangin, Kendal)
  *
  * Cara kerja:
- *  - Satu Web App dipakai banyak SD. Setiap sekolah mendaftar sendiri (NPSN), lalu admin sekolah
+ *  - Satu Web App dipakai banyak unit kerja. Sekolah mendaftar dengan NPSN; dinas/kantor mendapat kode unit
+ *    otomatis (UK + 6 digit). Kolom "NPSN" di sheet menyimpan kode unit tersebut.
+ *  - Pegawai: Guru (5 modul kompetensi teknis guru) atau ASN non-guru (mengisi 1–5 kompetensi teknis
+ *    sesuai Standar Kompetensi Jabatan; AI bisa mengusulkan dari nama jabatan).
+ *  - Atasan langsung bawaan = kepala unit, tetapi setiap pegawai bisa mengubahnya di formulir.
+ *  - Setiap unit mendaftar sendiri, lalu admin unit
  *    (kepala sekolah/operator) mengatur data sekolah, password sekolah, dan API key Gemini dari halaman Admin.
  *    Satu password per sekolah dipakai guru dan kepala sekolah (masuk guru maupun halaman Admin).
  *    Sekolah lain tidak perlu membuka Google Sheets / Apps Script.
@@ -41,7 +46,10 @@ var DEFAULT_CFG = [
 
 var KOLOM_SEKOLAH = ['NPSN', 'NAMA_SEKOLAH', 'WILAYAH', 'KABUPATEN', 'TEMPAT', 'NAMA_KS', 'NIP_KS', 'JABATAN_KS',
   'ATASAN_KS_NAMA', 'ATASAN_KS_NIP', 'ATASAN_KS_JABATAN', 'ATASAN_KS_UNIT', 'HASH_PASSWORD',
-  'FOLDER_ID', 'AKTIF', 'DIBUAT'];
+  'FOLDER_ID', 'AKTIF', 'DIBUAT', 'JENIS_UNIT'];
+var JENIS_UNIT = ['Sekolah', 'Dinas/Badan/Kantor', 'Unit kerja lainnya'];
+var JENIS_JABATAN = ['Pimpinan Tinggi', 'Administrator', 'Pengawas', 'Fungsional', 'Pelaksana'];
+var JENJANG_GURU = ['Ahli Pertama', 'Ahli Muda', 'Ahli Madya', 'Ahli Utama'];
 /** Kolom yang boleh diubah admin sekolah dari halaman Admin. */
 var KOLOM_UBAH = ['NAMA_SEKOLAH', 'WILAYAH', 'KABUPATEN', 'TEMPAT', 'NAMA_KS', 'NIP_KS', 'JABATAN_KS',
   'ATASAN_KS_NAMA', 'ATASAN_KS_NIP', 'ATASAN_KS_JABATAN', 'ATASAN_KS_UNIT'];
@@ -107,7 +115,7 @@ var CONTOH_TEKNIS = [
 // ====================== WEB APP ======================
 function doGet() {
   return HtmlService.createTemplateFromFile('Index').evaluate()
-    .setTitle('IDP Guru SD')
+    .setTitle('IDP ASN')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
@@ -164,7 +172,7 @@ function siapkanSheet_() {
   sek.getRange(1, 1, 1, KOLOM_SEKOLAH.length).setValues([KOLOM_SEKOLAH]).setFontWeight('bold');
   sek.getRange(1, 1, sek.getMaxRows(), KOLOM_SEKOLAH.length).setNumberFormat('@');
   var guru = ss.getSheetByName(SHEET_GURU) || ss.insertSheet(SHEET_GURU);
-  guru.getRange(1, 1, 1, 8).setValues([['NAMA (dengan gelar)', 'NIP', 'JABATAN', 'STATUS (PNS/PPPK)', 'PENDIDIKAN TERAKHIR', 'PERAN (Guru/Kepala Sekolah)', 'JENJANG JF', 'NPSN']]).setFontWeight('bold');
+  guru.getRange(1, 1, 1, 10).setValues([['NAMA (dengan gelar)', 'NIP', 'JABATAN', 'STATUS (PNS/PPPK)', 'PENDIDIKAN TERAKHIR', 'PERAN', 'JENJANG JF GURU', 'NPSN / KODE UNIT', 'JENIS PEGAWAI', 'JENIS JABATAN']]).setFontWeight('bold');
   guru.getRange('B:B').setNumberFormat('@');
   guru.getRange('H:H').setNumberFormat('@');
   var data = ss.getSheetByName(SHEET_DATA) || ss.insertSheet(SHEET_DATA);
@@ -222,7 +230,7 @@ function pindahkanDataLama() {
   KOLOM_SEKOLAH.forEach(function (k) { s[k] = cfg[k] || ''; });
   s.NPSN = npsn; s.KABUPATEN = cfg.KABUPATEN || 'Kendal'; s.TEMPAT = cfg.TEMPAT || s.KABUPATEN;
   s.HASH_PASSWORD = buatHash_(pw);
-  s.FOLDER_ID = folderLama; s.AKTIF = 'YA'; s.DIBUAT = Utilities.formatDate(new Date(), 'Asia/Jakarta', 'yyyy-MM-dd HH:mm');
+  s.FOLDER_ID = folderLama; s.AKTIF = 'YA'; s.JENIS_UNIT = 'Sekolah'; s.DIBUAT = Utilities.formatDate(new Date(), 'Asia/Jakarta', 'yyyy-MM-dd HH:mm');
   tambahBarisSekolah_(s);
 
   var ss = SpreadsheetApp.getActive();
@@ -286,10 +294,11 @@ function buatUlangSemua() {
 // ====================== HALAMAN AWAL ======================
 function getInit() {
   return {
-    sekolah: semuaSekolah_().filter(aktif_).map(function (s) { return { npsn: s.NPSN, nama: s.NAMA_SEKOLAH, wilayah: s.WILAYAH }; })
+    sekolah: semuaSekolah_().filter(aktif_).map(function (s) { return { npsn: s.NPSN, nama: s.NAMA_SEKOLAH, wilayah: s.WILAYAH, jenis: s.JENIS_UNIT || 'Sekolah' }; })
       .sort(function (a, b) { return a.nama.localeCompare(b.nama); }),
     manajerial: MANAJERIAL, teknis: TEKNIS, sosio: SOSIO,
     jalur: JALUR, tahun: TAHUN_RPK, predikat: PREDIKAT_GAP,
+    jenisUnit: JENIS_UNIT, jenisJabatan: JENIS_JABATAN,
     kabupaten: getCfg_().KABUPATEN || ''
   };
 }
@@ -301,19 +310,21 @@ function namaGuruSekolah(npsn) {
 }
 
 /**
- * Pendaftaran sekolah baru oleh kepala sekolah/operator.
- * f = {npsn, nama, wilayah, kabupaten, tempat, namaKs, nipKs, jabatanKs, password}
+ * Pendaftaran unit kerja baru oleh kepala unit/operator.
+ * f = {jenisUnit, npsn (khusus sekolah), nama, wilayah, kabupaten, tempat, namaKs, nipKs, jabatanKs, password}
  */
 function daftarSekolah(f) {
   f = f || {};
   var cfg = getCfg_();
-  var npsn = String(f.npsn || '').replace(/\D/g, '');
+  var jenis = JENIS_UNIT.indexOf(f.jenisUnit) >= 0 ? f.jenisUnit : 'Sekolah';
+  var sekolah = jenis === 'Sekolah';
+  var npsn = sekolah ? String(f.npsn || '').replace(/\D/g, '') : '';
   var nipKs = String(f.nipKs || '').replace(/\D/g, '');
   var nama = rapikan_(f.nama), namaKs = rapikan_(f.namaKs);
-  if (npsn.length !== 8) throw new Error('NPSN harus 8 digit angka (lihat di referensi.data.kemdikbud.go.id).');
-  if (nama.length < 5) throw new Error('Nama sekolah wajib diisi.');
-  if (namaKs.length < 3) throw new Error('Nama kepala sekolah (dengan gelar) wajib diisi.');
-  if (nipKs.length !== 18) throw new Error('NIP kepala sekolah harus 18 digit angka (sekarang ' + nipKs.length + ').');
+  if (sekolah && npsn.length !== 8) throw new Error('NPSN harus 8 digit angka (lihat di referensi.data.kemdikbud.go.id).');
+  if (nama.length < 5) throw new Error('Nama unit kerja wajib diisi.');
+  if (namaKs.length < 3) throw new Error('Nama kepala unit kerja (dengan gelar) wajib diisi.');
+  if (nipKs.length !== 18) throw new Error('NIP kepala unit kerja harus 18 digit angka (sekarang ' + nipKs.length + ').');
   var pw = String(f.password || '');
   if (pw.length < 6) throw new Error('Password sekolah minimal 6 karakter.');
 
@@ -323,11 +334,16 @@ function daftarSekolah(f) {
 
   kunci_(function () {
     SEKOLAH_MEMO = null;
-    if (cariSekolah_(npsn, true)) throw new Error('NPSN ' + npsn + ' sudah terdaftar. Bila ini sekolah Anda dan password lupa, hubungi pengelola aplikasi.');
+    if (sekolah && cariSekolah_(npsn, true)) throw new Error('NPSN ' + npsn + ' sudah terdaftar. Bila ini sekolah Anda dan password lupa, hubungi pengelola aplikasi.');
+    var sama = semuaSekolah_().filter(function (x) { return x.NAMA_SEKOLAH.toLowerCase() === nama.toLowerCase(); })[0];
+    if (sama) throw new Error('Unit kerja "' + sama.NAMA_SEKOLAH + '" sudah terdaftar. Bila ini unit Anda dan password lupa, hubungi pengelola aplikasi.');
+    if (!sekolah) {
+      do { npsn = 'UK' + String(Math.floor(100000 + Math.random() * 900000)); } while (cariSekolah_(npsn, true));
+    }
     var kab = rapikan_(f.kabupaten) || cfg.KABUPATEN || '';
     tambahBarisSekolah_({
       NPSN: npsn, NAMA_SEKOLAH: nama, WILAYAH: rapikan_(f.wilayah), KABUPATEN: kab, TEMPAT: rapikan_(f.tempat) || kab,
-      NAMA_KS: namaKs, NIP_KS: nipKs, JABATAN_KS: rapikan_(f.jabatanKs) || 'Kepala Sekolah',
+      NAMA_KS: namaKs, NIP_KS: nipKs, JABATAN_KS: rapikan_(f.jabatanKs) || (sekolah ? 'Kepala Sekolah' : 'Kepala'), JENIS_UNIT: jenis,
       ATASAN_KS_NAMA: cfg.ATASAN_KS_NAMA, ATASAN_KS_NIP: cfg.ATASAN_KS_NIP, ATASAN_KS_JABATAN: cfg.ATASAN_KS_JABATAN, ATASAN_KS_UNIT: cfg.ATASAN_KS_UNIT,
       HASH_PASSWORD: buatHash_(pw), FOLDER_ID: '', AKTIF: 'YA',
       DIBUAT: Utilities.formatDate(new Date(), 'Asia/Jakarta', 'yyyy-MM-dd HH:mm')
@@ -352,11 +368,11 @@ function infoAdmin_(s) {
   var isian = {};
   KOLOM_UBAH.forEach(function (k) { isian[k] = s[k] || ''; });
   return {
-    npsn: s.NPSN, isian: isian,
+    npsn: s.NPSN, jenisUnit: s.JENIS_UNIT || 'Sekolah', isian: isian,
     kunci: kunciSekolah_(s.NPSN).map(function (k) { return '…' + k.slice(-4); }),
     guru: daftarGuru_(s).map(function (g) {
       var x = data[g.nama] || {};
-      return { nama: g.nama, nip: g.nip, peran: g.peran, status: x.status || 'Belum mengisi', waktu: x.waktu || '', link: x.link || '' };
+      return { nama: g.nama, nip: g.nip, peran: g.peran, jabatan: g.jabatan, status: x.status || 'Belum mengisi', waktu: x.waktu || '', link: x.link || '' };
     }).sort(function (a, b) { return a.nama.localeCompare(b.nama); }),
     folder: s.FOLDER_ID ? 'https://drive.google.com/drive/folders/' + s.FOLDER_ID : ''
   };
@@ -372,8 +388,8 @@ function adminSimpan(npsn, pw, f) {
     ubah[k] = ubah[k].replace(/\D/g, '');
     if (ubah[k] && ubah[k].length !== 18) throw new Error(k.replace(/_/g, ' ') + ' harus 18 digit angka.');
   });
-  if (ubah.NAMA_SEKOLAH !== undefined && ubah.NAMA_SEKOLAH.length < 5) throw new Error('Nama sekolah wajib diisi.');
-  if (ubah.NAMA_KS !== undefined && ubah.NAMA_KS.length < 3) throw new Error('Nama kepala sekolah wajib diisi.');
+  if (ubah.NAMA_SEKOLAH !== undefined && ubah.NAMA_SEKOLAH.length < 5) throw new Error('Nama unit kerja wajib diisi.');
+  if (ubah.NAMA_KS !== undefined && ubah.NAMA_KS.length < 3) throw new Error('Nama kepala unit kerja wajib diisi.');
   var pwBaru = String(f.pwBaru || '');
   if (pwBaru) { if (pwBaru.length < 6) throw new Error('Password sekolah minimal 6 karakter.'); ubah.HASH_PASSWORD = buatHash_(pwBaru); }
   kunci_(function () { ubahSekolah_(s.NPSN, ubah); });
@@ -432,7 +448,7 @@ function login(npsn, nama, pw) {
   var g = cariGuru_(s, nama);
   var rec = cariData_(s.NPSN, nama);
   return {
-    sekolah: { npsn: s.NPSN, nama: s.NAMA_SEKOLAH, wilayah: s.WILAYAH },
+    sekolah: { npsn: s.NPSN, nama: s.NAMA_SEKOLAH, wilayah: s.WILAYAH, jenis: s.JENIS_UNIT || 'Sekolah' },
     aiAktif: kunciSekolah_(s.NPSN).length > 0,
     profil: g,
     atasan: atasan_(g, s),
@@ -443,34 +459,48 @@ function login(npsn, nama, pw) {
 }
 
 /**
- * Pendaftaran mandiri oleh guru. f = {peran, nama, nip, jenjang, status, pendidikan}
- * Data langsung ditambahkan ke sheet _GURU, lalu guru otomatis masuk.
+ * Pendaftaran mandiri oleh pegawai.
+ * f = {peran ('Pegawai'|'Kepala'), jenisPegawai ('Guru'|'Non Guru'), nama, nip, status, pendidikan,
+ *      jenjang (guru), jenisJabatan & jabatan (non-guru)}
+ * Data langsung ditambahkan ke sheet _GURU, lalu pegawai otomatis masuk.
  */
 function daftar(npsn, f, pw) {
   var s = cariSekolah_(npsn);
   cekPassword_('daftar:' + s.NPSN + ':' + String(f.nip || ''), pw, s.HASH_PASSWORD);
-  var isKS = f.peran === 'Kepala Sekolah';
+  var isKS = /kepala/i.test(f.peran || '');
+  var unitSekolah = (s.JENIS_UNIT || 'Sekolah') === 'Sekolah';
+  var guru = f.jenisPegawai !== 'Non Guru';
   var nama = rapikan_(f.nama);
   var nip = String(f.nip || '').replace(/\D/g, '');
   if (nama.length < 3) throw new Error('Nama lengkap (dengan gelar) wajib diisi.');
   if (nip.length !== 18) throw new Error('NIP harus 18 digit angka (sekarang ' + nip.length + ' digit).');
-  if (['Ahli Pertama', 'Ahli Muda', 'Ahli Madya', 'Ahli Utama'].indexOf(f.jenjang) < 0) throw new Error('Pilih jenjang jabatan.');
   if (['PNS', 'PPPK'].indexOf(f.status) < 0) throw new Error('Pilih status kepegawaian.');
+  var jabatan, jenisJabatan = '', jenjang = '';
+  if (guru) {
+    if (JENJANG_GURU.indexOf(f.jenjang) < 0) throw new Error('Pilih jenjang jabatan fungsional guru.');
+    jenjang = f.jenjang; jenisJabatan = 'Fungsional'; jabatan = 'Guru ' + f.jenjang;
+  } else {
+    if (JENIS_JABATAN.indexOf(f.jenisJabatan) < 0) throw new Error('Pilih jenis jabatan.');
+    jenisJabatan = f.jenisJabatan; jabatan = rapikan_(f.jabatan);
+    if (jabatan.length < 3) throw new Error('Nama jabatan wajib diisi (mis. Analis SDM Aparatur Ahli Muda).');
+  }
   if (isKS && nip !== String(s.NIP_KS).replace(/\D/g, ''))
-    throw new Error('Pendaftaran sebagai Kepala Sekolah hanya untuk NIP kepala sekolah yang tercatat di data sekolah.');
+    throw new Error('Pendaftaran sebagai kepala unit kerja hanya untuk NIP kepala yang tercatat di data unit kerja.');
+  if (isKS) jabatan = s.JABATAN_KS || jabatan;
+  var peran = isKS ? (unitSekolah ? 'Kepala Sekolah' : 'Kepala Unit') : (guru ? 'Guru' : 'Pegawai');
   kunci_(function () {
     var ada = daftarGuru_(s);
-    if (isKS && ada.some(function (g) { return g.peran === 'Kepala Sekolah'; }))
-      throw new Error('Kepala Sekolah sudah terdaftar. Silakan pilih nama Anda lalu masuk.');
+    if (isKS && ada.some(function (g) { return /kepala/i.test(g.peran); }))
+      throw new Error('Kepala unit kerja sudah terdaftar. Silakan pilih nama Anda lalu masuk.');
     ada.forEach(function (g) {
       if (g.nama.toLowerCase() === nama.toLowerCase()) throw new Error('Nama "' + g.nama + '" sudah terdaftar. Silakan pilih nama Anda di daftar lalu masuk.');
       if (g.nip === nip) throw new Error('NIP ini sudah terdaftar atas nama "' + g.nama + '". Silakan pilih nama tersebut lalu masuk.');
     });
     var sh = SpreadsheetApp.getActive().getSheetByName(SHEET_GURU);
     var row = sh.getLastRow() + 1;
-    sh.getRange(row, 1, 1, 8).setNumberFormat('@');
-    sh.getRange(row, 1, 1, 8).setValues([[nama, nip, isKS ? s.JABATAN_KS : 'Guru ' + f.jenjang, f.status, f.pendidikan || 'S1',
-      isKS ? 'Kepala Sekolah' : 'Guru', f.jenjang, s.NPSN]]);
+    sh.getRange(row, 1, 1, 10).setNumberFormat('@');
+    sh.getRange(row, 1, 1, 10).setValues([[nama, nip, jabatan, f.status, f.pendidikan || 'S1', peran, jenjang, s.NPSN,
+      guru ? 'Guru' : 'Non Guru', jenisJabatan]]);
   });
   return login(s.NPSN, nama, pw);
 }
@@ -485,8 +515,7 @@ function perbaruiGuru_(s, nama, d) {
     sh.getRange(i + 1, 2).setNumberFormat('@');
     sh.getRange(i + 1, 2, 1, 4).setValues([[nip || v[i][1], d.identitas.jabatan || v[i][2], d.identitas.status || v[i][3], d.kualifikasi.pendidikan || v[i][4]]]);
     if (d.identitas.jenjang) sh.getRange(i + 1, 7).setValue(d.identitas.jenjang);
-    var nipKS = String(s.NIP_KS || '').replace(/\D/g, '');
-    sh.getRange(i + 1, 6).setValue((nip || String(v[i][1]).replace(/\D/g, '')) === nipKS || /kepala/i.test(v[i][5] || '') ? 'Kepala Sekolah' : 'Guru');
+    if (d.identitas.jenisJabatan) sh.getRange(i + 1, 10).setValue(d.identitas.jenisJabatan);
     return;
   }
 }
@@ -550,6 +579,10 @@ function saranAI(npsn, nama, pw, req) {
     }
     return fallbackRencana_(req, '');
   }
+  if (req.mode === 'saranTeknis') {
+    if (!aktif) throw new Error('Fitur AI belum diaktifkan oleh admin unit kerja. Isi kompetensi teknis sesuai Standar Kompetensi Jabatan (SKJ) Anda.');
+    return aiSaranTeknis_(req, s, garam);
+  }
   throw new Error('Mode saran tidak dikenal.');
 }
 
@@ -568,9 +601,16 @@ function validasi_(d) {
     });
   }
   cek(d.manajerial || [], 'Manajerial', true);
-  var nPilih = (d.teknis || []).filter(function (x) { return x.pilih; }).length;
-  if (nPilih !== 4) m.push('Kompetensi teknis harus dipilih tepat 4 dari 5 (sekarang ' + nPilih + ').');
-  cek(d.teknis || [], 'Teknis', false);
+  if (nonGuru_(d)) {
+    var t = d.teknis || [];
+    if (t.length < 1 || t.length > 5) m.push('Isi 1–5 kompetensi teknis sesuai jabatan (sekarang ' + t.length + ').');
+    t.forEach(function (x, i) { if (!rapikan_(x.nama)) m.push('Teknis no. ' + (i + 1) + ': nama kompetensi belum diisi.'); });
+    cek(t, 'Teknis', true);
+  } else {
+    var nPilih = (d.teknis || []).filter(function (x) { return x.pilih; }).length;
+    if (nPilih !== 4) m.push('Kompetensi teknis harus dipilih tepat 4 dari 5 (sekarang ' + nPilih + ').');
+    cek(d.teknis || [], 'Teknis', false);
+  }
   cek(d.sosio || [], 'Sosio kultural', true);
   itemGap_(d).forEach(function (it) {
     var r = (d.rencana || {})[it.key] || {};
@@ -583,7 +623,10 @@ function validasi_(d) {
 function itemGap_(d) {
   var out = [];
   (d.manajerial || []).forEach(function (x, i) { if (Number(x.skor) > 0) out.push({ key: 'm' + i, kat: 'm', idx: i, nama: MANAJERIAL[i].nama, skor: Number(x.skor), catatan: x.catatan }); });
-  (d.teknis || []).forEach(function (x, i) { if (x.pilih && Number(x.skor) > 0) out.push({ key: 't' + i, kat: 't', idx: i, nama: TEKNIS[i].nama, skor: Number(x.skor), catatan: x.catatan }); });
+  var non = nonGuru_(d);
+  (d.teknis || []).forEach(function (x, i) {
+    if ((non || x.pilih) && Number(x.skor) > 0) out.push({ key: 't' + i, kat: 't', idx: i, nama: non ? rapikan_(x.nama) : TEKNIS[i].nama, skor: Number(x.skor), catatan: x.catatan });
+  });
   (d.sosio || []).forEach(function (x, i) { if (Number(x.skor) > 0) out.push({ key: 's' + i, kat: 's', idx: i, nama: SOSIO[i].nama, skor: Number(x.skor), catatan: x.catatan }); });
   return out;
 }
@@ -606,12 +649,13 @@ function tulisFile_(fileId, g, d, cfg) {
   var f2 = ss.getSheetByName('FORM 2');
   if (!f1 || !f2) throw new Error('Template harus berisi sheet "FORM 1" dan "FORM 2".');
   var id = d.identitas;
-  if (g.peran === 'Kepala Sekolah') id.jabatan = cfg.JABATAN_KS;
+  if (/kepala/i.test(g.peran)) id.jabatan = cfg.JABATAN_KS;
+  var non = nonGuru_(d);
   var nipPeg = String(id.nip || '').replace(/\s/g, '');
   var tgl = cfg.TEMPAT + ', ' + tanggalIndo_(d.tanggal);
 
   // ---------- FORM 1 ----------
-  var at = atasan_(g, cfg);
+  var at = atasan_(g, cfg, d);
   f1.getRange('B4').setValue(': ' + at.nama);
   f1.getRange('B5').setValue(': ' + at.nip);
   f1.getRange('B6').setValue(':  ' + at.jabatan);
@@ -621,9 +665,10 @@ function tulisFile_(fileId, g, d, cfg) {
   f1.getRange('I6').setValue(': ' + id.jabatan);
   f1.getRange('I7').setValue(': ' + id.status);
 
-  f1.getRange('B11').setValue('Jabatan Fungsional');
-  f1.getRange('H11').setValue('Jabatan Fungsional');
-  f1.getRange('B12').setValue(id.jenjang || '');
+  var jenisJab = 'Jabatan ' + (non ? (id.jenisJabatan || 'Pelaksana') : 'Fungsional');
+  f1.getRange('B11').setValue(jenisJab);
+  f1.getRange('H11').setValue(jenisJab);
+  f1.getRange('B12').setValue(non ? (id.jabatan || '') : (id.jenjang || ''));
   f1.getRange('H12').setValue(id.target || '');
 
   var k = d.kinerja;
@@ -651,7 +696,14 @@ function tulisFile_(fileId, g, d, cfg) {
     f1.getRange(row, 8).setValue(note);
   }
   d.manajerial.forEach(function (x, i) { tulisBaris(28 + i, x, true); });
-  d.teknis.forEach(function (x, i) { tulisBaris(37 + i, x, !!x.pilih); });
+  // Baris teknis 37–41: guru memakai 5 modul tetap; ASN non-guru memakai kompetensi isiannya sendiri.
+  f1.getRange('B36').setValue(non ? 'KOMPETENSI TEKNIS (SESUAI STANDAR KOMPETENSI JABATAN)' : 'KOMPETENSI TEKNIS (PILIH 4 MODUL DARI 5 MODUL KAPAS GULA)');
+  for (var t = 0; t < 5; t++) {
+    var xt = (d.teknis || [])[t];
+    var label = non ? (xt && rapikan_(xt.nama) ? (t + 1) + '. ' + rapikan_(xt.nama) : '') : (t + 1) + '. ' + TEKNIS[t].nama + (t === 4 ? ' (opsional)' : '');
+    f1.getRange(37 + t, 2).setValue(label);
+    tulisBaris(37 + t, xt, non ? !!(xt && rapikan_(xt.nama)) : !!(xt && xt.pilih));
+  }
   tulisBaris(43, d.sosio[0], true);
 
   f1.getRange('I45').setValue(tgl);
@@ -931,8 +983,18 @@ function tesKunci_(s) {
 function kompetensi_(kat, idx) {
   return kat === 'm' ? MANAJERIAL[idx] : kat === 't' ? TEKNIS[idx] : SOSIO[idx];
 }
-function namaKat_(kat) {
-  return kat === 'm' ? 'Kompetensi Manajerial' : kat === 't' ? 'Kompetensi Teknis Guru' : 'Kompetensi Sosial Kultural';
+/** ASN non-guru mengisi kompetensi teknis sendiri (sesuai Standar Kompetensi Jabatan). */
+function nonGuru_(x) { return !!x && (x.jenisPegawai === 'Non Guru' || (x.identitas && x.identitas.jenisPegawai === 'Non Guru')); }
+/** Kompetensi untuk satu butir permintaan: teknis non-guru memakai nama isian pegawai. */
+function komp_(it, req) {
+  if (it.kategori === 't' && nonGuru_(req)) {
+    var n = rapikan_(it.nama).slice(0, 120) || 'kompetensi teknis jabatan';
+    return { nama: n, aspek: n.charAt(0).toLowerCase() + n.slice(1), def: 'kompetensi teknis sesuai standar kompetensi jabatan' };
+  }
+  return kompetensi_(it.kategori, it.idx);
+}
+function namaKat_(kat, req) {
+  return kat === 'm' ? 'Kompetensi Manajerial' : kat === 't' ? (nonGuru_(req) ? 'Kompetensi Teknis Jabatan' : 'Kompetensi Teknis Guru') : 'Kompetensi Sosial Kultural';
 }
 
 /** Data pribadi (NIP/NIK, nomor HP, email) tidak ikut dikirim ke layanan AI. */
@@ -941,23 +1003,34 @@ function bersihkan_(s) {
 }
 
 var SKALA_GAP = 'Skala GAP: 0 = Tidak ada GAP (sudah memenuhi standar); 1 = Rendah (mampu, butuh sedikit pendampingan); 2 = Sedang (paham dasar tapi belum mampu praktik mandiri); 3 = Tinggi (jarak kemampuan sangat jauh); 4 = Sangat Tinggi (tidak memiliki kompetensi dasar).';
-var GAYA_CATATAN = 'Catatan justifikasi 1 kalimat (maks. 30 kata), bahasa Indonesia baku, objektif, sudut pandang orang ketiga tanpa menyebut nama orang, sesuai tingkat GAP. Contoh gaya: "Memahami konsep pembelajaran berpusat pada siswa, tetapi praktik pengajarannya masih dominan metode ceramah/konvensional."';
+function gayaCatatan_(req) {
+  return 'Catatan justifikasi 1 kalimat (maks. 30 kata), bahasa Indonesia baku, objektif, sudut pandang orang ketiga tanpa menyebut nama orang, sesuai tingkat GAP. Contoh gaya: ' +
+    (nonGuru_(req) ? '"Memahami prosedur pengelolaan arsip dinamis, tetapi belum mampu menerapkan aplikasi kearsipan digital secara mandiri."'
+      : '"Memahami konsep pembelajaran berpusat pada siswa, tetapi praktik pengajarannya masih dominan metode ceramah/konvensional."');
+}
 
-function konteksJabatan_(jabatan) {
-  return 'Jabatan pegawai: ' + (jabatan || 'Guru') + (/kepala/i.test(jabatan || '') ? ' (kepala SD; nilai kompetensi dalam konteks memimpin sekolah dan membina guru).' : '.');
+function pembuka_(cfg, req) {
+  return 'Anda membantu ASN di ' + daerah_(cfg) + ' (unit kerja: ' + (cfg.NAMA_SEKOLAH || '-') + ') menyusun IDP (Individual Development Plan).';
+}
+function konteksJabatan_(req) {
+  var j = rapikan_(req.jabatan) || (nonGuru_(req) ? 'ASN' : 'Guru');
+  var ks = /kepala/i.test(j);
+  if (nonGuru_(req)) return 'Jabatan pegawai: ' + j + (req.jenisJabatan ? ' (jenis jabatan: ' + req.jenisJabatan + ')' : '') +
+    (ks ? '. Pegawai ini memimpin unit kerja; nilai kompetensi dalam konteks memimpin dan membina pegawai.' : '.');
+  return 'Jabatan pegawai: ' + j + (ks ? ' (kepala SD; nilai kompetensi dalam konteks memimpin sekolah dan membina guru).' : ' (guru SD).');
 }
 
 function aiCatatan_(req, cfg, garam) {
-  var k = kompetensi_(req.kategori, req.idx);
+  var k = komp_(req, req);
   var adaSkor = req.skor !== null && req.skor !== '' && req.skor !== undefined;
   var prompt = [
-    'Anda membantu kepala sekolah dan guru SD ASN di ' + daerah_(cfg) + ' mengisi Formulir 1 IDP (Identifikasi Kesenjangan Kompetensi).',
-    'Kategori: ' + namaKat_(req.kategori) + '. Kompetensi: ' + k.nama + ' (' + k.def + ').',
-    konteksJabatan_(req.jabatan),
+    pembuka_(cfg, req) + ' Tugas: mengisi Formulir 1 IDP (Identifikasi Kesenjangan Kompetensi).',
+    'Kategori: ' + namaKat_(req.kategori, req) + '. Kompetensi: ' + k.nama + ' (' + k.def + ').',
+    konteksJabatan_(req),
     SKALA_GAP,
     adaSkor ? 'Skor GAP sudah ditetapkan: ' + req.skor + ' (' + PREDIKAT_GAP[req.skor] + '). Jangan ubah skornya.' : 'Skor belum dipilih: usulkan skor 0-4 yang paling sesuai dari deskripsi kondisi.',
-    'Deskripsi kondisi dari guru: ' + (req.konteks ? '"' + bersihkan_(req.konteks) + '"' : '(tidak ada, buat kalimat umum yang wajar sesuai skor)'),
-    GAYA_CATATAN + ' Jika skor 0, catatan harus "-".',
+    'Deskripsi kondisi dari pegawai: ' + (req.konteks ? '"' + bersihkan_(req.konteks) + '"' : '(tidak ada, buat kalimat umum yang wajar sesuai skor)'),
+    gayaCatatan_(req) + ' Jika skor 0, catatan harus "-".',
     'Balas HANYA JSON: {"skor": angka, "catatan": "..."}'
   ].join('\n');
   var skema = { type: 'OBJECT', properties: { skor: { type: 'INTEGER' }, catatan: { type: 'STRING' } }, required: ['skor', 'catatan'] };
@@ -969,17 +1042,17 @@ function aiCatatan_(req, cfg, garam) {
 /** Semua catatan sekaligus dalam SATU permintaan (hemat kuota ±10x dibanding per kompetensi). */
 function aiCatatanSemua_(req, cfg, garam) {
   var daftar = req.items.map(function (it, i) {
-    var k = kompetensi_(it.kategori, it.idx);
-    return (i + 1) + '. [' + namaKat_(it.kategori) + '] ' + k.nama + ' (' + k.def + ') | GAP ' + it.skor + ' (' + PREDIKAT_GAP[it.skor] + ')' +
-      (it.konteks ? ' | Kondisi dari guru: "' + bersihkan_(it.konteks) + '"' : '');
+    var k = komp_(it, req);
+    return (i + 1) + '. [' + namaKat_(it.kategori, req) + '] ' + k.nama + ' (' + k.def + ') | GAP ' + it.skor + ' (' + PREDIKAT_GAP[it.skor] + ')' +
+      (it.konteks ? ' | Kondisi dari pegawai: "' + bersihkan_(it.konteks) + '"' : '');
   }).join('\n');
   var prompt = [
-    'Anda membantu guru SD ASN di ' + daerah_(cfg) + ' mengisi Formulir 1 IDP (Identifikasi Kesenjangan Kompetensi).',
-    konteksJabatan_(req.jabatan),
+    pembuka_(cfg, req) + ' Tugas: mengisi Formulir 1 IDP (Identifikasi Kesenjangan Kompetensi).',
+    konteksJabatan_(req),
     SKALA_GAP,
     'Tulis catatan untuk setiap kompetensi berikut. Skor GAP sudah ditetapkan, jangan diubah. Variasikan kalimat antar kompetensi.',
     daftar,
-    GAYA_CATATAN,
+    gayaCatatan_(req),
     'Balas HANYA JSON array berurutan sama dengan daftar: [{"catatan":"..."}]'
   ].join('\n');
   var skema = { type: 'ARRAY', items: { type: 'OBJECT', properties: { catatan: { type: 'STRING' } }, required: ['catatan'] } };
@@ -994,11 +1067,18 @@ function aiCatatanSemua_(req, cfg, garam) {
 
 function aiRencana_(req, cfg, garam) {
   var daftar = req.items.map(function (it, i) {
-    var k = kompetensi_(it.kategori, it.idx);
-    return (i + 1) + '. [' + namaKat_(it.kategori) + '] ' + k.nama + ' | GAP ' + it.skor + ' (' + PREDIKAT_GAP[it.skor] + ') | Catatan: ' + bersihkan_(it.catatan || '-');
+    var k = komp_(it, req);
+    return (i + 1) + '. [' + namaKat_(it.kategori, req) + '] ' + k.nama + ' | GAP ' + it.skor + ' (' + PREDIKAT_GAP[it.skor] + ') | Catatan: ' + bersihkan_(it.catatan || '-');
   }).join('\n');
+  var ks = /kepala/i.test(req.jabatan || '');
+  var contoh = nonGuru_(req)
+    ? '- Rekomendasi 1 kalimat (maks. 25 kata), selaras dengan jalur yang dipilih, menyebut kegiatan nyata yang bisa dijalankan di unit kerja (misal coaching/mentoring oleh atasan, e-learning ASN, magang/benchmarking ke unit lain, komunitas belajar, bimtek atau pelatihan teknis dari instansi pembina jabatan).'
+    : '- Rekomendasi 1 kalimat (maks. 25 kata), selaras dengan jalur yang dipilih, menyebut kegiatan nyata yang bisa dipraktikkan di sekolah (misal KKG, komunitas belajar sekolah, IHT, Ruang GTK, coaching kepala sekolah).';
+  var siapa = nonGuru_(req)
+    ? (ks ? '- Pegawai ini KEPALA UNIT KERJA: rujuk forum pimpinan, mentoring oleh atasan, pelatihan kepemimpinan; jangan sebut "coaching oleh atasan langsung di unit".' : '- Pegawai ini ASN di unit kerja ' + (cfg.NAMA_SEKOLAH || '') + '.')
+    : (ks ? '- Pegawai ini KEPALA SEKOLAH: rujuk kegiatan seperti KKKS, pendampingan pengawas sekolah, Ruang GTK untuk kepala sekolah; jangan sebut "coaching kepala sekolah".' : '- Pegawai ini guru kelas/mapel SD.');
   var prompt = [
-    'Anda membantu menyusun Formulir 2 IDP (Inventarisasi dan Arah Pengembangan ASN 5 tahun) untuk ' + (req.jabatan || 'guru') + ' SD di ' + daerah_(cfg) + '.',
+    'Anda membantu menyusun Formulir 2 IDP (Inventarisasi dan Arah Pengembangan ASN 5 tahun) untuk ' + (rapikan_(req.jabatan) || 'ASN') + ' di ' + daerah_(cfg) + '.',
     'Dasar: UU 20/2023 Pasal 49 (pembelajaran terintegrasi dengan pekerjaan) dan Peraturan LAN 10/2018 (jenis klasikal & nonklasikal, pola 70-20-10: 70% pengalaman/penugasan di tempat kerja, 20% belajar dari orang lain seperti coaching/mentoring/komunitas, 10% pelatihan formal).',
     'Untuk setiap kesenjangan berikut, buat rekomendasi pengembangan kompetensi yang konkret dan realistis:',
     daftar,
@@ -1006,8 +1086,8 @@ function aiRencana_(req, cfg, garam) {
     '- "jenis" hanya "Klasikal" atau "Non Klasikal".',
     '- "jalur" WAJIB salah satu persis dari: Non Klasikal → ' + JALUR['Non Klasikal'].join(', ') + '; Klasikal → ' + JALUR['Klasikal'].join(', ') + '.',
     '- Utamakan Non Klasikal (komunitas belajar, coaching, mentoring, belajar mandiri, forum berbagi). Klasikal (bimtek, pelatihan workshop) hanya untuk GAP 3-4 atau kompetensi yang memang perlu pelatihan formal.',
-    '- Rekomendasi 1 kalimat (maks. 25 kata), selaras dengan jalur yang dipilih, menyebut kegiatan nyata yang bisa dipraktikkan di sekolah (misal KKG, komunitas belajar sekolah, IHT, Ruang GTK, coaching kepala sekolah).',
-    /kepala/i.test(req.jabatan || '') ? '- Pegawai ini KEPALA SEKOLAH: rujuk kegiatan seperti KKKS, pendampingan pengawas sekolah, Ruang GTK untuk kepala sekolah; jangan sebut "coaching kepala sekolah".' : '- Pegawai ini guru kelas/mapel SD.',
+    contoh,
+    siapa,
     '- "tahun": array tahun pelaksanaan dari ' + TAHUN_RPK.join(', ') + '. GAP 1-2 cukup 1 tahun, GAP 3-4 bisa 2 tahun berurutan. Sebar agar tidak semua di 2026.',
     'Balas HANYA JSON array berurutan sama dengan daftar: [{"rekomendasi":"...","jenis":"...","jalur":"...","tahun":[2026]}]'
   ].join('\n');
@@ -1026,13 +1106,32 @@ function aiRencana_(req, cfg, garam) {
   return { hasil: hasil, sumber: 'ai', info: '' };
 }
 
+/** ASN non-guru: AI mengusulkan 3–5 kompetensi teknis berdasarkan nama jabatan. */
+function aiSaranTeknis_(req, cfg, garam) {
+  var jab = rapikan_(req.jabatan).slice(0, 150);
+  if (jab.length < 3) throw new Error('Isi nama jabatan terlebih dahulu.');
+  var prompt = [
+    pembuka_(cfg, req),
+    'Jabatan: ' + jab + (req.jenisJabatan ? ' (jenis jabatan: ' + req.jenisJabatan + ')' : '') + '.',
+    'Usulkan 4 kompetensi teknis utama untuk jabatan ini, mengacu pada Standar Kompetensi Jabatan (PermenPANRB 38/2017; untuk jabatan fungsional mengacu pada standar kompetensi dari instansi pembina jabatan).',
+    'Setiap kompetensi: "nama" singkat (maks. 8 kata, tanpa nomor) dan "def" 1 kalimat (maks. 20 kata) tentang perilaku/kemampuan yang diharapkan.',
+    'Balas HANYA JSON array: [{"nama":"...","def":"..."}]'
+  ].join('\n');
+  var skema = { type: 'ARRAY', items: { type: 'OBJECT', properties: { nama: { type: 'STRING' }, def: { type: 'STRING' } }, required: ['nama', 'def'] } };
+  var arr = panggilGemini_(prompt, cfg, skema, garam);
+  var hasil = (arr || []).map(function (o) { return { nama: rapikan_(o.nama).slice(0, 120), def: rapikan_(o.def).slice(0, 200) }; })
+    .filter(function (o) { return o.nama; }).slice(0, 5);
+  if (!hasil.length) throw new Error('AI tidak memberi usulan.');
+  return { hasil: hasil, sumber: 'ai', info: '' };
+}
+
 // ====================== SARAN BAWAAN (TANPA AI) ======================
 function fallbackCatatan_(req, info) {
-  var k = kompetensi_(req.kategori, req.idx);
+  var k = komp_(req, req);
   var skor = (req.skor === null || req.skor === '' || req.skor === undefined) ? 1 : Number(req.skor);
   if (skor === 0) return { skor: 0, catatan: '-', sumber: 'bawaan', info: info };
   var c;
-  if (req.kategori === 't') c = CONTOH_TEKNIS[req.idx][skor - 1];
+  if (req.kategori === 't' && !nonGuru_(req)) c = CONTOH_TEKNIS[req.idx][skor - 1];
   else {
     var pola = [
       'Sudah menunjukkan ' + k.aspek + ' dengan baik, namun masih memerlukan sedikit pendampingan agar lebih konsisten.',
@@ -1047,31 +1146,40 @@ function fallbackCatatan_(req, info) {
 
 function fallbackCatatanSemua_(req, info) {
   var hasil = req.items.map(function (it) {
-    return { catatan: fallbackCatatan_({ kategori: it.kategori, idx: it.idx, skor: it.skor }, '').catatan };
+    return { catatan: fallbackCatatan_({ kategori: it.kategori, idx: it.idx, skor: it.skor, nama: it.nama, jenisPegawai: req.jenisPegawai }, '').catatan };
   });
   return { hasil: hasil, sumber: 'bawaan', info: info };
 }
 
 function fallbackRencana_(req, info) {
   var ks = /kepala/i.test(req.jabatan || '');
-  var pembimbing = ks ? 'pengawas sekolah/kepala sekolah senior' : 'kepala sekolah/guru senior';
-  var forum = ks ? 'KKKS dan forum kepala sekolah' : 'komunitas belajar sekolah dan KKG';
+  var non = nonGuru_(req);
+  var pembimbing = non ? (ks ? 'pimpinan/atasan langsung' : 'atasan langsung/pejabat fungsional senior') : (ks ? 'pengawas sekolah/kepala sekolah senior' : 'kepala sekolah/guru senior');
+  var forum = non ? 'komunitas belajar unit kerja' : (ks ? 'KKKS dan forum kepala sekolah' : 'komunitas belajar sekolah dan KKG');
+  var mandiri = non ? 'e-learning ASN' : 'Ruang GTK';
+  var tempat = non ? 'dalam tugas sehari-hari' : 'di kelas';
+  var pendamping = non ? 'atasan langsung' : (ks ? 'pengawas sekolah' : 'kepala sekolah');
   var hasil = req.items.map(function (it, i) {
-    var k = kompetensi_(it.kategori, it.idx);
+    var k = komp_(it, req);
     var s = Number(it.skor);
     var th = TAHUN_RPK[Math.min(i % 3, 2)];
     if (s <= 1) return { rekomendasi: 'Berbagi praktik baik terkait ' + k.aspek + ' melalui ' + forum + '.', jenis: 'Non Klasikal', jalur: 'Komunitas belajar', tahun: [th] };
-    if (s === 2) return { rekomendasi: 'Coaching oleh ' + pembimbing + ' untuk meningkatkan ' + k.aspek + ', disertai belajar mandiri melalui Ruang GTK.', jenis: 'Non Klasikal', jalur: 'coaching', tahun: [th] };
-    if (s === 3) return { rekomendasi: 'Mengikuti pelatihan/workshop tentang ' + k.aspek + ' dan menerapkannya di kelas dengan pendampingan.', jenis: 'Klasikal', jalur: 'pelatihan workshop', tahun: [th, th + 1] };
-    return { rekomendasi: 'Mengikuti bimtek dasar tentang ' + k.aspek + ', dilanjutkan pendampingan berkala oleh ' + (ks ? 'pengawas sekolah' : 'kepala sekolah') + '.', jenis: 'Klasikal', jalur: 'bimtek', tahun: [th, th + 1] };
+    if (s === 2) return { rekomendasi: 'Coaching oleh ' + pembimbing + ' untuk meningkatkan ' + k.aspek + ', disertai belajar mandiri melalui ' + mandiri + '.', jenis: 'Non Klasikal', jalur: 'coaching', tahun: [th] };
+    if (s === 3) return { rekomendasi: 'Mengikuti pelatihan/workshop tentang ' + k.aspek + ' dan menerapkannya ' + tempat + ' dengan pendampingan.', jenis: 'Klasikal', jalur: 'pelatihan workshop', tahun: [th, th + 1] };
+    return { rekomendasi: 'Mengikuti bimtek dasar tentang ' + k.aspek + ', dilanjutkan pendampingan berkala oleh ' + pendamping + '.', jenis: 'Klasikal', jalur: 'bimtek', tahun: [th, th + 1] };
   });
   return { hasil: hasil, sumber: 'bawaan', info: info };
 }
 
 // ====================== DATA & UTILITAS ======================
-/** Atasan langsung: guru → Kepala Sekolah; Kepala Sekolah → Kabid Pembinaan Ketenagaan. */
-function atasan_(g, s) {
-  if (g.peran === 'Kepala Sekolah')
+/**
+ * Atasan langsung: pegawai → kepala unit; kepala unit → atasan kepala unit (mis. Kabid / Sekda).
+ * Bila pegawai mengisi atasan langsung sendiri di formulir (d.atasan), isian itu yang dipakai.
+ */
+function atasan_(g, s, d) {
+  var a = d && d.atasan;
+  if (a && rapikan_(a.nama)) return { nama: rapikan_(a.nama), nip: String(a.nip || '').replace(/\D/g, ''), jabatan: rapikan_(a.jabatan), unit: rapikan_(a.unit) };
+  if (/kepala/i.test(g.peran))
     return { nama: s.ATASAN_KS_NAMA, nip: s.ATASAN_KS_NIP, jabatan: s.ATASAN_KS_JABATAN, unit: s.ATASAN_KS_UNIT };
   return { nama: s.NAMA_KS, nip: s.NIP_KS, jabatan: s.JABATAN_KS, unit: s.NAMA_SEKOLAH };
 }
@@ -1166,11 +1274,11 @@ function aktif_(s) { return String(s.AKTIF || 'YA').toUpperCase() !== 'TIDAK'; }
 
 /** Mencari sekolah aktif berdasarkan NPSN. bolehKosong = true → hasil null bila tidak ada (tanpa error). */
 function cariSekolah_(npsn, bolehKosong) {
-  npsn = String(npsn || '').replace(/\D/g, '');
+  npsn = String(npsn || '').toUpperCase().replace(/[^0-9A-Z]/g, '');
   var s = semuaSekolah_().filter(function (x) { return x.NPSN === npsn; })[0] || null;
   if (bolehKosong) return s;
-  if (!s) throw new Error('Sekolah tidak ditemukan. Pilih sekolah Anda dari daftar.');
-  if (!aktif_(s)) throw new Error('Sekolah ini sedang dinonaktifkan oleh pengelola aplikasi.');
+  if (!s) throw new Error('Unit kerja tidak ditemukan. Pilih unit kerja Anda dari daftar.');
+  if (!aktif_(s)) throw new Error('Unit kerja ini sedang dinonaktifkan oleh pengelola aplikasi.');
   var cfg = getCfg_();
   s.GEMINI_MODEL = cfg.GEMINI_MODEL;   // model AI diatur global oleh pemilik
   return s;
@@ -1212,9 +1320,12 @@ function daftarGuru_(s) {
   return sh.getDataRange().getDisplayValues().slice(1).filter(function (r) { return String(r[0]).trim() && String(r[7]).trim() === s.NPSN; }).map(function (r) {
     // Kepala Sekolah dikenali dari NIP (sama dengan NIP_KS) atau kolom PERAN
     var nipBaris = String(r[1]).replace(/\D/g, '');
-    var peran = (/kepala/i.test(r[5] || '') || (nipKS && nipBaris === nipKS)) ? 'Kepala Sekolah' : 'Guru';
-    var jenjang = r[6] || ((String(r[2]).match(/Ahli (Pertama|Muda|Madya|Utama)/) || [])[0]) || 'Ahli Pertama';
-    return { nama: String(r[0]).trim(), nip: String(r[1]).replace(/\s/g, ''), jabatan: r[2], status: r[3] || 'PNS', pendidikan: r[4] || 'S1', peran: peran, jenjang: jenjang };
+    var jenisPegawai = r[8] === 'Non Guru' ? 'Non Guru' : 'Guru';
+    var kepala = /kepala/i.test(r[5] || '') || (nipKS && nipBaris === nipKS);
+    var peran = kepala ? ((s.JENIS_UNIT || 'Sekolah') === 'Sekolah' ? 'Kepala Sekolah' : 'Kepala Unit') : (jenisPegawai === 'Guru' ? 'Guru' : 'Pegawai');
+    var jenjang = jenisPegawai === 'Guru' ? (r[6] || ((String(r[2]).match(/Ahli (Pertama|Muda|Madya|Utama)/) || [])[0]) || 'Ahli Pertama') : '';
+    return { nama: String(r[0]).trim(), nip: String(r[1]).replace(/\s/g, ''), jabatan: r[2], status: r[3] || 'PNS', pendidikan: r[4] || 'S1', peran: peran, jenjang: jenjang,
+      jenisPegawai: jenisPegawai, jenisJabatan: r[9] || (jenisPegawai === 'Guru' ? 'Fungsional' : '') };
   });
 }
 function cariGuru_(s, nama) {

@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Panduan Aplikasi IDP Guru SD</title>
-<meta name="description" content="Panduan memakai aplikasi IDP Guru SD: mendaftarkan sekolah, mengaktifkan saran AI Gemini, dan pengisian IDP oleh guru.">
+<title>Panduan Aplikasi IDP ASN</title>
+<meta name="description" content="Panduan memakai aplikasi IDP ASN: mendaftarkan unit kerja (sekolah atau dinas), mengaktifkan saran AI Gemini, dan pengisian IDP oleh pegawai.">
 <link rel="icon" type="image/png" href="../logo.png">
 <style>
 :root{--red:#d71920;--yellow:#ffd21f;--blue:#12314f;--cream:#fffaf0;--ink:#16202a;--muted:#64748b;--line:#eadfc7;--ok:#1d7a37}
@@ -52,19 +52,19 @@ footer a{color:var(--blue)}
 <div class="topline"></div>
 <div class="wrap">
   <header>
-    <small>PANDUAN KEPALA SEKOLAH, OPERATOR &amp; GURU</small>
-    <h1>Aplikasi IDP Guru SD</h1>
-    <p>Pengisian Formulir 1 &amp; 2 Individual Development Plan, lengkap dengan saran AI Gemini. Gratis, cukup lewat browser — tanpa memasang apa pun. Alamat aplikasi: <span id="alamat"></span></p>
+    <small>PANDUAN KEPALA UNIT KERJA, OPERATOR &amp; PEGAWAI</small>
+    <h1>Aplikasi IDP ASN</h1>
+    <p>Pengisian Formulir 1 &amp; 2 Individual Development Plan untuk guru dan ASN di sekolah, dinas, badan, atau kantor, lengkap dengan saran AI Gemini. Gratis, cukup lewat browser — tanpa memasang apa pun. Alamat aplikasi: <span id="alamat"></span></p>
     <button class="cetak" type="button" onclick="window.print()">Cetak / Simpan PDF panduan ini</button>
   </header>
 
   <nav class="isi" aria-label="Daftar isi">
     <b>Isi panduan</b>
     <ol>
-      <li><a href="#daftar">Mendaftarkan sekolah</a></li>
+      <li><a href="#daftar">Mendaftarkan unit kerja</a></li>
       <li><a href="#ai">Mengaktifkan saran AI</a></li>
       <li><a href="#bagikan">Membagikan ke guru</a></li>
-      <li><a href="#guru">Guru: daftar &amp; mengisi IDP</a></li>
+      <li><a href="#guru">Pegawai: daftar &amp; mengisi IDP</a></li>
       <li><a href="#pantau">Memantau &amp; mengubah data</a></li>
       <li><a href="#aman">Keamanan data</a></li>
       <li><a href="#masalah">Masalah umum</a></li>
@@ -72,74 +72,83 @@ footer a{color:var(--blue)}
   </nav>
 
   <section id="daftar">
-    <h2><span class="no">1</span>Mendaftarkan sekolah</h2>
-    <div class="siapa">Kepala sekolah / operator · sekali saja</div>
+    <h2><span class="no">1</span>Mendaftarkan unit kerja</h2>
+    <div class="siapa">Kepala unit kerja / operator · sekali saja</div>
     <ol class="langkah">
       <li>Buka alamat aplikasi dari laptop atau HP.</li>
-      <li>Di bawah kotak masuk, klik <span class="menu">Daftarkan sekolah</span>.</li>
-      <li>Isi <b>NPSN</b> (8 digit), nama sekolah, wilayah (mis. Korwilcambiddik Kec. …), kabupaten, nama dan <b>NIP kepala sekolah</b> (18 digit), serta jabatan.</li>
-      <li>Buat <b>password sekolah</b> (min. 6 karakter). Satu password ini dipakai semua guru dan kepala sekolah, baik untuk masuk mengisi IDP maupun membuka halaman Admin Sekolah.</li>
-      <li>Klik <span class="menu">Daftarkan Sekolah</span>. Anda langsung masuk ke halaman <b>Admin Sekolah</b>.</li>
+      <li>Di bawah kotak masuk, klik <span class="menu">Daftarkan unit kerja</span>.</li>
+      <li>Pilih <b>jenis unit kerja</b>:
+        <br>• <b>Sekolah</b>: isi NPSN (8 digit).
+        <br>• <b>Dinas/Badan/Kantor</b> atau <b>unit kerja lainnya</b> (bidang, UPTD, puskesmas, kecamatan, …): kode unit dibuat otomatis.</li>
+      <li>Isi nama unit kerja, wilayah/instansi induk, kabupaten, serta nama, <b>NIP</b> (18 digit), dan jabatan <b>kepala unit kerja</b>.</li>
+      <li>Buat <b>password unit kerja</b> (min. 6 karakter). Satu password ini dipakai semua pegawai dan kepala unit, baik untuk masuk mengisi IDP maupun membuka halaman Admin Unit Kerja.</li>
+      <li>Klik <span class="menu">Daftarkan Unit Kerja</span>. Anda langsung masuk ke halaman <b>Admin Unit Kerja</b>.</li>
     </ol>
-    <div class="kotak">Catat password itu. Password disimpan teracak, sehingga pengelola aplikasi pun tidak bisa melihatnya. Bila lupa, hubungi narahubung di bawah untuk dibuatkan password baru.</div>
+    <div class="kotak">Tentukan sendiri seberapa besar unitnya. Contoh: satu dinas bisa didaftarkan per bidang, sehingga kepala bidang menjadi atasan bawaan stafnya. Catat password Anda; password disimpan teracak sehingga pengelola aplikasi pun tidak bisa melihatnya.</div>
   </section>
 
   <section id="ai">
     <h2><span class="no">2</span>Mengaktifkan saran AI</h2>
     <div class="siapa">Halaman Admin Sekolah · gratis</div>
-    <p style="margin:0">Setiap sekolah memakai <b>API key Gemini miliknya sendiri</b>, jadi kuota tidak berbagi dengan sekolah lain. Tanpa key, aplikasi tetap jalan dengan kalimat saran bawaan.</p>
+    <p style="margin:0">Setiap unit kerja memakai <b>API key Gemini miliknya sendiri</b>, jadi kuota tidak berbagi dengan unit lain. Tanpa key, aplikasi tetap jalan dengan kalimat saran bawaan.</p>
     <ol class="langkah">
       <li>Di bagian <b>Fitur AI Gemini</b>, klik tombol <span class="menu">🔑 Buka Google AI Studio – API Keys</span>, atau buka <a href="https://aistudio.google.com/api-keys" target="_blank" rel="noopener"><b>aistudio.google.com/api-keys</b></a>.</li>
-      <li>Masuk dengan akun Google sekolah atau akun <b>belajar.id</b>. Bila diminta, setujui persyaratan layanan.</li>
+      <li>Masuk dengan akun Google kantor/sekolah atau akun <b>belajar.id</b>. Bila diminta, setujui persyaratan layanan.</li>
       <li>Klik <span class="menu">Create API key</span> (Buat kunci API). Bila diminta memilih project, pilih yang ada atau buat project baru.</li>
       <li>Klik ikon <b>salin</b> pada key yang muncul (biasanya berawalan <code>AQ.</code>).</li>
       <li>Kembali ke aplikasi, tempel key di kotak <b>Tempel API key</b>, lalu klik <span class="menu">Simpan &amp; Aktifkan</span>.</li>
       <li>Bila berhasil, status berubah menjadi <b>AKTIF</b>. Klik <span class="menu">Tes API key</span> untuk memastikan; hasil yang benar: <code>Key 1 (…xxxx): OK – model gemini-…</code></li>
     </ol>
-    <div class="kotak hijau"><b>Agar kuota tidak cepat habis:</b> tambahkan 2–3 key dari <b>akun Google yang berbeda</b> (mis. akun belajar.id kepala sekolah dan operator). Bila satu key habis, aplikasi otomatis memakai key berikutnya. Kuota pulih setiap hari ±pukul 14.00–15.00 WIB.</div>
-    <div class="kotak">Jangan membagikan API key ke orang lain atau ke grup WhatsApp. Key disimpan tersembunyi dan hanya dipakai untuk guru di sekolah Anda.</div>
+    <div class="kotak hijau"><b>Agar kuota tidak cepat habis:</b> tambahkan 2–3 key dari <b>akun Google yang berbeda</b> (mis. akun kepala unit dan operator). Bila satu key habis, aplikasi otomatis memakai key berikutnya. Kuota pulih setiap hari ±pukul 14.00–15.00 WIB.</div>
+    <div class="kotak">Jangan membagikan API key ke orang lain atau ke grup WhatsApp. Key disimpan tersembunyi dan hanya dipakai untuk pegawai di unit kerja Anda.</div>
   </section>
 
   <section id="bagikan">
-    <h2><span class="no">3</span>Membagikan ke guru</h2>
+    <h2><span class="no">3</span>Membagikan ke pegawai</h2>
     <ol class="langkah">
-      <li>Kirim <b>alamat aplikasi</b> dan <b>password sekolah</b> ke guru, misalnya lewat grup WA sekolah. Jangan dibagikan ke luar sekolah.</li>
-      <li>Sampaikan bahwa skor GAP ditentukan bersama kepala sekolah: IDP adalah <b>hasil dialog atasan–bawahan</b>. Saran AI hanya untuk draf kalimat.</li>
+      <li>Kirim <b>alamat aplikasi</b> dan <b>password unit kerja</b> ke pegawai, misalnya lewat grup WA kantor/sekolah. Jangan dibagikan ke luar unit kerja.</li>
+      <li>Sampaikan bahwa skor GAP ditentukan bersama atasan langsung: IDP adalah <b>hasil dialog atasan–bawahan</b>. Saran AI hanya untuk draf kalimat.</li>
     </ol>
   </section>
 
   <section id="guru">
-    <h2><span class="no">4</span>Guru: daftar &amp; mengisi IDP</h2>
-    <div class="siapa">Semua guru</div>
+    <h2><span class="no">4</span>Pegawai: daftar &amp; mengisi IDP</h2>
+    <div class="siapa">Semua pegawai</div>
     <ol class="langkah">
-      <li>Buka alamat aplikasi, lalu pilih <b>sekolah</b> Anda.</li>
-      <li>Pertama kali: klik <span class="menu">Daftar sebagai guru</span>, lalu isi nama dengan gelar, NIP, jenjang, status, pendidikan, dan password sekolah.</li>
-      <li>Selanjutnya cukup pilih sekolah → nama → isi password → <span class="menu">Masuk</span>.</li>
-      <li>Isi bagian A–C. Pilih skor GAP 0–4 untuk setiap kompetensi; skor 1–4 wajib diberi catatan.</li>
-      <li>Klik <span class="menu">✨ Isi semua catatan yang masih kosong</span> untuk draf catatan, lalu <span class="menu">✨ Isi semua rekomendasi dengan AI</span> di bagian D. Periksa dan sesuaikan hasilnya.</li>
+      <li>Buka alamat aplikasi, lalu pilih <b>unit kerja</b> Anda.</li>
+      <li>Pertama kali: klik <span class="menu">Daftar sebagai pegawai</span>. Pilih jenis pegawai:
+        <br>• <b>Guru</b>: isi jenjang jabatan fungsional guru.
+        <br>• <b>ASN non-guru</b> (struktural, fungsional lain, pelaksana): pilih jenis jabatan dan tulis nama jabatan, mis. <i>Analis SDM Aparatur Ahli Muda</i>.
+        <br>Lalu isi nama dengan gelar, NIP, status, pendidikan, dan password unit kerja.</li>
+      <li>Selanjutnya cukup pilih unit kerja → nama → isi password → <span class="menu">Masuk</span>.</li>
+      <li>Bagian A: periksa <b>atasan langsung</b>. Bawaannya kepala unit kerja; ubah bila atasan langsung Anda berbeda (mis. Kepala Subbagian atau Kepala Bidang). Nama ini yang tercetak di kolom tanda tangan.</li>
+      <li>Bagian C2 – kompetensi teknis:
+        <br>• Guru: pilih 4 dari 5 modul kompetensi guru.
+        <br>• ASN non-guru: isi 1–5 kompetensi teknis sesuai <b>Standar Kompetensi Jabatan (SKJ)</b>/anjab Anda, atau tekan <span class="menu">✨ Sarankan kompetensi teknis dari nama jabatan</span> lalu sesuaikan.</li>
+      <li>Pilih skor GAP 0–4 untuk setiap kompetensi; skor 1–4 wajib diberi catatan. Klik <span class="menu">✨ Isi semua catatan yang masih kosong</span>, lalu <span class="menu">✨ Isi semua rekomendasi dengan AI</span> di bagian D. Periksa dan sesuaikan hasilnya.</li>
       <li>Klik <span class="menu">💾 Simpan Draf</span> kapan saja. Bila sudah lengkap, klik <span class="menu">📄 Simpan &amp; Buat File Excel</span>, lalu unduh Excel atau PDF Formulir 1 dan 2.</li>
     </ol>
-    <div class="kotak hijau">Kepala sekolah juga bisa mengisi IDP-nya sendiri: saat mendaftar pilih “Mendaftar sebagai: Kepala Sekolah” (NIP harus sama dengan data sekolah).</div>
-    <div class="kotak">Jangan menulis nama siswa, NIK, atau data pribadi lain di kolom “ceritakan kondisi Anda”, karena teks itu dikirim ke layanan AI.</div>
+    <div class="kotak hijau">Kepala unit kerja juga bisa mengisi IDP-nya sendiri: saat mendaftar pilih “Mendaftar sebagai: Kepala unit kerja” (NIP harus sama dengan data unit kerja). Atasannya mengikuti data “atasan kepala unit kerja” di halaman Admin.</div>
+    <div class="kotak">Jangan menulis nama siswa/warga, NIK, atau data pribadi lain di kolom “ceritakan kondisi Anda”, karena teks itu dikirim ke layanan AI.</div>
   </section>
 
   <section id="pantau">
     <h2><span class="no">5</span>Memantau &amp; mengubah data</h2>
-    <div class="siapa">Kepala sekolah / operator</div>
+    <div class="siapa">Kepala unit kerja / operator</div>
     <ol class="langkah">
-      <li>Di halaman masuk, klik <span class="menu">Masuk Admin Sekolah</span> → pilih sekolah → isi password sekolah.</li>
-      <li>Bagian <b>Guru &amp; Pengisian IDP</b> menampilkan status tiap guru (Draf / Lengkap / Selesai) beserta tautan filenya.</li>
-      <li>Bagian <b>Data Sekolah</b>: ubah nama kepala sekolah, NIP, jabatan (mis. Plt.), data atasan, atau ganti password, lalu klik <span class="menu">Simpan data sekolah</span>.</li>
-      <li>Guru salah ketik nama atau pindah tugas: klik <span class="menu">Hapus</span> di baris guru tersebut. Guru bisa mendaftar ulang.</li>
+      <li>Di halaman masuk, klik <span class="menu">Masuk Admin Unit Kerja</span> → pilih unit kerja → isi password unit kerja.</li>
+      <li>Bagian <b>Pegawai &amp; Pengisian IDP</b> menampilkan status tiap pegawai (Draf / Lengkap / Selesai) beserta tautan filenya.</li>
+      <li>Bagian <b>Data Unit Kerja</b>: ubah nama kepala unit, NIP, jabatan (mis. Plt.), data atasan kepala unit, atau ganti password, lalu klik <span class="menu">Simpan data unit kerja</span>.</li>
+      <li>Pegawai salah ketik nama atau pindah tugas: klik <span class="menu">Hapus</span> di barisnya. Pegawai bisa mendaftar ulang.</li>
     </ol>
   </section>
 
   <section id="aman">
     <h2><span class="no">6</span>Keamanan data</h2>
     <ol class="langkah">
-      <li>Data sekolah dan guru (nama, NIP, hasil penilaian) adalah data pribadi (UU No. 27 Tahun 2022). Data disimpan di Google Drive pengelola aplikasi dan hanya dipakai untuk penyusunan IDP.</li>
-      <li>Password sekolah juga membuka halaman Admin, jadi semua guru bisa mengubah data sekolah dan API key. Bagikan hanya ke guru di sekolah sendiri, dan ganti password bila ada guru pindah tugas.</li>
-      <li>File IDP bisa dibuka siapa saja yang memegang tautannya. Minta guru tidak menyebarkan tautan file.</li>
+      <li>Data unit kerja dan pegawai (nama, NIP, hasil penilaian) adalah data pribadi (UU No. 27 Tahun 2022). Data disimpan di Google Drive pengelola aplikasi dan hanya dipakai untuk penyusunan IDP.</li>
+      <li>Password unit kerja juga membuka halaman Admin, jadi semua pegawai bisa mengubah data unit dan API key. Bagikan hanya ke pegawai di unit sendiri, dan ganti password bila ada pegawai pindah tugas.</li>
+      <li>File IDP bisa dibuka siapa saja yang memegang tautannya. Minta pegawai tidak menyebarkan tautan file.</li>
     </ol>
   </section>
 
@@ -147,11 +156,11 @@ footer a{color:var(--blue)}
     <h2><span class="no">7</span>Masalah umum</h2>
     <table>
       <tr><th>Gejala</th><th>Penyelesaian</th></tr>
-      <tr><td>Sekolah tidak ada di daftar</td><td>Belum didaftarkan. Kepala sekolah/operator klik <i>Daftarkan sekolah</i>.</td></tr>
-      <tr><td>“NPSN sudah terdaftar”</td><td>Sekolah Anda sudah didaftarkan sebelumnya. Tanyakan password ke kepala sekolah/operator, atau hubungi narahubung.</td></tr>
-      <tr><td>Nama guru tidak muncul</td><td>Pastikan sekolah yang dipilih benar, lalu klik <i>Daftar sebagai guru</i>.</td></tr>
+      <tr><td>Unit kerja tidak ada di daftar</td><td>Belum didaftarkan. Kepala unit/operator klik <i>Daftarkan unit kerja</i>.</td></tr>
+      <tr><td>“NPSN / unit kerja sudah terdaftar”</td><td>Unit Anda sudah didaftarkan sebelumnya. Tanyakan password ke kepala unit/operator, atau hubungi narahubung.</td></tr>
+      <tr><td>Nama tidak muncul</td><td>Pastikan unit kerja yang dipilih benar, lalu klik <i>Daftar sebagai pegawai</i>.</td></tr><tr><td>Tidak tahu kompetensi teknis jabatan (non-guru)</td><td>Lihat Standar Kompetensi Jabatan/anjab di bagian kepegawaian, atau isi nama jabatan lalu tekan <i>Sarankan kompetensi teknis</i>.</td></tr>
       <tr><td>“Terlalu banyak percobaan password salah”</td><td>Tunggu 10 menit, lalu coba lagi dengan password yang benar.</td></tr>
-      <tr><td>Saran AI bertuliskan “dipakai kalimat bawaan”</td><td>Fitur AI sekolah belum aktif, atau semua key sedang habis kuota. Admin: klik <i>Tes API key</i> dan tambahkan key dari akun lain bila perlu.</td></tr>
+      <tr><td>Saran AI bertuliskan “dipakai kalimat bawaan”</td><td>Fitur AI unit kerja belum aktif, atau semua key sedang habis kuota. Admin: klik <i>Tes API key</i> dan tambahkan key dari akun lain bila perlu.</td></tr>
       <tr><td>Tes key: <code>HTTP 429</code></td><td>Kuota harian key itu habis. Pulih ±pukul 14.00–15.00 WIB, atau tambahkan key dari akun lain.</td></tr>
       <tr><td>Tes key: <code>HTTP 400/403</code></td><td>Key salah salin atau sudah dihapus. Hapus key itu dan buat yang baru.</td></tr>
       <tr><td>Tampilan belum berubah setelah pembaruan</td><td>Muat ulang halaman (<kbd>Ctrl</kbd>+<kbd>F5</kbd> di laptop).</td></tr>
@@ -160,7 +169,7 @@ footer a{color:var(--blue)}
 
   <footer>
     Butuh bantuan? Narahubung: <b>Yos Putra Kurniawan, S.Pd.</b> · WhatsApp <a href="https://wa.me/6282220044779" target="_blank" rel="noopener">0822-2004-4779</a><br>
-    Aplikasi IDP Guru SD · dikembangkan oleh SD N BUGANGIN
+    Aplikasi IDP ASN · dikembangkan oleh SD N BUGANGIN
   </footer>
 </div>
 <script>

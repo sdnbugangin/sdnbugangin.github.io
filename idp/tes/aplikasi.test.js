@@ -181,3 +181,91 @@ test('pemilik mengatur ulang password sekolah yang lupa', () => {
   assert.equal(g.panggil('adminMasuk', SD_A.npsn, 'adminBaru77').npsn, SD_A.npsn);
   assert.throws(() => g.panggil('aturUlangPasswordSekolah'), /pemilik/);
 });
+
+// ---------- unit kerja non-sekolah & ASN non-guru ----------
+const DINAS = { jenisUnit: 'Dinas/Badan/Kantor', nama: 'Bidang Pembinaan Ketenagaan Disdikbud', wilayah: 'Dinas Pendidikan dan Kebudayaan', kabupaten: 'Kendal',
+  namaKs: 'Supardi, S.Pd., M.Pd.', nipKs: '197109211999031009', jabatanKs: 'Kepala Bidang Pembinaan Ketenagaan', password: 'dinas123' };
+const STAF = { peran: 'Pegawai', jenisPegawai: 'Non Guru', nama: 'Rina Wulandari, S.E.', nip: '199001012015032001', status: 'PNS', pendidikan: 'S1',
+  jenisJabatan: 'Fungsional', jabatan: 'Analis SDM Aparatur Ahli Pertama' };
+
+function dataNonGuru() {
+  const d = dataLengkap();
+  d.identitas = { nip: STAF.nip, jenisPegawai: 'Non Guru', jenisJabatan: 'Fungsional', jabatan: STAF.jabatan, target: 'Analis SDM Aparatur Ahli Muda', status: 'PNS', jenjang: '' };
+  d.kualifikasi.syarat = 'S1';
+  d.teknis = [
+    { nama: 'Manajemen data kepegawaian', pilih: true, skor: 2, catatan: 'Belum mandiri mengolah data SIASN.' },
+    { nama: 'Analisis jabatan dan beban kerja', pilih: true, skor: 0, catatan: '-' }
+  ];
+  d.rencana.t0 = { rekomendasi: 'Mentoring oleh analis senior.', jenis: 'Non Klasikal', jalur: 'mentoring', tahun: [2027] };
+  d.atasan = { nama: 'Dra. Endang Lestari', nip: '197001011995032001', jabatan: 'Kepala Subbagian Umum dan Kepegawaian', unit: 'Disdikbud Kendal' };
+  return d;
+}
+
+test('dinas mendaftar tanpa NPSN: kode unit otomatis; nama unit tidak boleh ganda', () => {
+  const g = siap();
+  const h = g.panggil('daftarSekolah', DINAS);
+  assert.match(h.npsn, /^UK\d{6}$/);
+  assert.equal(h.jenisUnit, 'Dinas/Badan/Kantor');
+  assert.throws(() => g.panggil('daftarSekolah', { ...DINAS, nipKs: '197501012000032001' }), /sudah terdaftar/);
+  const unit = g.panggil('getInit').sekolah[0];
+  assert.equal(unit.jenis, 'Dinas/Badan/Kantor');
+  assert.equal(g.panggil('adminMasuk', h.npsn.toLowerCase(), DINAS.password).npsn, h.npsn);   // kode tidak peka huruf besar/kecil
+});
+
+test('ASN non-guru: daftar, kompetensi teknis isian sendiri, atasan sendiri, file berlabel sesuai', () => {
+  const g = siap();
+  const kode = g.panggil('daftarSekolah', DINAS).npsn;
+  assert.throws(() => g.panggil('daftar', kode, { ...STAF, jabatan: '' }, DINAS.password), /Nama jabatan/);
+  const m = g.panggil('daftar', kode, STAF, DINAS.password);
+  assert.equal(m.profil.jenisPegawai, 'Non Guru');
+  assert.equal(m.profil.peran, 'Pegawai');
+  assert.equal(m.atasan.nama, DINAS.namaKs);                 // bawaan: kepala unit
+  const r = g.panggil('simpan', kode, STAF.nama, DINAS.password, dataNonGuru(), true);
+  assert.equal(r.ok, true, r.pesan);
+  const f1 = g.berkas[r.file.sheet.match(/\/d\/([^/]+)/)[1]].ss.getSheetByName('FORM 1');
+  const sel = (a) => f1.getRange(a).getValues()[0][0];
+  assert.equal(sel('B4'), ': Dra. Endang Lestari');          // atasan isian pegawai
+  assert.equal(sel('B11'), 'Jabatan Fungsional');
+  assert.equal(sel('B12'), STAF.jabatan);
+  assert.equal(sel('B37'), '1. Manajemen data kepegawaian');
+  assert.equal(sel('B39'), '');                               // baris teknis yang tidak dipakai dikosongkan
+  assert.equal(sel('E37'), 'v');                              // skor 2
+  assert.equal(sel('H37'), 'Belum mandiri mengolah data SIASN.');
+  const f2 = g.berkas[r.file.sheet.match(/\/d\/([^/]+)/)[1]].ss.getSheetByName('FORM 2');
+  assert.equal(f2.getRange('H11').getValues()[0][0], '1. Manajemen data kepegawaian');
+});
+
+test('validasi non-guru: nama kompetensi teknis wajib, maksimal 5', () => {
+  const g = siap();
+  const d = dataNonGuru();
+  d.teknis[1].nama = '';
+  assert.ok(g.ctx.validasi_(d).some((x) => /nama kompetensi belum diisi/.test(x)));
+  d.teknis = Array.from({ length: 6 }, (_, i) => ({ nama: 'K' + i, skor: 0, catatan: '-' }));
+  assert.ok(g.ctx.validasi_(d).some((x) => /1–5 kompetensi/.test(x)));
+});
+
+test('AI mengusulkan kompetensi teknis dari nama jabatan; tanpa key diberi pesan jelas', () => {
+  const g = siap({ gemini: (url) => (url.includes(':generateContent')
+    ? { kode: 200, isi: { candidates: [{ content: { parts: [{ text: '[{"nama":"Pengelolaan data ASN","def":"Mengolah data kepegawaian."},{"nama":"Analisis jabatan","def":"Menyusun anjab."}]' }] } }] } }
+    : { kode: 200, isi: { models: [{ name: 'models/gemini-3.5-flash-lite', supportedGenerationMethods: ['generateContent'] }] } }) });
+  const kode = g.panggil('daftarSekolah', DINAS).npsn;
+  g.panggil('daftar', kode, STAF, DINAS.password);
+  const req = { mode: 'saranTeknis', jenisPegawai: 'Non Guru', jabatan: STAF.jabatan, jenisJabatan: 'Fungsional' };
+  assert.throws(() => g.panggil('saranAI', kode, STAF.nama, DINAS.password, req), /belum diaktifkan/);
+  g.panggil('adminTambahKunci', kode, DINAS.password, 'AQ.KunciDinas_1234567890abcdefghijklmnopq');
+  const h = g.panggil('saranAI', kode, STAF.nama, DINAS.password, req);
+  assert.deepEqual(h.hasil.map((x) => x.nama), ['Pengelolaan data ASN', 'Analisis jabatan']);
+  // saran bawaan memakai nama kompetensi isian pegawai
+  const fb = g.ctx.fallbackCatatan_({ kategori: 't', idx: 0, skor: 2, nama: 'Pengelolaan arsip', jenisPegawai: 'Non Guru' }, '');
+  assert.match(fb.catatan, /pengelolaan arsip/);
+});
+
+test('kepala unit dinas mendaftar sebagai pegawai; atasannya = atasan kepala unit', () => {
+  const g = siap();
+  const kode = g.panggil('daftarSekolah', DINAS).npsn;
+  g.panggil('adminSimpan', kode, DINAS.password, { ATASAN_KS_NAMA: 'Kepala Dinas X', ATASAN_KS_JABATAN: 'Kepala Dinas' });
+  const m = g.panggil('daftar', kode, { ...STAF, peran: 'Kepala', nama: DINAS.namaKs, nip: DINAS.nipKs, jenisJabatan: 'Administrator', jabatan: 'Kabid' }, DINAS.password);
+  assert.equal(m.profil.peran, 'Kepala Unit');
+  assert.equal(m.profil.jabatan, DINAS.jabatanKs);
+  assert.equal(m.atasan.nama, 'Kepala Dinas X');
+});

@@ -65,7 +65,7 @@
 </head>
 <body>
 <header>
-  <h1>Individual Development Plan (IDP) Guru</h1>
+  <h1>Individual Development Plan (IDP) ASN</h1>
   <p id="hdrSekolah">Memuat…</p>
 </header>
 
@@ -74,75 +74,89 @@
 <main>
   <!-- LOGIN -->
   <div id="vLogin" class="card login hidden">
-    <h2>Masuk Guru</h2>
-    <p class="sub">Pilih sekolah dan nama Anda, lalu masukkan password sekolah.</p>
+    <h2>Masuk Pegawai</h2>
+    <p class="sub">Pilih unit kerja dan nama Anda, lalu masukkan password unit kerja.</p>
     <div id="loginMsg"></div>
-    <label>Sekolah</label>
-    <select id="lgSekolah"><option value="">— pilih sekolah —</option></select>
-    <label>Nama Guru</label>
-    <select id="lgNama" disabled><option value="">— pilih sekolah dulu —</option></select>
-    <label>Password sekolah</label>
+    <label>Unit kerja</label>
+    <select id="lgSekolah"><option value="">— pilih unit kerja —</option></select>
+    <label>Nama pegawai</label>
+    <select id="lgNama" disabled><option value="">— pilih unit kerja dulu —</option></select>
+    <label>Password unit kerja</label>
     <input id="lgPw" type="password" autocomplete="current-password">
     <div style="margin-top:14px"><button class="btn" id="btnLogin" style="width:100%">Masuk</button></div>
     <div class="tautan">
-      <span>Nama Anda belum ada? <a href="#" id="keDaftar">Daftar sebagai guru</a></span>
-      <span>Kepala sekolah / operator: <a href="#" id="keAdmin">Masuk Admin Sekolah</a></span>
-      <span>Sekolah Anda belum ada di daftar? <a href="#" id="keSekolahBaru">Daftarkan sekolah</a></span>
+      <span>Nama Anda belum ada? <a href="#" id="keDaftar">Daftar sebagai pegawai</a></span>
+      <span>Kepala unit kerja / operator: <a href="#" id="keAdmin">Masuk Admin Unit Kerja</a></span>
+      <span>Unit kerja Anda belum ada di daftar? <a href="#" id="keSekolahBaru">Daftarkan unit kerja</a></span>
     </div>
   </div>
 
   <!-- DAFTAR MANDIRI -->
   <div id="vDaftar" class="card login hidden">
-    <h2>Pendaftaran Guru ASN</h2>
-    <p class="sub">Sekolah: <b id="dSekolah"></b>. Isi data diri Anda dengan benar. Data ini dipakai pada Formulir IDP.</p>
+    <h2>Pendaftaran Pegawai ASN</h2>
+    <p class="sub">Unit kerja: <b id="dSekolah"></b>. Isi data diri Anda dengan benar. Data ini dipakai pada Formulir IDP.</p>
     <div id="daftarMsg"></div>
     <label>Mendaftar sebagai</label>
-    <select id="dPeran"><option>Guru</option><option>Kepala Sekolah</option></select>
+    <select id="dPeran"><option value="Pegawai">Pegawai</option><option value="Kepala">Kepala unit kerja</option></select>
     <p class="sub" id="dPeranInfo" style="margin:4px 0 0"></p>
+    <label>Jenis pegawai</label>
+    <select id="dJenisPeg"><option value="Guru">Guru</option><option value="Non Guru">ASN non-guru (struktural / fungsional lain / pelaksana)</option></select>
     <label>Nama Lengkap dengan Gelar</label>
     <input id="dNama" placeholder="contoh: Siti Aminah, S.Pd.">
     <label>NIP (18 digit, tanpa spasi)</label>
     <input id="dNip" inputmode="numeric" maxlength="22" placeholder="199001012019032001">
-    <label>Jenjang Jabatan Fungsional Guru</label>
-    <select id="dJenjang"><option value="">— pilih —</option><option value="Ahli Pertama">Guru Ahli Pertama</option><option value="Ahli Muda">Guru Ahli Muda</option><option value="Ahli Madya">Guru Ahli Madya</option><option value="Ahli Utama">Guru Ahli Utama</option></select>
+    <div id="dBlokGuru">
+      <label>Jenjang Jabatan Fungsional Guru</label>
+      <select id="dJenjang"><option value="">— pilih —</option><option value="Ahli Pertama">Guru Ahli Pertama</option><option value="Ahli Muda">Guru Ahli Muda</option><option value="Ahli Madya">Guru Ahli Madya</option><option value="Ahli Utama">Guru Ahli Utama</option></select>
+    </div>
+    <div id="dBlokNon" class="hidden">
+      <label>Jenis jabatan</label>
+      <select id="dJenisJab"><option value="">— pilih —</option></select>
+      <label>Nama jabatan</label>
+      <input id="dJabatan" placeholder="mis. Analis SDM Aparatur Ahli Muda / Pengadministrasi Perkantoran">
+    </div>
     <label>Status Kepegawaian</label>
     <select id="dStatus"><option value="">— pilih —</option><option>PNS</option><option>PPPK</option></select>
     <label>Pendidikan Terakhir</label>
-    <select id="dPend"><option>S1</option><option>D4</option><option>S2</option><option>S3</option><option>D3</option><option>D2</option><option>SMA/SPG</option></select>
-    <label>Password</label>
-    <input id="dPw" type="password" placeholder="password sekolah dari kepala sekolah">
+    <select id="dPend" class="pilihPend"></select>
+    <label>Password unit kerja</label>
+    <input id="dPw" type="password" placeholder="password dari kepala unit kerja">
     <div style="margin-top:14px"><button class="btn" id="btnDaftar" style="width:100%">Daftar &amp; Masuk</button></div>
     <p class="sub" style="margin-top:14px;text-align:center"><a href="#" id="keLogin">← Kembali ke halaman masuk</a></p>
   </div>
 
-  <!-- DAFTARKAN SEKOLAH -->
+  <!-- DAFTARKAN UNIT KERJA -->
   <div id="vSekolahBaru" class="card login hidden">
-    <h2>Daftarkan Sekolah</h2>
-    <p class="sub">Diisi oleh kepala sekolah atau operator. Setelah terdaftar, Anda langsung masuk ke halaman Admin Sekolah untuk mengaktifkan fitur AI.</p>
+    <h2>Daftarkan Unit Kerja</h2>
+    <p class="sub">Diisi oleh kepala unit kerja atau operator. Setelah terdaftar, Anda langsung masuk ke halaman Admin Unit Kerja untuk mengaktifkan fitur AI.</p>
     <div id="sbMsg"></div>
-    <label>NPSN (8 digit)</label><input id="sbNpsn" inputmode="numeric" maxlength="8" placeholder="20321653">
-    <label>Nama sekolah</label><input id="sbNama" placeholder="SD Negeri ...">
-    <label>Wilayah</label><input id="sbWilayah" placeholder="Korwilcambiddik Kec. ...">
+    <label>Jenis unit kerja</label>
+    <select id="sbJenis"><option>Sekolah</option><option>Dinas/Badan/Kantor</option><option>Unit kerja lainnya</option></select>
+    <div id="sbNpsnBox"><label>NPSN (8 digit)</label><input id="sbNpsn" inputmode="numeric" maxlength="8" placeholder="20321653"></div>
+    <p class="sub hidden" id="sbKodeInfo" style="margin:4px 0 0">Kode unit kerja dibuat otomatis setelah mendaftar.</p>
+    <label>Nama unit kerja</label><input id="sbNama" placeholder="SD Negeri ... / Bidang ... Dinas ...">
+    <label>Wilayah / instansi induk</label><input id="sbWilayah" placeholder="Korwilcambiddik Kec. ... / Dinas Pendidikan dan Kebudayaan">
     <label>Kabupaten/Kota</label><input id="sbKab">
     <label>Tempat tanda tangan</label><input id="sbTempat" placeholder="sama dengan kabupaten bila dikosongkan">
-    <label>Nama Kepala Sekolah (dengan gelar)</label><input id="sbKs" placeholder="Siti Aminah, S.Pd.">
-    <label>NIP Kepala Sekolah (18 digit)</label><input id="sbNipKs" inputmode="numeric" maxlength="22">
-    <label>Jabatan</label><select id="sbJab"><option>Kepala Sekolah</option><option>Plt. Kepala Sekolah</option></select>
-    <label>Password sekolah (min. 6 karakter)</label><input id="sbPw" type="text" autocomplete="off">
-    <p class="sub" style="margin:2px 0 0">Satu password untuk semua guru dan kepala sekolah: dipakai untuk masuk mengisi IDP dan membuka halaman Admin Sekolah. Jangan dibagikan ke luar sekolah.</p>
-    <div style="margin-top:14px"><button class="btn" id="btnSekolahBaru" style="width:100%">Daftarkan Sekolah</button></div>
-    <p class="sub" style="margin-top:10px">Data sekolah dan guru tersimpan di Google Drive pengelola aplikasi (SD Negeri Bugangin) dan hanya dipakai untuk penyusunan IDP.</p>
+    <label>Nama Kepala Unit Kerja (dengan gelar)</label><input id="sbKs" placeholder="Siti Aminah, S.Pd.">
+    <label>NIP Kepala Unit Kerja (18 digit)</label><input id="sbNipKs" inputmode="numeric" maxlength="22">
+    <label>Jabatan kepala unit kerja</label><input id="sbJab" list="daftarJabKepala" placeholder="Kepala Sekolah / Kepala Bidang ... / Kepala Dinas ...">
+    <datalist id="daftarJabKepala"><option>Kepala Sekolah</option><option>Plt. Kepala Sekolah</option><option>Kepala Dinas</option><option>Sekretaris Dinas</option><option>Kepala Bidang</option><option>Kepala UPTD</option><option>Kepala Puskesmas</option><option>Camat</option></datalist>
+    <label>Password unit kerja (min. 6 karakter)</label><input id="sbPw" type="text" autocomplete="off">
+    <p class="sub" style="margin:2px 0 0">Satu password untuk semua pegawai dan kepala unit kerja: dipakai untuk masuk mengisi IDP dan membuka halaman Admin Unit Kerja. Jangan dibagikan ke luar unit kerja.</p>
+    <div style="margin-top:14px"><button class="btn" id="btnSekolahBaru" style="width:100%">Daftarkan Unit Kerja</button></div>
+    <p class="sub" style="margin-top:10px">Data unit kerja dan pegawai tersimpan di Google Drive pengelola aplikasi (SD Negeri Bugangin) dan hanya dipakai untuk penyusunan IDP.</p>
     <div class="tautan"><a href="#" class="keAwal">← Kembali ke halaman masuk</a></div>
   </div>
 
   <!-- MASUK ADMIN -->
   <div id="vAdminMasuk" class="card login hidden">
-    <h2>Masuk Admin Sekolah</h2>
-    <p class="sub">Untuk kepala sekolah / operator: mengaktifkan fitur AI, mengubah data sekolah dan password, serta memantau pengisian IDP guru.</p>
+    <h2>Masuk Admin Unit Kerja</h2>
+    <p class="sub">Untuk kepala unit kerja / operator: mengaktifkan fitur AI, mengubah data unit kerja dan password, serta memantau pengisian IDP pegawai.</p>
     <div id="amMsg"></div>
-    <label>Sekolah</label>
-    <select id="amSekolah"><option value="">— pilih sekolah —</option></select>
-    <label>Password sekolah</label>
+    <label>Unit kerja</label>
+    <select id="amSekolah"><option value="">— pilih unit kerja —</option></select>
+    <label>Password unit kerja</label>
     <input id="amPw" type="password" autocomplete="current-password">
     <div style="margin-top:14px"><button class="btn" id="btnAdminMasuk" style="width:100%">Masuk</button></div>
     <div class="tautan"><a href="#" class="keAwal">← Kembali ke halaman masuk</a></div>
@@ -153,9 +167,9 @@
     <div id="admMsg"></div>
     <div class="card">
       <h2>Fitur AI Gemini <span id="admAiStatus" class="ai-aktif"></span></h2>
-      <p class="sub">Dengan API key Gemini milik sekolah Anda sendiri, tombol <b>✨ Saran AI</b> menyusun draf catatan dan rekomendasi IDP untuk guru di sekolah Anda. Gratis. Kuota dihitung per sekolah, tidak berbagi dengan sekolah lain.</p>
+      <p class="sub">Dengan API key Gemini milik unit kerja Anda sendiri, tombol <b>✨ Saran AI</b> menyusun draf catatan dan rekomendasi IDP untuk pegawai di unit kerja Anda. Gratis. Kuota dihitung per unit kerja, tidak berbagi dengan unit lain.</p>
       <ol class="langkah">
-        <li>Klik tombol di bawah ini (terbuka di tab baru), lalu masuk dengan akun Google sekolah / belajar.id.<br>
+        <li>Klik tombol di bawah ini (terbuka di tab baru), lalu masuk dengan akun Google kantor / sekolah / belajar.id.<br>
           <a class="btn-ai" style="display:inline-block;margin-top:6px;text-decoration:none" href="https://aistudio.google.com/api-keys" target="_blank" rel="noopener">🔑 Buka Google AI Studio – API Keys</a></li>
         <li>Bila diminta, setujui persyaratan layanan.</li>
         <li>Klik <b>Create API key</b> (Buat kunci API). Bila diminta memilih project, pilih yang ada atau buat project baru.</li>
@@ -167,41 +181,41 @@
       <div id="admDaftarKunci" style="margin-top:10px"></div>
       <div style="margin-top:10px"><button class="btn-garis" id="btnAdmTes" type="button">Tes API key</button></div>
       <pre class="hasil hidden" id="admTes"></pre>
-      <p class="sub" style="margin-top:10px">💡 Agar tidak cepat habis kuota, tambahkan 2–3 key dari <b>akun Google berbeda</b> (mis. akun belajar.id kepala sekolah dan operator). Bila satu key habis, aplikasi otomatis memakai key berikutnya. Kuota pulih setiap hari ±pukul 14.00–15.00 WIB.<br>🔒 Key disimpan tersembunyi dan hanya dipakai untuk guru di sekolah Anda. Jangan bagikan key ke orang lain.</p>
+      <p class="sub" style="margin-top:10px">💡 Agar tidak cepat habis kuota, tambahkan 2–3 key dari <b>akun Google berbeda</b> (mis. akun kepala unit dan operator). Bila satu key habis, aplikasi otomatis memakai key berikutnya. Kuota pulih setiap hari ±pukul 14.00–15.00 WIB.<br>🔒 Key disimpan tersembunyi dan hanya dipakai untuk pegawai di unit kerja Anda. Jangan bagikan key ke orang lain.</p>
     </div>
 
     <div class="card">
-      <h2>Guru &amp; Pengisian IDP</h2>
-      <p class="sub">Guru mendaftar sendiri lewat halaman masuk memakai password sekolah. <span id="admFolder"></span></p>
+      <h2>Pegawai &amp; Pengisian IDP</h2>
+      <p class="sub">Pegawai mendaftar sendiri lewat halaman masuk memakai password unit kerja. <span id="admFolder"></span></p>
       <div class="gulir"><table class="tabel" id="admGuru"></table></div>
     </div>
 
     <div class="card">
-      <h2>Data Sekolah</h2>
-      <p class="sub">NPSN: <b id="admNpsn"></b>. Dipakai di Formulir 1 &amp; 2 sebagai atasan langsung guru.</p>
+      <h2>Data Unit Kerja</h2>
+      <p class="sub"><span id="admKodeLabel">NPSN</span>: <b id="admNpsn"></b>. Kepala unit kerja menjadi atasan langsung bawaan pegawai di Formulir 1 &amp; 2 (pegawai dapat menggantinya bila atasan langsungnya berbeda).</p>
       <div class="grid">
-        <div><label>Nama sekolah</label><input data-isian="NAMA_SEKOLAH"></div>
-        <div><label>Wilayah</label><input data-isian="WILAYAH"></div>
+        <div><label>Nama unit kerja</label><input data-isian="NAMA_SEKOLAH"></div>
+        <div><label>Wilayah / instansi induk</label><input data-isian="WILAYAH"></div>
         <div><label>Kabupaten/Kota</label><input data-isian="KABUPATEN"></div>
         <div><label>Tempat tanda tangan</label><input data-isian="TEMPAT"></div>
       </div>
       <div class="grid">
-        <div><label>Nama Kepala Sekolah</label><input data-isian="NAMA_KS"></div>
-        <div><label>NIP Kepala Sekolah</label><input data-isian="NIP_KS" inputmode="numeric"></div>
+        <div><label>Nama kepala unit kerja</label><input data-isian="NAMA_KS"></div>
+        <div><label>NIP kepala unit kerja</label><input data-isian="NIP_KS" inputmode="numeric"></div>
         <div><label>Jabatan</label><input data-isian="JABATAN_KS"></div>
       </div>
-      <p class="sub" style="margin:12px 0 0"><b>Atasan Kepala Sekolah</b> (untuk IDP Kepala Sekolah)</p>
+      <p class="sub" style="margin:12px 0 0"><b>Atasan kepala unit kerja</b> (untuk IDP kepala unit kerja)</p>
       <div class="grid">
         <div><label>Nama</label><input data-isian="ATASAN_KS_NAMA"></div>
         <div><label>NIP</label><input data-isian="ATASAN_KS_NIP" inputmode="numeric"></div>
         <div><label>Jabatan</label><input data-isian="ATASAN_KS_JABATAN"></div>
         <div><label>Unit kerja</label><input data-isian="ATASAN_KS_UNIT"></div>
       </div>
-      <p class="sub" style="margin:12px 0 0"><b>Ganti password sekolah</b> (kosongkan bila tidak diganti; berlaku untuk semua guru)</p>
+      <p class="sub" style="margin:12px 0 0"><b>Ganti password unit kerja</b> (kosongkan bila tidak diganti; berlaku untuk semua pegawai)</p>
       <div class="grid">
-        <div><label>Password sekolah baru</label><input id="admPwBaru" type="text" autocomplete="off"></div>
+        <div><label>Password unit kerja baru</label><input id="admPwBaru" type="text" autocomplete="off"></div>
       </div>
-      <div style="margin-top:12px"><button class="btn" id="btnAdmSimpan" type="button">Simpan data sekolah</button></div>
+      <div style="margin-top:12px"><button class="btn" id="btnAdmSimpan" type="button">Simpan data unit kerja</button></div>
     </div>
     <div style="text-align:center;margin-bottom:20px"><button class="btn-garis" id="btnAdmKeluar" type="button">Keluar</button></div>
   </div>
@@ -213,21 +227,33 @@
 
     <div class="card">
       <h2>A. Identitas &amp; Jabatan</h2>
-      <p class="sub">Atasan langsung: <b id="ksNama"></b>. Data atasan terisi otomatis.</p>
-      <p class="sub hidden" id="ksInfo" style="color:#6a1b9a">Anda mengisi IDP sebagai <b>Kepala Sekolah</b>. Formulir akan ditandatangani oleh atasan Anda di Dinas.</p>
+      <p class="sub hidden" id="ksInfo" style="color:#6a1b9a">Anda mengisi IDP sebagai <b>kepala unit kerja</b>. Formulir ditandatangani oleh atasan Anda.</p>
       <div class="grid">
         <div><label>Nama Pegawai</label><input id="fNama" disabled></div>
         <div><label>NIP Pegawai</label><input id="fNip" inputmode="numeric" placeholder="18 digit"></div>
         <div><label>Status Kepegawaian</label>
           <select id="fStatus"><option>PNS</option><option>PPPK</option></select></div>
       </div>
-      <div class="grid">
+      <div class="grid" id="aGuru">
         <div><label>Jenjang Jabatan Saat Ini</label>
           <select id="fJenjang"><option value="Ahli Pertama">Guru Ahli Pertama</option><option value="Ahli Muda">Guru Ahli Muda</option><option value="Ahli Madya">Guru Ahli Madya</option><option value="Ahli Utama">Guru Ahli Utama</option></select></div>
         <div><label>Target Jabatan</label>
           <select id="fTarget"><option>Ahli Muda</option><option>Ahli Madya</option><option>Ahli Utama</option><option>Ahli Pertama</option></select></div>
-        <div><label>Tanggal Penilaian</label><input id="fTanggal" type="date"></div>
       </div>
+      <div class="grid hidden" id="aNon">
+        <div><label>Jenis Jabatan</label><select id="fJenisJab"></select></div>
+        <div><label>Jabatan Saat Ini</label><input id="fJabatan" placeholder="mis. Analis SDM Aparatur Ahli Pertama"></div>
+        <div><label>Target Jabatan</label><input id="fTargetNon" placeholder="mis. Analis SDM Aparatur Ahli Muda"></div>
+      </div>
+      <div class="grid"><div><label>Tanggal Penilaian</label><input id="fTanggal" type="date"></div></div>
+      <p class="sub" style="margin:14px 0 0"><b>Atasan langsung</b> (penanda tangan formulir). Terisi otomatis dengan kepala unit kerja; ubah bila atasan langsung Anda berbeda, mis. Kepala Subbagian/Kepala Bidang.</p>
+      <div class="grid">
+        <div><label>Nama atasan</label><input id="atNama"></div>
+        <div><label>NIP atasan</label><input id="atNip" inputmode="numeric"></div>
+        <div><label>Jabatan atasan</label><input id="atJabatan"></div>
+        <div><label>Unit kerja atasan</label><input id="atUnit"></div>
+      </div>
+      <div style="margin-top:6px"><button class="btn-garis" id="btnAtasanBawaan" type="button">↺ Kembalikan ke atasan bawaan</button></div>
     </div>
 
     <div class="card">
@@ -240,9 +266,8 @@
       </div>
       <label>Keterangan GAP Kinerja (jika ada)</label><input id="kKet">
       <div class="grid" style="margin-top:6px">
-        <div><label>Syarat Pendidikan Jabatan</label><input id="qSyarat" value="S1"></div>
-        <div><label>Pendidikan Terakhir</label>
-          <select id="qPend"><option value="">— pilih —</option><option>SMA/SPG</option><option>D2</option><option>D3</option><option>S1</option><option>D4</option><option>S2</option><option>S3</option></select></div>
+        <div><label>Syarat Pendidikan Jabatan</label><select id="qSyarat" class="pilihPend"><option value="">— pilih —</option></select></div>
+        <div><label>Pendidikan Terakhir</label><select id="qPend" class="pilihPend"><option value="">— pilih —</option></select></div>
         <div><label>GAP Pendidikan</label><input id="qGap" disabled></div>
       </div>
       <label>Keterangan GAP Pendidikan (jika ada)</label><input id="qKet">
@@ -254,7 +279,7 @@
       <p class="sub">Pilih dulu skor GAP setiap kompetensi bersama atasan langsung (IDP adalah hasil dialog atasan–bawahan). Setelah itu, AI bisa menyusun draf catatan yang masih kosong sekaligus dalam satu kali proses. Hasil AI hanya draf — periksa dan sesuaikan dengan kondisi nyata.</p>
       <button class="btn-ai" id="btnAiCatatan">✨ Isi semua catatan yang masih kosong</button>
       <div id="aiCatatanInfo" class="info"></div>
-      <p class="sub" style="margin:8px 0 0">Jangan menulis nama siswa, NIK/NIP, atau data pribadi lain di kolom “ceritakan kondisi Anda”.</p>
+      <p class="sub" style="margin:8px 0 0">Jangan menulis nama siswa/warga, NIK/NIP, atau data pribadi lain di kolom “ceritakan kondisi Anda”.</p>
     </div>
 
     <div class="card">
@@ -264,9 +289,14 @@
     </div>
 
     <div class="card">
-      <h2>C2. Kompetensi Teknis <span class="pill">Pilih tepat 4 dari 5 · <span class="counter" id="cntT">0</span>/4</span></h2>
-      <p class="sub">Sesuaikan dengan hasil rapor kompetensi guru Anda.</p>
+      <h2>C2. Kompetensi Teknis <span class="pill" id="pillT">Pilih tepat 4 dari 5 · <span class="counter" id="cntT">0</span>/4</span></h2>
+      <p class="sub" id="subT">Sesuaikan dengan hasil rapor kompetensi guru Anda.</p>
+      <div id="tNonAksi" class="hidden" style="margin-bottom:10px">
+        <button class="btn-ai" id="btnSaranTeknis" type="button">✨ Sarankan kompetensi teknis dari nama jabatan</button>
+        <div id="infoSaranTeknis" class="info"></div>
+      </div>
       <div id="listT"></div>
+      <div id="tNonTambah" class="hidden"><button class="btn-garis" id="btnTambahTeknis" type="button">+ Tambah kompetensi teknis</button></div>
     </div>
 
     <div class="card">
@@ -291,10 +321,13 @@
 </div>
 
 <script>
-var INIT=null, SESI={nama:'',pw:''}, D=null, PERAN='Guru';
+var INIT=null, SESI={nama:'',pw:''}, D=null, PERAN='Guru', ATASAN_BAWAAN=null;
 var $=function(id){return document.getElementById(id)};
 var NEXT={'Ahli Pertama':'Ahli Muda','Ahli Muda':'Ahli Madya','Ahli Madya':'Ahli Utama','Ahli Utama':'Ahli Utama'};
-var PEND_OK=['S1','D4','S2','S3'];
+// Urutan jenjang pendidikan untuk menghitung GAP kualifikasi (D4 setara S1).
+var PEND=['SD','SMP','SMA/SMK','SMA/SPG','D1','D2','D3','D4','S1','S2','S3'];
+var PEND_RANK={'SD':0,'SMP':1,'SMA/SMK':2,'SMA/SPG':2,'D1':3,'D2':4,'D3':5,'D4':6,'S1':6,'S2':7,'S3':8};
+function isGuru(){return !D||(D.identitas.jenisPegawai||'Guru')==='Guru'}
 
 function loading(on,teks){$('loading').style.display=on?'flex':'none';$('loading').textContent=teks||'Memuat…'}
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
@@ -305,7 +338,8 @@ function run(fn,args,ok,fail){var r=google.script.run.withSuccessHandler(ok).wit
 var VIEW=['vLogin','vDaftar','vSekolahBaru','vAdminMasuk','vAdmin','vForm'];
 function tampil(v){VIEW.forEach(function(x){$(x).classList.toggle('hidden',x!==v)});$('bar').classList.toggle('hidden',v!=='vForm');window.scrollTo(0,0)}
 function ingat(k,v){try{if(v===undefined)return localStorage.getItem(k)||'';localStorage.setItem(k,v)}catch(e){return ''}}
-function namaSekolah(npsn){var x=(INIT.sekolah||[]).filter(function(s){return s.npsn===npsn})[0];return x?x.nama:''}
+function unitDari(npsn){return (INIT.sekolah||[]).filter(function(s){return s.npsn===npsn})[0]||null}
+function namaSekolah(npsn){var x=unitDari(npsn);return x?x.nama:''}
 function isiPilihanSekolah(){
   ['lgSekolah','amSekolah'].forEach(function(id){
     var el=$(id);el.length=1;
@@ -317,19 +351,22 @@ function isiPilihanSekolah(){
 function muatGuru(){
   var npsn=$('lgSekolah').value,el=$('lgNama');
   el.length=0;el.disabled=true;
-  var o=document.createElement('option');o.value='';o.textContent=npsn?'Memuat…':'— pilih sekolah dulu —';el.appendChild(o);
+  var o=document.createElement('option');o.value='';o.textContent=npsn?'Memuat…':'— pilih unit kerja dulu —';el.appendChild(o);
   if(!npsn)return;
   run('namaGuruSekolah',[npsn],function(list){
     if($('lgSekolah').value!==npsn)return;
     el.length=0;
-    var a=document.createElement('option');a.value='';a.textContent=list.length?'— pilih nama —':'(belum ada guru — daftar dulu)';el.appendChild(a);
+    var a=document.createElement('option');a.value='';a.textContent=list.length?'— pilih nama —':'(belum ada pegawai — daftar dulu)';el.appendChild(a);
     list.forEach(function(n){var o=document.createElement('option');o.value=n;o.textContent=n;el.appendChild(o)});
     el.disabled=false;
   },function(e){pesan('loginMsg',e.message||String(e))});
 }
+document.querySelectorAll('.pilihPend').forEach(function(el){PEND.forEach(function(x){var o=document.createElement('option');o.textContent=x;el.appendChild(o)})});
+$('dPend').value='S1';$('qSyarat').value='S1';
 run('getInit',[],function(res){
   INIT=res;loading(false);
-  $('hdrSekolah').textContent='Aplikasi bersama untuk SD';
+  $('hdrSekolah').textContent='Aplikasi bersama untuk ASN';
+  ['dJenisJab','fJenisJab'].forEach(function(id){res.jenisJabatan.forEach(function(x){var o=document.createElement('option');o.value=x;o.textContent='Jabatan '+x;$(id).appendChild(o)})});
   isiPilihanSekolah();
   $('sbKab').value=res.kabupaten||'';
   tampil('vLogin');
@@ -341,7 +378,7 @@ $('keAdmin').onclick=function(e){e.preventDefault();pesan('amMsg','');$('amSekol
 
 $('btnLogin').onclick=function(){
   var npsn=$('lgSekolah').value,n=$('lgNama').value,p=$('lgPw').value;
-  if(!npsn){pesan('loginMsg','Pilih sekolah terlebih dahulu.');return}
+  if(!npsn){pesan('loginMsg','Pilih unit kerja terlebih dahulu.');return}
   if(!n){pesan('loginMsg','Pilih nama terlebih dahulu.');return}
   loading(true,'Masuk…');
   run('login',[npsn,n,p],function(res){masuk(res,n,p)},function(e){pesan('loginMsg',e.message||String(e))});
@@ -349,29 +386,38 @@ $('btnLogin').onclick=function(){
 function masuk(res,n,p){
   loading(false);SESI={npsn:res.sekolah.npsn,nama:n,pw:p};
   D=res.data||dataBaru(res.profil);
+  if(!D.identitas.jenisPegawai)D.identitas.jenisPegawai=res.profil.jenisPegawai||'Guru';
+  ATASAN_BAWAAN=res.atasan;
   tampil('vForm');
   $('hdrSekolah').textContent=res.sekolah.nama+(res.sekolah.wilayah?' · '+res.sekolah.wilayah:'');
-  var infoAi=res.aiAktif?'':'Mode saran bawaan (fitur AI belum diaktifkan oleh admin sekolah).';
+  var infoAi=res.aiAktif?'':'Mode saran bawaan (fitur AI belum diaktifkan oleh admin unit kerja).';
   $('aiRencanaInfo').textContent=infoAi;$('aiCatatanInfo').textContent=infoAi;
   PERAN=res.profil.peran||'Guru';
-  $('ksNama').textContent=res.atasan.nama+' ('+res.atasan.jabatan+')';
-  $('ksInfo').classList.toggle('hidden',PERAN!=='Kepala Sekolah');
-  if(PERAN==='Kepala Sekolah'){document.querySelector('header h1').textContent='Individual Development Plan (IDP) Kepala Sekolah'}
+  var kepala=/kepala/i.test(PERAN);
+  $('ksInfo').classList.toggle('hidden',!kepala);
+  document.querySelector('header h1').textContent='Individual Development Plan (IDP) '+(kepala?(PERAN==='Kepala Sekolah'?'Kepala Sekolah':'Kepala Unit Kerja'):(isGuru()?'Guru':'ASN'));
   $('fNama').value=res.profil.nama;
   tampilkanFile(res.file,res.terakhir);
   isiForm();
 }
 $('keDaftar').onclick=function(e){
   e.preventDefault();
-  if(!$('lgSekolah').value){pesan('loginMsg','Pilih sekolah Anda terlebih dahulu, lalu klik "Daftar sebagai guru".');return}
-  $('dSekolah').textContent=namaSekolah($('lgSekolah').value);pesan('daftarMsg','');tampil('vDaftar');
+  if(!$('lgSekolah').value){pesan('loginMsg','Pilih unit kerja Anda terlebih dahulu, lalu klik "Daftar sebagai pegawai".');return}
+  var u=unitDari($('lgSekolah').value);
+  $('dSekolah').textContent=u.nama;pesan('daftarMsg','');
+  $('dJenisPeg').value=u.jenis==='Sekolah'?'Guru':'Non Guru';$('dJenisPeg').onchange();
+  tampil('vDaftar');
 };
-$('dPeran').onchange=function(){$('dPeranInfo').textContent=this.value==='Kepala Sekolah'?'Hanya untuk kepala sekolah (NIP harus sama dengan data sekolah). Atasan langsung: Kabid Pembinaan Ketenagaan, Disdikbud.':''};
+$('dPeran').onchange=function(){$('dPeranInfo').textContent=this.value==='Kepala'?'Hanya untuk kepala unit kerja (NIP harus sama dengan data unit kerja). Atasan langsung mengikuti data "atasan kepala unit kerja".':''};
+$('dJenisPeg').onchange=function(){var g=this.value==='Guru';$('dBlokGuru').classList.toggle('hidden',!g);$('dBlokNon').classList.toggle('hidden',g)};
 $('keLogin').onclick=function(e){e.preventDefault();tampil('vLogin')};
 $('btnDaftar').onclick=function(){
-  var f={peran:$('dPeran').value,nama:$('dNama').value.trim(),nip:$('dNip').value.replace(/\D/g,''),jenjang:$('dJenjang').value,status:$('dStatus').value,pendidikan:$('dPend').value},p=$('dPw').value;
-  if(!f.nama||f.nip.length!==18||!f.jenjang||!f.status){pesan('daftarMsg','Lengkapi semua isian. NIP harus 18 digit angka.');return}
-  if(!confirm('Pastikan data sudah benar:\n\n'+f.nama+'\nNIP '+f.nip+'\n'+f.peran+' · Guru '+f.jenjang+' · '+f.status+' · '+f.pendidikan+'\n\nLanjutkan?'))return;
+  var f={peran:$('dPeran').value,jenisPegawai:$('dJenisPeg').value,nama:$('dNama').value.trim(),nip:$('dNip').value.replace(/\D/g,''),jenjang:$('dJenjang').value,
+    jenisJabatan:$('dJenisJab').value,jabatan:$('dJabatan').value.trim(),status:$('dStatus').value,pendidikan:$('dPend').value},p=$('dPw').value;
+  var guru=f.jenisPegawai==='Guru';
+  if(!f.nama||f.nip.length!==18||!f.status||(guru?!f.jenjang:(!f.jenisJabatan||!f.jabatan))){pesan('daftarMsg','Lengkapi semua isian. NIP harus 18 digit angka.');return}
+  var jab=guru?'Guru '+f.jenjang:f.jabatan+' (Jabatan '+f.jenisJabatan+')';
+  if(!confirm('Pastikan data sudah benar:\n\n'+f.nama+'\nNIP '+f.nip+'\n'+(f.peran==='Kepala'?'Kepala unit kerja · ':'')+jab+' · '+f.status+' · '+f.pendidikan+'\n\nLanjutkan?'))return;
   loading(true,'Mendaftarkan…');
   run('daftar',[$('lgSekolah').value,f,p],function(res){masuk(res,res.profil.nama,p)},function(e){pesan('daftarMsg',e.message||String(e))});
 };
@@ -379,41 +425,60 @@ $('lgPw').addEventListener('keydown',function(e){if(e.key==='Enter')$('btnLogin'
 $('btnKeluar').onclick=function(){if(confirm('Keluar? Perubahan yang belum disimpan akan hilang.'))location.reload()};
 
 function dataBaru(p){
-  var jab=String(p.jabatan||'Guru Ahli Pertama');
+  var guru=(p.jenisPegawai||'Guru')==='Guru';
   var jenjang=p.jenjang||'Ahli Pertama';
   return{
-    identitas:{nip:p.nip||'',jabatan:jab,jenjang:jenjang,target:NEXT[jenjang]||'Ahli Muda',status:p.status||'PNS'},
+    identitas:guru?{nip:p.nip||'',jenisPegawai:'Guru',jenisJabatan:'Fungsional',jabatan:String(p.jabatan||'Guru '+jenjang),jenjang:jenjang,target:NEXT[jenjang]||'Ahli Muda',status:p.status||'PNS'}
+      :{nip:p.nip||'',jenisPegawai:'Non Guru',jenisJabatan:p.jenisJabatan||'Pelaksana',jabatan:String(p.jabatan||''),jenjang:'',target:'',status:p.status||'PNS'},
     kinerja:{tahun:2025,predikat:'',ada:false,ket:''},
-    kualifikasi:{syarat:'S1',pendidikan:p.pendidikan||'',ada:false,ket:''},
+    kualifikasi:{syarat:guru?'S1':'',pendidikan:p.pendidikan||'',ada:false,ket:''},
     manajerial:INIT.manajerial.map(function(){return{skor:'',catatan:'',konteks:''}}),
-    teknis:INIT.teknis.map(function(_,i){return{pilih:i<4,skor:'',catatan:'',konteks:''}}),
+    teknis:guru?INIT.teknis.map(function(_,i){return{pilih:i<4,skor:'',catatan:'',konteks:''}})
+      :[0,1,2].map(function(){return{nama:'',pilih:true,skor:'',catatan:'',konteks:''}}),
     sosio:INIT.sosio.map(function(){return{skor:'',catatan:'',konteks:''}}),
-    rencana:{},
+    rencana:{},atasan:null,
     tanggal:new Date(Date.now()+7*3600e3).toISOString().slice(0,10)
   };
 }
 
 // ---------- ISI & BACA FORM ----------
 function isiForm(){
-  var id=D.identitas;
-  $('fNip').value=id.nip;$('fStatus').value=id.status;$('fJenjang').value=id.jenjang;$('fTarget').value=id.target;$('fTanggal').value=D.tanggal;
+  var id=D.identitas,guru=isGuru();
+  $('aGuru').classList.toggle('hidden',!guru);$('aNon').classList.toggle('hidden',guru);
+  $('fNip').value=id.nip;$('fStatus').value=id.status;$('fTanggal').value=D.tanggal;
+  if(guru){$('fJenjang').value=id.jenjang||'Ahli Pertama';$('fTarget').value=id.target||NEXT[$('fJenjang').value]}
+  else{$('fJenisJab').value=id.jenisJabatan||'Pelaksana';$('fJabatan').value=id.jabatan||'';$('fTargetNon').value=id.target||''}
+  $('fJabatan').disabled=/kepala/i.test(PERAN);
+  isiAtasan(D.atasan&&D.atasan.nama?D.atasan:ATASAN_BAWAAN);
   $('kTahun').value=D.kinerja.tahun;$('kPredikat').value=D.kinerja.predikat;$('kKet').value=D.kinerja.ket||'';
-  $('qSyarat').value=D.kualifikasi.syarat||'S1';$('qPend').value=D.kualifikasi.pendidikan||'';$('qKet').value=D.kualifikasi.ket||'';
+  $('qSyarat').value=D.kualifikasi.syarat||(guru?'S1':'');$('qPend').value=D.kualifikasi.pendidikan||'';$('qKet').value=D.kualifikasi.ket||'';
+  $('pillT').classList.toggle('hidden',!guru);$('tNonAksi').classList.toggle('hidden',guru);$('tNonTambah').classList.toggle('hidden',guru);
+  $('subT').textContent=guru?'Sesuaikan dengan hasil rapor kompetensi guru Anda.':'Isi 1–5 kompetensi teknis sesuai Standar Kompetensi Jabatan (SKJ) / anjab jabatan Anda. Tidak tahu? Isi nama jabatan di bagian A, lalu tekan tombol saran di bawah.';
   hitungGap();
   renderList('m',INIT.manajerial,D.manajerial,'listM');
-  renderList('t',INIT.teknis,D.teknis,'listT');
+  renderList('t',defsOf('t'),D.teknis,'listT');
   renderList('s',INIT.sosio,D.sosio,'listS');
   renderRencana();
 }
-['fNip','fStatus','fJenjang','fTarget','fTanggal','kTahun','kPredikat','kKet','qSyarat','qPend','qKet'].forEach(function(id){
+function isiAtasan(a){a=a||{};$('atNama').value=a.nama||'';$('atNip').value=a.nip||'';$('atJabatan').value=a.jabatan||'';$('atUnit').value=a.unit||''}
+$('btnAtasanBawaan').onclick=function(){isiAtasan(ATASAN_BAWAAN);bacaAtas()};
+['fNip','fStatus','fJenjang','fTarget','fJenisJab','fJabatan','fTargetNon','fTanggal','kTahun','kPredikat','kKet','qSyarat','qPend','qKet','atNama','atNip','atJabatan','atUnit'].forEach(function(id){
   $(id).addEventListener('change',function(){
     if(id==='fJenjang'){$('fTarget').value=NEXT[$('fJenjang').value]}
     bacaAtas();hitungGap();
   });
 });
 function bacaAtas(){
-  var j=$('fJenjang').value;
-  D.identitas={nip:$('fNip').value.replace(/\s/g,''),jabatan:PERAN==='Kepala Sekolah'?D.identitas.jabatan:'Guru '+j,jenjang:j,target:$('fTarget').value,status:$('fStatus').value};
+  var lama=D.identitas,nip=$('fNip').value.replace(/\s/g,''),kepala=/kepala/i.test(PERAN);
+  if(isGuru()){
+    var j=$('fJenjang').value;
+    D.identitas={nip:nip,jenisPegawai:'Guru',jenisJabatan:'Fungsional',jabatan:kepala?lama.jabatan:'Guru '+j,jenjang:j,target:$('fTarget').value,status:$('fStatus').value};
+  }else{
+    D.identitas={nip:nip,jenisPegawai:'Non Guru',jenisJabatan:$('fJenisJab').value,jabatan:kepala?lama.jabatan:$('fJabatan').value.trim(),jenjang:'',target:$('fTargetNon').value.trim(),status:$('fStatus').value};
+  }
+  var at={nama:$('atNama').value.trim(),nip:$('atNip').value.replace(/\D/g,''),jabatan:$('atJabatan').value.trim(),unit:$('atUnit').value.trim()};
+  var b=ATASAN_BAWAAN||{};
+  D.atasan=(at.nama===(b.nama||'')&&at.nip===String(b.nip||'')&&at.jabatan===(b.jabatan||'')&&at.unit===(b.unit||''))?null:at;
   D.tanggal=$('fTanggal').value;
   D.kinerja.tahun=Number($('kTahun').value)||2025;D.kinerja.predikat=$('kPredikat').value;D.kinerja.ket=$('kKet').value;
   D.kualifikasi.syarat=$('qSyarat').value;D.kualifikasi.pendidikan=$('qPend').value;D.kualifikasi.ket=$('qKet').value;
@@ -421,12 +486,14 @@ function bacaAtas(){
 function hitungGap(){
   var p=$('kPredikat').value;D.kinerja.ada=!!p&&['Sangat Baik','Baik'].indexOf(p)<0;
   $('kGap').value=p?(D.kinerja.ada?'Ada':'Tidak Ada'):'';
-  var q=$('qPend').value;D.kualifikasi.ada=!!q&&PEND_OK.indexOf(q)<0;
-  $('qGap').value=q?(D.kualifikasi.ada?'Ada':'Tidak Ada'):'';
+  var q=$('qPend').value,sy=$('qSyarat').value;
+  D.kualifikasi.ada=!!q&&!!sy&&PEND_RANK[q]<PEND_RANK[sy];
+  $('qGap').value=q&&sy?(D.kualifikasi.ada?'Ada':'Tidak Ada'):'';
   $('qInfo').classList.toggle('hidden',!D.kualifikasi.ada);
 }
 
 function renderList(kat,defs,arr,elId){
+  if(kat==='t'&&!isGuru())return renderTeknisNon();
   var html='';
   defs.forEach(function(k,i){
     var x=arr[i],aktif=kat!=='t'||x.pilih;
@@ -446,7 +513,41 @@ function renderList(kat,defs,arr,elId){
 }
 function arrOf(kat){return kat==='m'?D.manajerial:kat==='t'?D.teknis:D.sosio}
 function listId(kat){return kat==='m'?'listM':kat==='t'?'listT':'listS'}
-function defsOf(kat){return kat==='m'?INIT.manajerial:kat==='t'?INIT.teknis:INIT.sosio}
+function defsOf(kat){
+  if(kat==='t'&&!isGuru())return D.teknis.map(function(x){return{nama:x.nama||'',def:x.def||''}});
+  return kat==='m'?INIT.manajerial:kat==='t'?INIT.teknis:INIT.sosio;
+}
+/** ASN non-guru: kompetensi teknis diisi sendiri (1–5). */
+function renderTeknisNon(){
+  var html='';
+  D.teknis.forEach(function(x,i){
+    html+='<div class="komp" id="k_t'+i+'">';
+    html+='<div class="ai-row" style="margin:0 0 6px"><input data-tnama="'+i+'" placeholder="Nama kompetensi teknis '+(i+1)+' (mis. Pengelolaan arsip dinamis)" value="'+esc(x.nama||'')+'"><button class="btn-hapus" type="button" data-thapus="'+i+'">Hapus</button></div>';
+    if(x.def)html+='<div class="def">'+esc(x.def)+'</div>';
+    html+='<div class="skor">';
+    INIT.predikat.forEach(function(lbl,s){html+='<button type="button" data-kat="t" data-i="'+i+'" data-s="'+s+'" class="'+(String(x.skor)===String(s)?'on':'')+'">'+s+' · '+lbl+'</button>'});
+    html+='</div>';
+    html+='<textarea data-cat="t'+i+'" placeholder="Catatan / justifikasi (skor 0 cukup “-”)">'+esc(x.catatan)+'</textarea>';
+    html+='<div class="ai-row"><input data-kon="t'+i+'" placeholder="Opsional: ceritakan kondisi Anda" value="'+esc(x.konteks||'')+'"><button class="btn-ai" type="button" data-ai="t" data-i="'+i+'">✨ Saran AI</button></div>';
+    html+='<div class="info" id="inf_t'+i+'"></div></div>';
+  });
+  if(!D.teknis.length)html='<p class="sub">Belum ada kompetensi teknis. Tambahkan minimal satu.</p>';
+  $('listT').innerHTML=html;
+  $('btnTambahTeknis').disabled=D.teknis.length>=5;
+}
+$('btnTambahTeknis').onclick=function(){if(D.teknis.length>=5)return;D.teknis.push({nama:'',pilih:true,skor:'',catatan:'',konteks:''});renderTeknisNon()};
+$('btnSaranTeknis').onclick=function(){
+  bacaAtas();
+  var jab=D.identitas.jabatan;if(!jab){alert('Isi nama jabatan di bagian A terlebih dahulu.');$('fJabatan').focus();return}
+  if(D.teknis.some(function(x){return x.nama})&&!confirm('Kompetensi teknis yang sudah diisi akan diganti dengan usulan baru. Lanjutkan?'))return;
+  var b=this,asli=b.textContent;b.disabled=true;b.textContent='⏳ Menyusun usulan…';
+  run('saranAI',[SESI.npsn,SESI.nama,SESI.pw,{mode:'saranTeknis',jenisPegawai:'Non Guru',jabatan:jab,jenisJabatan:D.identitas.jenisJabatan}],function(res){
+    D.teknis=res.hasil.map(function(o){return{nama:o.nama,def:o.def,pilih:true,skor:'',catatan:'',konteks:''}});
+    Object.keys(D.rencana).forEach(function(k){if(k.charAt(0)==='t')delete D.rencana[k]});
+    renderTeknisNon();renderRencana();b.disabled=false;b.textContent=asli;
+    $('infoSaranTeknis').textContent='✨ Usulan AI — sesuaikan dengan Standar Kompetensi Jabatan Anda, lalu pilih skor GAP.';
+  },function(e){b.disabled=false;b.textContent=asli;alert(e.message||e)});
+};
 
 document.addEventListener('click',function(e){
   var b=e.target.closest('button');if(!b)return;
@@ -457,15 +558,24 @@ document.addEventListener('click',function(e){
     renderList(kat,defsOf(kat),arrOf(kat),listId(kat));renderRencana();
   }
   if(b.dataset.ai){mintaCatatan(b.dataset.ai,+b.dataset.i,b)}
+  if(b.dataset.thapus!==undefined){
+    var h=+b.dataset.thapus;
+    if(D.teknis[h].nama&&!confirm('Hapus kompetensi "'+D.teknis[h].nama+'"?'))return;
+    D.teknis.splice(h,1);
+    var r={};Object.keys(D.rencana).forEach(function(k){var n=+k.slice(1);if(k.charAt(0)!=='t')r[k]=D.rencana[k];else if(n<h)r[k]=D.rencana[k];else if(n>h)r['t'+(n-1)]=D.rencana[k]});
+    D.rencana=r;renderTeknisNon();renderRencana();
+  }
 });
 document.addEventListener('input',function(e){
   var t=e.target;
   if(t.dataset.cat){var kat=t.dataset.cat[0],i=+t.dataset.cat.slice(1);arrOf(kat)[i].catatan=t.value}
   if(t.dataset.kon){var k2=t.dataset.kon[0],j=+t.dataset.kon.slice(1);arrOf(k2)[j].konteks=t.value}
   if(t.dataset.rk){var r=D.rencana[t.dataset.rk]=D.rencana[t.dataset.rk]||{};r[t.dataset.f]=t.value}
+  if(t.dataset.tnama!==undefined){D.teknis[+t.dataset.tnama].nama=t.value}
 });
 document.addEventListener('change',function(e){
   var t=e.target;
+  if(t.dataset.tnama!==undefined){renderRencana();return}
   if(t.dataset.pilih!==undefined){
     var i=+t.dataset.pilih,n=D.teknis.filter(function(x){return x.pilih}).length;
     if(t.checked&&n>=4){t.checked=false;alert('Maksimal 4 kompetensi teknis. Hilangkan centang salah satu terlebih dahulu.');return}
@@ -478,9 +588,11 @@ document.addEventListener('change',function(e){
 });
 
 // ---------- AI ----------
+function infoPegawai(){bacaAtas();return{jenisPegawai:D.identitas.jenisPegawai||'Guru',jabatan:D.identitas.jabatan,jenisJabatan:D.identitas.jenisJabatan}}
 function mintaCatatan(kat,i,btn){
-  var x=arrOf(kat)[i];btn.disabled=true;btn.textContent='⏳ Memproses…';
-  run('saranAI',[SESI.npsn,SESI.nama,SESI.pw,{mode:'catatan',kategori:kat,idx:i,skor:x.skor,konteks:x.konteks||'',jabatan:D.identitas.jabatan}],function(r){
+  var x=arrOf(kat)[i];
+  if(kat==='t'&&!isGuru()&&!String(x.nama||'').trim()){alert('Isi nama kompetensi teknis terlebih dahulu.');return}btn.disabled=true;btn.textContent='⏳ Memproses…';
+  run('saranAI',[SESI.npsn,SESI.nama,SESI.pw,Object.assign(infoPegawai(),{mode:'catatan',kategori:kat,idx:i,nama:defsOf(kat)[i].nama,skor:x.skor,konteks:x.konteks||''})],function(r){
     x.skor=r.skor;x.catatan=r.catatan;
     renderList(kat,defsOf(kat),arrOf(kat),listId(kat));renderRencana();
     $('inf_'+kat+i).textContent=(r.sumber==='ai'?'✨ Saran AI dipakai — silakan sesuaikan bila perlu. ':'Saran dari contoh kalimat bawaan — silakan sesuaikan. ')+(r.info||'');
@@ -491,11 +603,11 @@ var LABEL_AI_CATATAN='✨ Isi semua catatan yang masih kosong';
 $('btnAiCatatan').onclick=function(){
   var items=[];
   ['m','t','s'].forEach(function(kat){arrOf(kat).forEach(function(x,i){
-    if((kat!=='t'||x.pilih)&&+x.skor>0&&!String(x.catatan||'').trim())items.push({kategori:kat,idx:i,skor:+x.skor,konteks:x.konteks||''});
+    if((kat!=='t'||x.pilih)&&+x.skor>0&&!String(x.catatan||'').trim())items.push({kategori:kat,idx:i,nama:defsOf(kat)[i].nama,skor:+x.skor,konteks:x.konteks||''});
   })});
   if(!items.length){alert('Tidak ada catatan kosong untuk kompetensi dengan skor GAP 1–4.\nPilih skor terlebih dahulu; catatan yang sudah terisi tidak akan ditimpa.');return}
   var b=this;b.disabled=true;b.textContent='⏳ Menyusun '+items.length+' catatan…';
-  run('saranAI',[SESI.npsn,SESI.nama,SESI.pw,{mode:'catatanSemua',jabatan:D.identitas.jabatan,items:items}],function(res){
+  run('saranAI',[SESI.npsn,SESI.nama,SESI.pw,Object.assign(infoPegawai(),{mode:'catatanSemua',items:items})],function(res){
     items.forEach(function(it,n){arrOf(it.kategori)[it.idx].catatan=res.hasil[n].catatan});
     ['m','t','s'].forEach(function(k){renderList(k,defsOf(k),arrOf(k),listId(k))});renderRencana();
     b.disabled=false;b.textContent=LABEL_AI_CATATAN;
@@ -506,7 +618,8 @@ $('btnAiCatatan').onclick=function(){
 function itemGap(){
   var out=[];
   D.manajerial.forEach(function(x,i){if(+x.skor>0)out.push({key:'m'+i,kategori:'m',idx:i,nama:INIT.manajerial[i].nama,skor:+x.skor,catatan:x.catatan})});
-  D.teknis.forEach(function(x,i){if(x.pilih&&+x.skor>0)out.push({key:'t'+i,kategori:'t',idx:i,nama:INIT.teknis[i].nama,skor:+x.skor,catatan:x.catatan})});
+  var dt=defsOf('t');
+  D.teknis.forEach(function(x,i){if((x.pilih||!isGuru())&&+x.skor>0)out.push({key:'t'+i,kategori:'t',idx:i,nama:dt[i].nama||('Kompetensi teknis '+(i+1)),skor:+x.skor,catatan:x.catatan})});
   D.sosio.forEach(function(x,i){if(+x.skor>0)out.push({key:'s'+i,kategori:'s',idx:i,nama:INIT.sosio[i].nama,skor:+x.skor,catatan:x.catatan})});
   return out;
 }
@@ -533,7 +646,7 @@ $('btnAiRencana').onclick=function(){
   var adaIsi=items.some(function(it){var r=D.rencana[it.key];return r&&r.rekomendasi});
   if(adaIsi&&!confirm('Rekomendasi yang sudah ada akan ditimpa saran baru. Lanjutkan?'))return;
   var b=this;b.disabled=true;b.textContent='⏳ Menyusun rekomendasi…';
-  run('saranAI',[SESI.npsn,SESI.nama,SESI.pw,{mode:'rencana',jabatan:D.identitas.jabatan,items:items}],function(res){
+  run('saranAI',[SESI.npsn,SESI.nama,SESI.pw,Object.assign(infoPegawai(),{mode:'rencana',items:items})],function(res){
     items.forEach(function(it,n){D.rencana[it.key]=res.hasil[n]});
     renderRencana();b.disabled=false;b.textContent='✨ Isi semua rekomendasi dengan AI';
     $('aiRencanaInfo').textContent=(res.sumber==='ai'?'✨ Rekomendasi dari AI — periksa dan sesuaikan. ':'Rekomendasi dari pola bawaan — periksa dan sesuaikan. ')+(res.info||'');
@@ -558,22 +671,24 @@ $('btnDraf').onclick=function(){kirim(false)};
 $('btnFile').onclick=function(){kirim(true)};
 
 // ---------- DAFTARKAN SEKOLAH ----------
+$('sbJenis').onchange=function(){var sek=this.value==='Sekolah';$('sbNpsnBox').classList.toggle('hidden',!sek);$('sbKodeInfo').classList.toggle('hidden',sek)};
 $('btnSekolahBaru').onclick=function(){
-  var f={npsn:$('sbNpsn').value.replace(/\D/g,''),nama:$('sbNama').value.trim(),wilayah:$('sbWilayah').value.trim(),kabupaten:$('sbKab').value.trim(),
+  var f={jenisUnit:$('sbJenis').value,npsn:$('sbNpsn').value.replace(/\D/g,''),nama:$('sbNama').value.trim(),wilayah:$('sbWilayah').value.trim(),kabupaten:$('sbKab').value.trim(),
     tempat:$('sbTempat').value.trim(),namaKs:$('sbKs').value.trim(),nipKs:$('sbNipKs').value.replace(/\D/g,''),jabatanKs:$('sbJab').value,
     password:$('sbPw').value};
-  if(f.npsn.length!==8){pesan('sbMsg','NPSN harus 8 digit angka.');return}
-  if(!f.nama||!f.namaKs){pesan('sbMsg','Nama sekolah dan nama kepala sekolah wajib diisi.');return}
-  if(f.nipKs.length!==18){pesan('sbMsg','NIP kepala sekolah harus 18 digit angka.');return}
-  if(f.password.length<6){pesan('sbMsg','Password sekolah minimal 6 karakter.');return}
-  if(!confirm('Daftarkan sekolah ini?\n\n'+f.nama+' (NPSN '+f.npsn+')\nKepala Sekolah: '+f.namaKs+'\n\nCatat password sekolah Anda.'))return;
-  loading(true,'Mendaftarkan sekolah…');
+  var sek=f.jenisUnit==='Sekolah';
+  if(sek&&f.npsn.length!==8){pesan('sbMsg','NPSN harus 8 digit angka.');return}
+  if(!f.nama||!f.namaKs){pesan('sbMsg','Nama unit kerja dan nama kepala unit kerja wajib diisi.');return}
+  if(f.nipKs.length!==18){pesan('sbMsg','NIP kepala unit kerja harus 18 digit angka.');return}
+  if(f.password.length<6){pesan('sbMsg','Password unit kerja minimal 6 karakter.');return}
+  if(!confirm('Daftarkan unit kerja ini?\n\n'+f.nama+(sek?' (NPSN '+f.npsn+')':'')+'\nKepala: '+f.namaKs+'\n\nCatat password unit kerja Anda.'))return;
+  loading(true,'Mendaftarkan unit kerja…');
   run('daftarSekolah',[f],function(res){
-    INIT.sekolah.push({npsn:f.npsn,nama:f.nama,wilayah:f.wilayah});
+    INIT.sekolah.push({npsn:res.npsn,nama:f.nama,wilayah:f.wilayah,jenis:f.jenisUnit});
     INIT.sekolah.sort(function(a,b){return a.nama.localeCompare(b.nama)});
-    ingat('idp_npsn',f.npsn);isiPilihanSekolah();
-    ADM={npsn:f.npsn,pw:f.password};loading(false);tampilAdmin(res);
-    pesan('admMsg','Sekolah berhasil didaftarkan. Langkah berikutnya: aktifkan fitur AI di bawah ini, lalu bagikan alamat aplikasi dan password sekolah ke guru-guru.','ok');
+    ingat('idp_npsn',res.npsn);isiPilihanSekolah();
+    ADM={npsn:res.npsn,pw:f.password};loading(false);tampilAdmin(res);
+    pesan('admMsg','Unit kerja berhasil didaftarkan'+(sek?'':' dengan kode '+res.npsn)+'. Langkah berikutnya: aktifkan fitur AI di bawah ini, lalu bagikan alamat aplikasi dan password unit kerja ke pegawai.','ok');
   },function(e){pesan('sbMsg',e.message||String(e))});
 };
 
@@ -581,7 +696,7 @@ $('btnSekolahBaru').onclick=function(){
 var ADM=null;
 $('btnAdminMasuk').onclick=function(){
   var npsn=$('amSekolah').value,p=$('amPw').value;
-  if(!npsn){pesan('amMsg','Pilih sekolah terlebih dahulu.');return}
+  if(!npsn){pesan('amMsg','Pilih unit kerja terlebih dahulu.');return}
   loading(true,'Masuk…');
   run('adminMasuk',[npsn,p],function(res){ADM={npsn:npsn,pw:p};ingat('idp_npsn',npsn);loading(false);pesan('admMsg','');tampilAdmin(res)},
     function(e){pesan('amMsg',e.message||String(e))});
@@ -590,19 +705,19 @@ $('amPw').addEventListener('keydown',function(e){if(e.key==='Enter')$('btnAdminM
 function tampilAdmin(d){
   tampil('vAdmin');
   $('hdrSekolah').textContent='Admin · '+d.isian.NAMA_SEKOLAH;
-  $('admNpsn').textContent=d.npsn;
+  $('admNpsn').textContent=d.npsn;$('admKodeLabel').textContent=d.jenisUnit==='Sekolah'?'NPSN':'Kode unit kerja';
   document.querySelectorAll('[data-isian]').forEach(function(el){el.value=d.isian[el.dataset.isian]||''});
   $('admPwBaru').value='';
   var aktif=d.kunci.length>0;
   $('admAiStatus').textContent=aktif?'AKTIF':'BELUM AKTIF';
   $('admAiStatus').style.background=aktif?'#e8f5e9':'#fdecea';$('admAiStatus').style.color=aktif?'var(--hijau)':'var(--merah)';
   $('admDaftarKunci').innerHTML=d.kunci.length?d.kunci.map(function(k,i){return '<div class="kunci"><span>Key '+(i+1)+' '+esc(k)+'</span><button class="btn-hapus" type="button" data-hapus-kunci="'+i+'">Hapus</button></div>'}).join(''):'<p class="sub">Belum ada API key.</p>';
-  $('admFolder').innerHTML=d.folder?'<a href="'+esc(d.folder)+'" target="_blank">Buka folder file IDP sekolah</a>':'';
+  $('admFolder').innerHTML=d.folder?'<a href="'+esc(d.folder)+'" target="_blank">Buka folder file IDP unit kerja</a>':'';
   var baris='<tr><th>Nama</th><th>Status</th><th>Terakhir</th><th></th></tr>';
-  if(!d.guru.length)baris+='<tr><td colspan="4" class="sub">Belum ada guru terdaftar.</td></tr>';
+  if(!d.guru.length)baris+='<tr><td colspan="4" class="sub">Belum ada pegawai terdaftar.</td></tr>';
   d.guru.forEach(function(g){
     var ok=g.status==='Selesai';
-    baris+='<tr><td>'+esc(g.nama)+(g.peran==='Kepala Sekolah'?' <span class="pill">KS</span>':'')+'<div class="sub" style="margin:0">'+esc(g.nip)+'</div></td>'+
+    baris+='<tr><td>'+esc(g.nama)+(/kepala/i.test(g.peran)?' <span class="pill">Kepala</span>':'')+'<div class="sub" style="margin:0">'+esc(g.jabatan||'')+' · '+esc(g.nip)+'</div></td>'+
       '<td class="'+(ok?'status-ok':'status-belum')+'">'+esc(g.status)+(g.link?'<div><a href="'+esc(g.link)+'" target="_blank">lihat file</a></div>':'')+'</td>'+
       '<td>'+esc(g.waktu||'-')+'</td><td><button class="btn-hapus" type="button" data-hapus-guru="'+esc(g.nama)+'">Hapus</button></td></tr>';
   });
@@ -623,15 +738,15 @@ $('btnAdmTes').onclick=function(){
 $('btnAdmSimpan').onclick=function(){
   var f={};document.querySelectorAll('[data-isian]').forEach(function(el){f[el.dataset.isian]=el.value});
   f.pwBaru=$('admPwBaru').value;
-  if(f.pwBaru&&!confirm('Ganti password sekolah? Semua guru harus memakai password baru ini.'))return;
-  adm('adminSimpan',[f],function(d){if(f.pwBaru)ADM.pw=f.pwBaru;tampilAdmin(d);pesan('admMsg','Data sekolah tersimpan.'+(f.pwBaru?' Password sekolah sudah diganti — beri tahu semua guru.':''),'ok')},this,'Menyimpan…');
+  if(f.pwBaru&&!confirm('Ganti password unit kerja? Semua pegawai harus memakai password baru ini.'))return;
+  adm('adminSimpan',[f],function(d){if(f.pwBaru)ADM.pw=f.pwBaru;tampilAdmin(d);pesan('admMsg','Data unit kerja tersimpan.'+(f.pwBaru?' Password unit kerja sudah diganti — beri tahu semua pegawai.':''),'ok')},this,'Menyimpan…');
 };
 $('vAdmin').addEventListener('click',function(e){
   var t=e.target;
   if(t.dataset.hapusKunci!==undefined){if(!confirm('Hapus Key '+(+t.dataset.hapusKunci+1)+'?'))return;adm('adminHapusKunci',[+t.dataset.hapusKunci],function(d){tampilAdmin(d);pesan('admMsg','API key dihapus.','ok')},t)}
-  if(t.dataset.hapusGuru!==undefined){if(!confirm('Hapus "'+t.dataset.hapusGuru+'" dari daftar guru?\nIsian IDP-nya ikut terhapus dari aplikasi (file di Drive tetap ada).'))return;adm('adminHapusGuru',[t.dataset.hapusGuru],function(d){tampilAdmin(d);pesan('admMsg','Guru dihapus dari daftar.','ok')},t)}
+  if(t.dataset.hapusGuru!==undefined){if(!confirm('Hapus "'+t.dataset.hapusGuru+'" dari daftar pegawai?\nIsian IDP-nya ikut terhapus dari aplikasi (file di Drive tetap ada).'))return;adm('adminHapusGuru',[t.dataset.hapusGuru],function(d){tampilAdmin(d);pesan('admMsg','Pegawai dihapus dari daftar.','ok')},t)}
 });
-$('btnAdmKeluar').onclick=function(){ADM=null;$('amPw').value='';$('hdrSekolah').textContent='Aplikasi bersama untuk SD';tampil('vLogin')};
+$('btnAdmKeluar').onclick=function(){ADM=null;$('amPw').value='';$('hdrSekolah').textContent='Aplikasi bersama untuk ASN';tampil('vLogin')};
 
 function tampilkanFile(f,waktu){
   if(!f){$('fileBox').classList.add('hidden');return}
