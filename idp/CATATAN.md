@@ -12,17 +12,17 @@ Pemasangan oleh pemilik (sekali), di spreadsheet IDP SD N Bugangin yang asli:
    File `Pengaturan.html` (bila pernah dibuat) boleh dihapus. Simpan.
 2. Muat ulang spreadsheet → menu **IDP Guru → 1. Setup awal**.
 3. Menu **IDP Guru → 2. Pindahkan data lama (satu sekolah) ke aplikasi bersama** → isi NPSN SD N Bugangin
-   dan buat **password admin**. Guru, isian IDP, file, password guru, dan API key lama ikut dipindahkan;
-   guru tetap masuk dengan password guru yang sama.
+   Guru, isian IDP, file, password, dan API key lama ikut dipindahkan; guru dan kepala sekolah
+   tetap memakai password yang sama (juga untuk halaman Admin Sekolah).
 4. **Terapkan → Kelola deployment → ikon pensil → Versi: Versi baru → Terapkan** (URL tetap sama).
 5. Tempel URL aplikasi (`…/exec`) ke `LINK_APLIKASI` di `idp/panduan.html`, lalu bagikan
    **sdnbugangin.github.io/idp/panduan.html** ke SD lain.
 
 Sheet yang dipakai: `_PENGATURAN` (global: TEMPLATE_URL, folder induk, isian awal atasan KS),
-`_SEKOLAH` (satu baris per sekolah; password tersimpan sebagai hash), `_GURU` dan `_DATA` (kolom NPSN).
+`_SEKOLAH` (satu baris per sekolah; satu password sekolah untuk guru & admin, tersimpan sebagai hash), `_GURU` dan `_DATA` (kolom NPSN).
 API key tiap sekolah disimpan di Script Properties `KUNCI_<NPSN>`, tidak tampil di sheet.
 Untuk menonaktifkan sekolah (mis. pendaftaran palsu), isi kolom **AKTIF** di `_SEKOLAH` dengan `TIDAK`.
-Bila admin sekolah lupa password: menu **IDP Guru → 5. Atur ulang password admin sekolah**
+Bila sekolah lupa password: menu **IDP Guru → 5. Atur ulang password sekolah**
 (isi NPSN dan password baru), lalu kirim password baru ke kepala sekolah lewat pesan pribadi.
 
 Uji otomatis: `node --test idp/tes/*.test.js` (tiruan Apps Script di memori).
@@ -103,6 +103,8 @@ Catatan atas template resmi:
   maksimal 20 sekolah baru per jam (`BATAS_DAFTAR_PER_JAM`), dan pemilik bisa menonaktifkan sekolah.
 - **Semua data ada di Google Drive akun pemilik.** Pemilik menjadi pengelola data pribadi guru dari
   sekolah lain (UU 27/2022). Sebaiknya diketahui Korwil, dan kelak bisa dipindah ke akun khusus.
+- **Satu password per sekolah** (sesuai pilihan): dipakai guru dan kepala sekolah, termasuk halaman Admin.
+  Konsekuensinya setiap guru di sekolah itu bisa mengubah data sekolah, API key, dan menghapus guru.
 - **AI per sekolah:** guru hanya memakai API key sekolahnya sendiri; sekolah tanpa key memakai
   kalimat bawaan tanpa memanggil Google.
 - **Simpan bersamaan:** kunci (lock) hanya dipakai saat menulis sheet; pembuatan file (±20 detik)

@@ -4,7 +4,8 @@
  *
  * Cara kerja:
  *  - Satu Web App dipakai banyak SD. Setiap sekolah mendaftar sendiri (NPSN), lalu admin sekolah
- *    (kepala sekolah/operator) mengatur data sekolah, password guru, dan API key Gemini dari halaman Admin.
+ *    (kepala sekolah/operator) mengatur data sekolah, password sekolah, dan API key Gemini dari halaman Admin.
+ *    Satu password per sekolah dipakai guru dan kepala sekolah (masuk guru maupun halaman Admin).
  *    Sekolah lain tidak perlu membuka Google Sheets / Apps Script.
  *  - Data semua sekolah tersimpan di spreadsheet ini: _SEKOLAH, _GURU (kolom NPSN), _DATA (kolom NPSN).
  *    Password disimpan dalam bentuk acak (hash), API key disimpan di Script Properties per sekolah.
@@ -39,7 +40,7 @@ var DEFAULT_CFG = [
 ];
 
 var KOLOM_SEKOLAH = ['NPSN', 'NAMA_SEKOLAH', 'WILAYAH', 'KABUPATEN', 'TEMPAT', 'NAMA_KS', 'NIP_KS', 'JABATAN_KS',
-  'ATASAN_KS_NAMA', 'ATASAN_KS_NIP', 'ATASAN_KS_JABATAN', 'ATASAN_KS_UNIT', 'HASH_ADMIN', 'HASH_GURU',
+  'ATASAN_KS_NAMA', 'ATASAN_KS_NIP', 'ATASAN_KS_JABATAN', 'ATASAN_KS_UNIT', 'HASH_PASSWORD',
   'FOLDER_ID', 'AKTIF', 'DIBUAT'];
 /** Kolom yang boleh diubah admin sekolah dari halaman Admin. */
 var KOLOM_UBAH = ['NAMA_SEKOLAH', 'WILAYAH', 'KABUPATEN', 'TEMPAT', 'NAMA_KS', 'NIP_KS', 'JABATAN_KS',
@@ -117,7 +118,7 @@ function onOpen() {
     .addItem('2. Pindahkan data lama (satu sekolah) ke aplikasi bersama', 'pindahkanDataLama')
     .addItem('3. Buat ulang semua file Excel guru', 'buatUlangSemua')
     .addItem('4. Cek API key semua sekolah', 'cekAIMenu')
-    .addItem('5. Atur ulang password admin sekolah', 'aturUlangPasswordAdmin')
+    .addItem('5. Atur ulang password sekolah', 'aturUlangPasswordSekolah')
     .addToUi();
 }
 
@@ -191,7 +192,7 @@ function folderSekolah_(s) {
 
 /**
  * Sekali saja: data aplikasi lama (satu sekolah, isian di _PENGATURAN) dijadikan sekolah pertama
- * di aplikasi bersama. Guru, isian IDP, file, password guru, dan API key ikut dipindahkan.
+ * di aplikasi bersama. Guru, isian IDP, file, password, dan API key ikut dipindahkan.
  */
 function pindahkanDataLama() {
   hanyaPemilik_();
@@ -204,16 +205,13 @@ function pindahkanDataLama() {
   var npsn = r1.getResponseText().replace(/\D/g, '');
   if (npsn.length !== 8) { ui.alert('NPSN harus 8 digit.'); return; }
   if (cariSekolah_(npsn, true)) { ui.alert('NPSN ' + npsn + ' sudah ada di _SEKOLAH. Data lama tidak dipindahkan dua kali.'); return; }
-  var r2 = ui.prompt('Password ADMIN sekolah', 'Buat password admin untuk ' + cfg.NAMA_SEKOLAH + ' (min. 8 karakter, berbeda dengan password guru).\nDipakai untuk membuka halaman Admin Sekolah di aplikasi.', ui.ButtonSet.OK_CANCEL);
-  if (r2.getSelectedButton() !== ui.Button.OK) return;
-  var pwAdmin = r2.getResponseText().trim();
-  var pwGuru = cfg.PASSWORD;
-  if (!pwGuru) {
-    var r3 = ui.prompt('Password GURU', 'Password guru lama kosong. Buat password guru (min. 6 karakter):', ui.ButtonSet.OK_CANCEL);
-    if (r3.getSelectedButton() !== ui.Button.OK) return;
-    pwGuru = r3.getResponseText().trim();
+  var pw = cfg.PASSWORD;
+  if (!pw) {
+    var r2 = ui.prompt('Password sekolah', 'Password lama kosong. Buat password sekolah (min. 6 karakter):', ui.ButtonSet.OK_CANCEL);
+    if (r2.getSelectedButton() !== ui.Button.OK) return;
+    pw = r2.getResponseText().trim();
   }
-  if (pwAdmin.length < 8 || pwGuru.length < 6 || pwAdmin === pwGuru) { ui.alert('Password admin min. 8 karakter, password guru min. 6 karakter, dan keduanya harus berbeda.'); return; }
+  if (pw.length < 6) { ui.alert('Password sekolah minimal 6 karakter.'); return; }
 
   var folderLama = cfg.FOLDER_ID;
   var induk = DriveApp.createFolder('IDP Guru SD – Aplikasi Bersama');
@@ -223,7 +221,7 @@ function pindahkanDataLama() {
   var s = {};
   KOLOM_SEKOLAH.forEach(function (k) { s[k] = cfg[k] || ''; });
   s.NPSN = npsn; s.KABUPATEN = cfg.KABUPATEN || 'Kendal'; s.TEMPAT = cfg.TEMPAT || s.KABUPATEN;
-  s.HASH_ADMIN = buatHash_(pwAdmin); s.HASH_GURU = buatHash_(pwGuru);
+  s.HASH_PASSWORD = buatHash_(pw);
   s.FOLDER_ID = folderLama; s.AKTIF = 'YA'; s.DIBUAT = Utilities.formatDate(new Date(), 'Asia/Jakarta', 'yyyy-MM-dd HH:mm');
   tambahBarisSekolah_(s);
 
@@ -244,26 +242,25 @@ function pindahkanDataLama() {
   ['PASSWORD', 'GEMINI_API_KEY'].forEach(function (k) { if (cfg[k] !== undefined) setCfg_(k, ''); });
 
   ui.alert('Selesai. ' + cfg.NAMA_SEKOLAH + ' (NPSN ' + npsn + ') kini menjadi sekolah pertama di aplikasi bersama.\n\n' +
-    '• Guru tetap masuk dengan password guru yang sama.\n• Halaman Admin Sekolah memakai password admin yang baru dibuat.\n' +
+    '• Guru dan kepala sekolah tetap memakai password yang sama, termasuk untuk halaman Admin Sekolah.\n' +
     '• ' + kunciLama.length + ' API key dipindahkan ke sekolah ini.\n\nTerbitkan ulang Web App: Terapkan → Kelola deployment → Versi baru.');
 }
 
-/** Menu: admin sekolah lupa password → pemilik membuat password admin baru untuk sekolah itu. */
-function aturUlangPasswordAdmin() {
+/** Menu: sekolah lupa password → pemilik membuat password baru untuk sekolah itu. */
+function aturUlangPasswordSekolah() {
   hanyaPemilik_();
   var ui = SpreadsheetApp.getUi();
-  var r1 = ui.prompt('Atur ulang password admin', 'NPSN sekolah:', ui.ButtonSet.OK_CANCEL);
+  var r1 = ui.prompt('Atur ulang password sekolah', 'NPSN sekolah:', ui.ButtonSet.OK_CANCEL);
   if (r1.getSelectedButton() !== ui.Button.OK) return;
   var s = cariSekolah_(r1.getResponseText(), true);
   if (!s) { ui.alert('NPSN tidak ditemukan di _SEKOLAH.'); return; }
-  var r2 = ui.prompt('Atur ulang password admin', 'Password admin baru untuk ' + s.NAMA_SEKOLAH + ' (min. 8 karakter):', ui.ButtonSet.OK_CANCEL);
+  var r2 = ui.prompt('Atur ulang password sekolah', 'Password baru untuk ' + s.NAMA_SEKOLAH + ' (min. 6 karakter):', ui.ButtonSet.OK_CANCEL);
   if (r2.getSelectedButton() !== ui.Button.OK) return;
   var pw = r2.getResponseText().trim();
-  if (pw.length < 8) { ui.alert('Password minimal 8 karakter.'); return; }
-  if (cocok_(pw, s.HASH_GURU)) { ui.alert('Password admin tidak boleh sama dengan password guru.'); return; }
-  ubahSekolah_(s.NPSN, { HASH_ADMIN: buatHash_(pw) });
+  if (pw.length < 6) { ui.alert('Password minimal 6 karakter.'); return; }
+  ubahSekolah_(s.NPSN, { HASH_PASSWORD: buatHash_(pw) });
   CacheService.getScriptCache().remove('gagal_' + hash_('admin:' + s.NPSN));
-  ui.alert('Password admin ' + s.NAMA_SEKOLAH + ' sudah diganti. Kirimkan ke kepala sekolah lewat pesan pribadi.');
+  ui.alert('Password ' + s.NAMA_SEKOLAH + ' sudah diganti. Kirimkan ke kepala sekolah lewat pesan pribadi.');
 }
 
 /** Menu: menulis ulang semua file guru (mis. setelah data kepala sekolah diubah). */
@@ -305,7 +302,7 @@ function namaGuruSekolah(npsn) {
 
 /**
  * Pendaftaran sekolah baru oleh kepala sekolah/operator.
- * f = {npsn, nama, wilayah, kabupaten, tempat, namaKs, nipKs, jabatanKs, pwAdmin, pwGuru}
+ * f = {npsn, nama, wilayah, kabupaten, tempat, namaKs, nipKs, jabatanKs, password}
  */
 function daftarSekolah(f) {
   f = f || {};
@@ -317,10 +314,8 @@ function daftarSekolah(f) {
   if (nama.length < 5) throw new Error('Nama sekolah wajib diisi.');
   if (namaKs.length < 3) throw new Error('Nama kepala sekolah (dengan gelar) wajib diisi.');
   if (nipKs.length !== 18) throw new Error('NIP kepala sekolah harus 18 digit angka (sekarang ' + nipKs.length + ').');
-  var pwAdmin = String(f.pwAdmin || ''), pwGuru = String(f.pwGuru || '');
-  if (pwAdmin.length < 8) throw new Error('Password admin minimal 8 karakter.');
-  if (pwGuru.length < 6) throw new Error('Password guru minimal 6 karakter.');
-  if (pwAdmin === pwGuru) throw new Error('Password admin dan password guru harus berbeda.');
+  var pw = String(f.password || '');
+  if (pw.length < 6) throw new Error('Password sekolah minimal 6 karakter.');
 
   var cache = CacheService.getScriptCache();
   var jumlah = Number(cache.get('daftar_sekolah_jam')) || 0;
@@ -328,18 +323,18 @@ function daftarSekolah(f) {
 
   kunci_(function () {
     SEKOLAH_MEMO = null;
-    if (cariSekolah_(npsn, true)) throw new Error('NPSN ' + npsn + ' sudah terdaftar. Bila ini sekolah Anda dan password admin lupa, hubungi pengelola aplikasi.');
+    if (cariSekolah_(npsn, true)) throw new Error('NPSN ' + npsn + ' sudah terdaftar. Bila ini sekolah Anda dan password lupa, hubungi pengelola aplikasi.');
     var kab = rapikan_(f.kabupaten) || cfg.KABUPATEN || '';
     tambahBarisSekolah_({
       NPSN: npsn, NAMA_SEKOLAH: nama, WILAYAH: rapikan_(f.wilayah), KABUPATEN: kab, TEMPAT: rapikan_(f.tempat) || kab,
       NAMA_KS: namaKs, NIP_KS: nipKs, JABATAN_KS: rapikan_(f.jabatanKs) || 'Kepala Sekolah',
       ATASAN_KS_NAMA: cfg.ATASAN_KS_NAMA, ATASAN_KS_NIP: cfg.ATASAN_KS_NIP, ATASAN_KS_JABATAN: cfg.ATASAN_KS_JABATAN, ATASAN_KS_UNIT: cfg.ATASAN_KS_UNIT,
-      HASH_ADMIN: buatHash_(pwAdmin), HASH_GURU: buatHash_(pwGuru), FOLDER_ID: '', AKTIF: 'YA',
+      HASH_PASSWORD: buatHash_(pw), FOLDER_ID: '', AKTIF: 'YA',
       DIBUAT: Utilities.formatDate(new Date(), 'Asia/Jakarta', 'yyyy-MM-dd HH:mm')
     });
   });
   cache.put('daftar_sekolah_jam', String(jumlah + 1), 3600);
-  return adminMasuk(npsn, pwAdmin);
+  return adminMasuk(npsn, pw);
 }
 
 // ====================== ADMIN SEKOLAH ======================
@@ -379,12 +374,8 @@ function adminSimpan(npsn, pw, f) {
   });
   if (ubah.NAMA_SEKOLAH !== undefined && ubah.NAMA_SEKOLAH.length < 5) throw new Error('Nama sekolah wajib diisi.');
   if (ubah.NAMA_KS !== undefined && ubah.NAMA_KS.length < 3) throw new Error('Nama kepala sekolah wajib diisi.');
-  var pwAdminBaru = String(f.pwAdminBaru || ''), pwGuruBaru = String(f.pwGuruBaru || '');
-  if (pwAdminBaru) { if (pwAdminBaru.length < 8) throw new Error('Password admin minimal 8 karakter.'); ubah.HASH_ADMIN = buatHash_(pwAdminBaru); }
-  if (pwGuruBaru) { if (pwGuruBaru.length < 6) throw new Error('Password guru minimal 6 karakter.'); ubah.HASH_GURU = buatHash_(pwGuruBaru); }
-  if (pwAdminBaru && pwAdminBaru === pwGuruBaru) throw new Error('Password admin dan password guru harus berbeda.');
-  if (pwGuruBaru && cocok_(pwGuruBaru, ubah.HASH_ADMIN || s.HASH_ADMIN)) throw new Error('Password guru tidak boleh sama dengan password admin.');
-  if (pwAdminBaru && cocok_(pwAdminBaru, ubah.HASH_GURU || s.HASH_GURU)) throw new Error('Password admin tidak boleh sama dengan password guru.');
+  var pwBaru = String(f.pwBaru || '');
+  if (pwBaru) { if (pwBaru.length < 6) throw new Error('Password sekolah minimal 6 karakter.'); ubah.HASH_PASSWORD = buatHash_(pwBaru); }
   kunci_(function () { ubahSekolah_(s.NPSN, ubah); });
   return infoAdmin_(cariSekolah_(s.NPSN));
 }
@@ -457,7 +448,7 @@ function login(npsn, nama, pw) {
  */
 function daftar(npsn, f, pw) {
   var s = cariSekolah_(npsn);
-  cekPassword_('daftar:' + s.NPSN + ':' + String(f.nip || ''), pw, s.HASH_GURU);
+  cekPassword_('daftar:' + s.NPSN + ':' + String(f.nip || ''), pw, s.HASH_PASSWORD);
   var isKS = f.peran === 'Kepala Sekolah';
   var nama = rapikan_(f.nama);
   var nip = String(f.nip || '').replace(/\D/g, '');
@@ -1147,13 +1138,13 @@ function cekPassword_(id, pw, tersimpan) {
 }
 function cekGuru_(npsn, nama, pw) {
   var s = cariSekolah_(npsn);
-  cekPassword_('guru:' + s.NPSN + ':' + nama, pw, s.HASH_GURU);
+  cekPassword_('guru:' + s.NPSN + ':' + nama, pw, s.HASH_PASSWORD);
   cariGuru_(s, nama);
   return s;
 }
 function cekAdmin_(npsn, pw) {
   var s = cariSekolah_(npsn);
-  cekPassword_('admin:' + s.NPSN, pw, s.HASH_ADMIN);
+  cekPassword_('admin:' + s.NPSN, pw, s.HASH_PASSWORD);
   return s;
 }
 

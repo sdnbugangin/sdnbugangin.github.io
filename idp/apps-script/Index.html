@@ -75,13 +75,13 @@
   <!-- LOGIN -->
   <div id="vLogin" class="card login hidden">
     <h2>Masuk Guru</h2>
-    <p class="sub">Pilih sekolah dan nama Anda, lalu masukkan password guru dari sekolah.</p>
+    <p class="sub">Pilih sekolah dan nama Anda, lalu masukkan password sekolah.</p>
     <div id="loginMsg"></div>
     <label>Sekolah</label>
     <select id="lgSekolah"><option value="">— pilih sekolah —</option></select>
     <label>Nama Guru</label>
     <select id="lgNama" disabled><option value="">— pilih sekolah dulu —</option></select>
-    <label>Password guru</label>
+    <label>Password sekolah</label>
     <input id="lgPw" type="password" autocomplete="current-password">
     <div style="margin-top:14px"><button class="btn" id="btnLogin" style="width:100%">Masuk</button></div>
     <div class="tautan">
@@ -110,7 +110,7 @@
     <label>Pendidikan Terakhir</label>
     <select id="dPend"><option>S1</option><option>D4</option><option>S2</option><option>S3</option><option>D3</option><option>D2</option><option>SMA/SPG</option></select>
     <label>Password</label>
-    <input id="dPw" type="password" placeholder="password guru dari admin sekolah">
+    <input id="dPw" type="password" placeholder="password sekolah dari kepala sekolah">
     <div style="margin-top:14px"><button class="btn" id="btnDaftar" style="width:100%">Daftar &amp; Masuk</button></div>
     <p class="sub" style="margin-top:14px;text-align:center"><a href="#" id="keLogin">← Kembali ke halaman masuk</a></p>
   </div>
@@ -128,10 +128,8 @@
     <label>Nama Kepala Sekolah (dengan gelar)</label><input id="sbKs" placeholder="Siti Aminah, S.Pd.">
     <label>NIP Kepala Sekolah (18 digit)</label><input id="sbNipKs" inputmode="numeric" maxlength="22">
     <label>Jabatan</label><select id="sbJab"><option>Kepala Sekolah</option><option>Plt. Kepala Sekolah</option></select>
-    <label>Password admin sekolah (min. 8 karakter)</label><input id="sbPwAdmin" type="password" autocomplete="new-password">
-    <p class="sub" style="margin:2px 0 0">Hanya untuk kepala sekolah/operator. Jangan dibagikan ke guru.</p>
-    <label>Password guru (min. 6 karakter)</label><input id="sbPwGuru" type="text" autocomplete="off">
-    <p class="sub" style="margin:2px 0 0">Dibagikan ke semua guru di sekolah Anda untuk masuk ke aplikasi.</p>
+    <label>Password sekolah (min. 6 karakter)</label><input id="sbPw" type="text" autocomplete="off">
+    <p class="sub" style="margin:2px 0 0">Satu password untuk semua guru dan kepala sekolah: dipakai untuk masuk mengisi IDP dan membuka halaman Admin Sekolah. Jangan dibagikan ke luar sekolah.</p>
     <div style="margin-top:14px"><button class="btn" id="btnSekolahBaru" style="width:100%">Daftarkan Sekolah</button></div>
     <p class="sub" style="margin-top:10px">Data sekolah dan guru tersimpan di Google Drive pengelola aplikasi (SD Negeri Bugangin) dan hanya dipakai untuk penyusunan IDP.</p>
     <div class="tautan"><a href="#" class="keAwal">← Kembali ke halaman masuk</a></div>
@@ -144,7 +142,7 @@
     <div id="amMsg"></div>
     <label>Sekolah</label>
     <select id="amSekolah"><option value="">— pilih sekolah —</option></select>
-    <label>Password admin</label>
+    <label>Password sekolah</label>
     <input id="amPw" type="password" autocomplete="current-password">
     <div style="margin-top:14px"><button class="btn" id="btnAdminMasuk" style="width:100%">Masuk</button></div>
     <div class="tautan"><a href="#" class="keAwal">← Kembali ke halaman masuk</a></div>
@@ -174,7 +172,7 @@
 
     <div class="card">
       <h2>Guru &amp; Pengisian IDP</h2>
-      <p class="sub">Guru mendaftar sendiri lewat halaman masuk memakai password guru. <span id="admFolder"></span></p>
+      <p class="sub">Guru mendaftar sendiri lewat halaman masuk memakai password sekolah. <span id="admFolder"></span></p>
       <div class="gulir"><table class="tabel" id="admGuru"></table></div>
     </div>
 
@@ -199,10 +197,9 @@
         <div><label>Jabatan</label><input data-isian="ATASAN_KS_JABATAN"></div>
         <div><label>Unit kerja</label><input data-isian="ATASAN_KS_UNIT"></div>
       </div>
-      <p class="sub" style="margin:12px 0 0"><b>Ganti password</b> (kosongkan bila tidak diganti)</p>
+      <p class="sub" style="margin:12px 0 0"><b>Ganti password sekolah</b> (kosongkan bila tidak diganti; berlaku untuk semua guru)</p>
       <div class="grid">
-        <div><label>Password admin baru</label><input id="admPwAdmin" type="password" autocomplete="new-password"></div>
-        <div><label>Password guru baru</label><input id="admPwGuru" type="text" autocomplete="off"></div>
+        <div><label>Password sekolah baru</label><input id="admPwBaru" type="text" autocomplete="off"></div>
       </div>
       <div style="margin-top:12px"><button class="btn" id="btnAdmSimpan" type="button">Simpan data sekolah</button></div>
     </div>
@@ -564,20 +561,19 @@ $('btnFile').onclick=function(){kirim(true)};
 $('btnSekolahBaru').onclick=function(){
   var f={npsn:$('sbNpsn').value.replace(/\D/g,''),nama:$('sbNama').value.trim(),wilayah:$('sbWilayah').value.trim(),kabupaten:$('sbKab').value.trim(),
     tempat:$('sbTempat').value.trim(),namaKs:$('sbKs').value.trim(),nipKs:$('sbNipKs').value.replace(/\D/g,''),jabatanKs:$('sbJab').value,
-    pwAdmin:$('sbPwAdmin').value,pwGuru:$('sbPwGuru').value};
+    password:$('sbPw').value};
   if(f.npsn.length!==8){pesan('sbMsg','NPSN harus 8 digit angka.');return}
   if(!f.nama||!f.namaKs){pesan('sbMsg','Nama sekolah dan nama kepala sekolah wajib diisi.');return}
   if(f.nipKs.length!==18){pesan('sbMsg','NIP kepala sekolah harus 18 digit angka.');return}
-  if(f.pwAdmin.length<8||f.pwGuru.length<6){pesan('sbMsg','Password admin minimal 8 karakter dan password guru minimal 6 karakter.');return}
-  if(f.pwAdmin===f.pwGuru){pesan('sbMsg','Password admin dan password guru harus berbeda.');return}
-  if(!confirm('Daftarkan sekolah ini?\n\n'+f.nama+' (NPSN '+f.npsn+')\nKepala Sekolah: '+f.namaKs+'\n\nCatat password admin dan password guru Anda.'))return;
+  if(f.password.length<6){pesan('sbMsg','Password sekolah minimal 6 karakter.');return}
+  if(!confirm('Daftarkan sekolah ini?\n\n'+f.nama+' (NPSN '+f.npsn+')\nKepala Sekolah: '+f.namaKs+'\n\nCatat password sekolah Anda.'))return;
   loading(true,'Mendaftarkan sekolah…');
   run('daftarSekolah',[f],function(res){
     INIT.sekolah.push({npsn:f.npsn,nama:f.nama,wilayah:f.wilayah});
     INIT.sekolah.sort(function(a,b){return a.nama.localeCompare(b.nama)});
     ingat('idp_npsn',f.npsn);isiPilihanSekolah();
-    ADM={npsn:f.npsn,pw:f.pwAdmin};loading(false);tampilAdmin(res);
-    pesan('admMsg','Sekolah berhasil didaftarkan. Langkah berikutnya: aktifkan fitur AI di bawah ini, lalu bagikan alamat aplikasi dan password guru ke guru-guru.','ok');
+    ADM={npsn:f.npsn,pw:f.password};loading(false);tampilAdmin(res);
+    pesan('admMsg','Sekolah berhasil didaftarkan. Langkah berikutnya: aktifkan fitur AI di bawah ini, lalu bagikan alamat aplikasi dan password sekolah ke guru-guru.','ok');
   },function(e){pesan('sbMsg',e.message||String(e))});
 };
 
@@ -596,7 +592,7 @@ function tampilAdmin(d){
   $('hdrSekolah').textContent='Admin · '+d.isian.NAMA_SEKOLAH;
   $('admNpsn').textContent=d.npsn;
   document.querySelectorAll('[data-isian]').forEach(function(el){el.value=d.isian[el.dataset.isian]||''});
-  $('admPwAdmin').value='';$('admPwGuru').value='';
+  $('admPwBaru').value='';
   var aktif=d.kunci.length>0;
   $('admAiStatus').textContent=aktif?'AKTIF':'BELUM AKTIF';
   $('admAiStatus').style.background=aktif?'#e8f5e9':'#fdecea';$('admAiStatus').style.color=aktif?'var(--hijau)':'var(--merah)';
@@ -626,8 +622,9 @@ $('btnAdmTes').onclick=function(){
 };
 $('btnAdmSimpan').onclick=function(){
   var f={};document.querySelectorAll('[data-isian]').forEach(function(el){f[el.dataset.isian]=el.value});
-  f.pwAdminBaru=$('admPwAdmin').value;f.pwGuruBaru=$('admPwGuru').value;
-  adm('adminSimpan',[f],function(d){if(f.pwAdminBaru)ADM.pw=f.pwAdminBaru;tampilAdmin(d);pesan('admMsg','Data sekolah tersimpan.'+(f.pwGuruBaru?' Password guru sudah diganti — beri tahu semua guru.':''),'ok')},this,'Menyimpan…');
+  f.pwBaru=$('admPwBaru').value;
+  if(f.pwBaru&&!confirm('Ganti password sekolah? Semua guru harus memakai password baru ini.'))return;
+  adm('adminSimpan',[f],function(d){if(f.pwBaru)ADM.pw=f.pwBaru;tampilAdmin(d);pesan('admMsg','Data sekolah tersimpan.'+(f.pwBaru?' Password sekolah sudah diganti — beri tahu semua guru.':''),'ok')},this,'Menyimpan…');
 };
 $('vAdmin').addEventListener('click',function(e){
   var t=e.target;
