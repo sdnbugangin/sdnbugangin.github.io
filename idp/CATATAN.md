@@ -2,17 +2,30 @@
 
 Kode Apps Script ada di `idp/apps-script/` (`Kode.gs` dan `Index.html`).
 
-## 1. Cara memasang versi baru
+## 1. Aplikasi bersama banyak sekolah — cara memasang
 
-1. Buka spreadsheet IDP → **Ekstensi → Apps Script**.
-2. Ganti seluruh isi `Kode.gs` dan `Index.html` dengan berkas di folder ini, lalu simpan.
-3. Di sheet `_PENGATURAN`, baris **GEMINI_API_KEY**: isi beberapa key sekaligus,
-   dipisah koma. Contoh: `key1, key2, key3`
-4. Menu **IDP Guru → 3. Cek status API key AI** untuk menguji semua key.
-5. **Deploy → Kelola deployment → ikon pensil → Versi: Versi baru → Deploy** (URL tetap sama).
+Satu Web App (milik SD N Bugangin) dipakai banyak SD. Sekolah lain **tidak membuka Google Sheets**:
+mereka mendaftar sendiri di aplikasi (NPSN), lalu admin sekolah menempel API key Gemini sekolahnya.
 
-> Nilai bawaan NIP dan password di kode sengaja dikosongkan karena repositori ini publik.
-> Nilai yang sudah ada di sheet `_PENGATURAN` tetap dipakai, tidak berubah.
+Pemasangan oleh pemilik (sekali), di spreadsheet IDP SD N Bugangin yang asli:
+1. **Ekstensi → Apps Script**: ganti isi `Kode.gs` dan `Index.html` dengan berkas di folder ini.
+   File `Pengaturan.html` (bila pernah dibuat) boleh dihapus. Simpan.
+2. Muat ulang spreadsheet → menu **IDP Guru → 1. Setup awal**.
+3. Menu **IDP Guru → 2. Pindahkan data lama (satu sekolah) ke aplikasi bersama** → isi NPSN SD N Bugangin
+   dan buat **password admin**. Guru, isian IDP, file, password guru, dan API key lama ikut dipindahkan;
+   guru tetap masuk dengan password guru yang sama.
+4. **Terapkan → Kelola deployment → ikon pensil → Versi: Versi baru → Terapkan** (URL tetap sama).
+5. Tempel URL aplikasi (`…/exec`) ke `LINK_APLIKASI` di `idp/panduan.html`, lalu bagikan
+   **sdnbugangin.github.io/idp/panduan.html** ke SD lain.
+
+Sheet yang dipakai: `_PENGATURAN` (global: TEMPLATE_URL, folder induk, isian awal atasan KS),
+`_SEKOLAH` (satu baris per sekolah; password tersimpan sebagai hash), `_GURU` dan `_DATA` (kolom NPSN).
+API key tiap sekolah disimpan di Script Properties `KUNCI_<NPSN>`, tidak tampil di sheet.
+Untuk menonaktifkan sekolah (mis. pendaftaran palsu), isi kolom **AKTIF** di `_SEKOLAH` dengan `TIDAK`.
+Bila admin sekolah lupa password: menu **IDP Guru → 5. Atur ulang password admin sekolah**
+(isi NPSN dan password baru), lalu kirim password baru ke kepala sekolah lewat pesan pribadi.
+
+Uji otomatis: `node --test idp/tes/*.test.js` (tiruan Apps Script di memori).
 
 ## 2. Apa yang diperbaiki pada fitur AI
 
@@ -84,28 +97,16 @@ Catatan atas template resmi:
 3. PIN per guru menggantikan satu password bersama.
 4. Unduhan PDF/Excel dibuat langsung oleh skrip (tanpa membagikan file ke publik).
 
-## 6. Membagikan ke SD lain
+## 6. Catatan aplikasi bersama
 
-Setiap SD memakai **salinan sendiri**: data, Drive, password, dan API key Gemini milik sekolah itu.
-
-**Menyiapkan master (sekali, oleh SD N Bugangin):**
-1. Spreadsheet IDP asli → **File → Buat salinan**. Biarkan nama "Salinan dari …".
-2. Di salinan: tempel kode terbaru (`Kode.gs`, `Index.html`, dan file baru `Pengaturan.html`), lalu simpan.
-3. Muat ulang salinan → menu **IDP Guru → Siapkan salinan bersih untuk dibagikan ke SD lain** → ketik `KOSONGKAN`.
-   Sheet FORM 1/FORM 2 dari template ikut dimasukkan (tersembunyi). Data guru, isian IDP, password,
-   API key, dan data kepala sekolah dihapus. Fungsi ini menolak berjalan bila nama file tidak mengandung
-   "Salinan"/"Copy", agar spreadsheet asli tidak ikut terhapus.
-4. Bagikan master dengan akses **"Siapa saja yang memiliki link: Pelihat"** (bukan Editor).
-5. Tempel link master ke `LINK_MASTER` di `idp/panduan.html`, lalu bagikan link panduan:
-   **sdnbugangin.github.io/idp/panduan.html**
-
-**Di sekolah lain:** File → Buat salinan → menu **IDP Guru → 0. Pengaturan Sekolah & API Gemini**
-(isi data sekolah, password, API key — ada petunjuk langkah demi langkah) → Deploy sebagai Aplikasi web.
-
-Yang disesuaikan agar bisa dipakai umum:
-- Nama sekolah, kepala sekolah, wilayah, dan kabupaten tidak lagi tertulis di kode; diambil dari Pengaturan.
-- Template IDP dibuat otomatis dari sheet FORM 1/FORM 2 yang terbawa di master (tidak perlu TEMPLATE_URL).
-- API key disimpan di Script Properties (tersembunyi), diuji ke Google sebelum disimpan.
-- Fungsi admin (pengaturan, setup, buat ulang, cek AI) hanya bisa dijalankan pemilik spreadsheet,
-  tidak bisa dipanggil pengunjung Web App.
-- Aplikasi menampilkan "belum disiapkan oleh admin" bila data sekolah/password belum diisi.
+- **Pendaftaran bebas dengan NPSN** (sesuai pilihan). Pengamannya: NPSN harus 8 digit dan unik,
+  maksimal 20 sekolah baru per jam (`BATAS_DAFTAR_PER_JAM`), dan pemilik bisa menonaktifkan sekolah.
+- **Semua data ada di Google Drive akun pemilik.** Pemilik menjadi pengelola data pribadi guru dari
+  sekolah lain (UU 27/2022). Sebaiknya diketahui Korwil, dan kelak bisa dipindah ke akun khusus.
+- **AI per sekolah:** guru hanya memakai API key sekolahnya sendiri; sekolah tanpa key memakai
+  kalimat bawaan tanpa memanggil Google.
+- **Simpan bersamaan:** kunci (lock) hanya dipakai saat menulis sheet; pembuatan file (±20 detik)
+  di luar kunci, sehingga guru dari banyak sekolah tidak saling menunggu.
+- **Batas akun Gmail:** sekitar 20.000 panggilan internet (UrlFetch) per hari untuk semua sekolah.
+  Cukup untuk satu kabupaten; bila sangat ramai, AI otomatis jatuh ke kalimat bawaan.
+- Spreadsheet master salinan (cara lama) tidak dipakai lagi dan boleh dihapus.

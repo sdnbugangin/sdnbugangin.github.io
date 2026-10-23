@@ -46,8 +46,20 @@
   .msg.ok{background:#e8f5e9;color:var(--hijau)}
   .unduh a{display:inline-block;margin:4px 6px 4px 0;padding:8px 12px;border-radius:7px;background:var(--biru2);color:var(--biru);text-decoration:none;font-weight:600}
   .login{max-width:420px;margin:40px auto}
-  .hidden{display:none}
+  .hidden{display:none!important}
   .counter{font-weight:700}
+  .tautan{display:flex;flex-direction:column;gap:6px;margin-top:14px;text-align:center;font-size:13.5px}
+  .tautan a{color:var(--biru)}
+  .langkah{margin:6px 0 0;padding-left:20px}.langkah li{margin:5px 0}
+  .kunci{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px dashed var(--garis);font-family:monospace}
+  .btn-hapus{background:#fdecea;color:var(--merah);font-size:12.5px;padding:4px 10px}
+  .tabel{width:100%;border-collapse:collapse;font-size:13.5px}
+  .tabel th,.tabel td{border-bottom:1px solid var(--garis);padding:7px 6px;text-align:left;vertical-align:top}
+  .tabel th{background:var(--biru2);color:var(--biru)}
+  .gulir{overflow-x:auto}
+  .status-ok{color:var(--hijau);font-weight:600}.status-belum{color:var(--merah)}
+  pre.hasil{white-space:pre-wrap;background:var(--abu);border-radius:8px;padding:10px;font-size:12.5px;margin:8px 0 0}
+  .ai-aktif{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12.5px;font-weight:700}
   #loading{position:fixed;inset:0;background:rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--biru);z-index:50}
 </style>
 </head>
@@ -62,21 +74,27 @@
 <main>
   <!-- LOGIN -->
   <div id="vLogin" class="card login hidden">
-    <h2>Masuk</h2>
-    <p class="sub">Pilih nama Anda, lalu masukkan password.</p>
+    <h2>Masuk Guru</h2>
+    <p class="sub">Pilih sekolah dan nama Anda, lalu masukkan password guru dari sekolah.</p>
     <div id="loginMsg"></div>
+    <label>Sekolah</label>
+    <select id="lgSekolah"><option value="">— pilih sekolah —</option></select>
     <label>Nama Guru</label>
-    <select id="lgNama"><option value="">— pilih nama —</option></select>
-    <label>Password</label>
+    <select id="lgNama" disabled><option value="">— pilih sekolah dulu —</option></select>
+    <label>Password guru</label>
     <input id="lgPw" type="password" autocomplete="current-password">
     <div style="margin-top:14px"><button class="btn" id="btnLogin" style="width:100%">Masuk</button></div>
-    <p class="sub" style="margin-top:14px;text-align:center">Nama Anda belum ada di daftar? <a href="#" id="keDaftar">Daftar di sini</a></p>
+    <div class="tautan">
+      <span>Nama Anda belum ada? <a href="#" id="keDaftar">Daftar sebagai guru</a></span>
+      <span>Kepala sekolah / operator: <a href="#" id="keAdmin">Masuk Admin Sekolah</a></span>
+      <span>Sekolah Anda belum ada di daftar? <a href="#" id="keSekolahBaru">Daftarkan sekolah</a></span>
+    </div>
   </div>
 
   <!-- DAFTAR MANDIRI -->
   <div id="vDaftar" class="card login hidden">
     <h2>Pendaftaran Guru ASN</h2>
-    <p class="sub">Isi data diri Anda dengan benar. Data ini dipakai pada Formulir IDP.</p>
+    <p class="sub">Sekolah: <b id="dSekolah"></b>. Isi data diri Anda dengan benar. Data ini dipakai pada Formulir IDP.</p>
     <div id="daftarMsg"></div>
     <label>Mendaftar sebagai</label>
     <select id="dPeran"><option>Guru</option><option>Kepala Sekolah</option></select>
@@ -92,9 +110,103 @@
     <label>Pendidikan Terakhir</label>
     <select id="dPend"><option>S1</option><option>D4</option><option>S2</option><option>S3</option><option>D3</option><option>D2</option><option>SMA/SPG</option></select>
     <label>Password</label>
-    <input id="dPw" type="password" placeholder="password dari kepala sekolah">
+    <input id="dPw" type="password" placeholder="password guru dari admin sekolah">
     <div style="margin-top:14px"><button class="btn" id="btnDaftar" style="width:100%">Daftar &amp; Masuk</button></div>
     <p class="sub" style="margin-top:14px;text-align:center"><a href="#" id="keLogin">← Kembali ke halaman masuk</a></p>
+  </div>
+
+  <!-- DAFTARKAN SEKOLAH -->
+  <div id="vSekolahBaru" class="card login hidden">
+    <h2>Daftarkan Sekolah</h2>
+    <p class="sub">Diisi oleh kepala sekolah atau operator. Setelah terdaftar, Anda langsung masuk ke halaman Admin Sekolah untuk mengaktifkan fitur AI.</p>
+    <div id="sbMsg"></div>
+    <label>NPSN (8 digit)</label><input id="sbNpsn" inputmode="numeric" maxlength="8" placeholder="20321653">
+    <label>Nama sekolah</label><input id="sbNama" placeholder="SD Negeri ...">
+    <label>Wilayah</label><input id="sbWilayah" placeholder="Korwilcambiddik Kec. ...">
+    <label>Kabupaten/Kota</label><input id="sbKab">
+    <label>Tempat tanda tangan</label><input id="sbTempat" placeholder="sama dengan kabupaten bila dikosongkan">
+    <label>Nama Kepala Sekolah (dengan gelar)</label><input id="sbKs" placeholder="Siti Aminah, S.Pd.">
+    <label>NIP Kepala Sekolah (18 digit)</label><input id="sbNipKs" inputmode="numeric" maxlength="22">
+    <label>Jabatan</label><select id="sbJab"><option>Kepala Sekolah</option><option>Plt. Kepala Sekolah</option></select>
+    <label>Password admin sekolah (min. 8 karakter)</label><input id="sbPwAdmin" type="password" autocomplete="new-password">
+    <p class="sub" style="margin:2px 0 0">Hanya untuk kepala sekolah/operator. Jangan dibagikan ke guru.</p>
+    <label>Password guru (min. 6 karakter)</label><input id="sbPwGuru" type="text" autocomplete="off">
+    <p class="sub" style="margin:2px 0 0">Dibagikan ke semua guru di sekolah Anda untuk masuk ke aplikasi.</p>
+    <div style="margin-top:14px"><button class="btn" id="btnSekolahBaru" style="width:100%">Daftarkan Sekolah</button></div>
+    <p class="sub" style="margin-top:10px">Data sekolah dan guru tersimpan di Google Drive pengelola aplikasi (SD Negeri Bugangin) dan hanya dipakai untuk penyusunan IDP.</p>
+    <div class="tautan"><a href="#" class="keAwal">← Kembali ke halaman masuk</a></div>
+  </div>
+
+  <!-- MASUK ADMIN -->
+  <div id="vAdminMasuk" class="card login hidden">
+    <h2>Masuk Admin Sekolah</h2>
+    <p class="sub">Untuk kepala sekolah / operator: mengaktifkan fitur AI, mengubah data sekolah dan password, serta memantau pengisian IDP guru.</p>
+    <div id="amMsg"></div>
+    <label>Sekolah</label>
+    <select id="amSekolah"><option value="">— pilih sekolah —</option></select>
+    <label>Password admin</label>
+    <input id="amPw" type="password" autocomplete="current-password">
+    <div style="margin-top:14px"><button class="btn" id="btnAdminMasuk" style="width:100%">Masuk</button></div>
+    <div class="tautan"><a href="#" class="keAwal">← Kembali ke halaman masuk</a></div>
+  </div>
+
+  <!-- ADMIN SEKOLAH -->
+  <div id="vAdmin" class="hidden">
+    <div id="admMsg"></div>
+    <div class="card">
+      <h2>Fitur AI Gemini <span id="admAiStatus" class="ai-aktif"></span></h2>
+      <p class="sub">Dengan API key Gemini milik sekolah Anda sendiri, tombol <b>✨ Saran AI</b> menyusun draf catatan dan rekomendasi IDP untuk guru di sekolah Anda. Gratis. Kuota dihitung per sekolah, tidak berbagi dengan sekolah lain.</p>
+      <ol class="langkah">
+        <li>Klik tombol di bawah ini (terbuka di tab baru), lalu masuk dengan akun Google sekolah / belajar.id.<br>
+          <a class="btn-ai" style="display:inline-block;margin-top:6px;text-decoration:none" href="https://aistudio.google.com/api-keys" target="_blank" rel="noopener">🔑 Buka Google AI Studio – API Keys</a></li>
+        <li>Bila diminta, setujui persyaratan layanan.</li>
+        <li>Klik <b>Create API key</b> (Buat kunci API). Bila diminta memilih project, pilih yang ada atau buat project baru.</li>
+        <li>Klik ikon <b>salin</b> pada key yang muncul.</li>
+        <li>Kembali ke halaman ini, tempel di kotak bawah, lalu klik <b>Simpan &amp; Aktifkan</b>. Key diuji otomatis ke Google.</li>
+      </ol>
+      <label>Tempel API key</label>
+      <div class="ai-row"><input id="admKunci" placeholder="tempel key di sini" autocomplete="off"><button class="btn" id="btnAdmKunci" type="button">Simpan &amp; Aktifkan</button></div>
+      <div id="admDaftarKunci" style="margin-top:10px"></div>
+      <div style="margin-top:10px"><button class="btn-garis" id="btnAdmTes" type="button">Tes API key</button></div>
+      <pre class="hasil hidden" id="admTes"></pre>
+      <p class="sub" style="margin-top:10px">💡 Agar tidak cepat habis kuota, tambahkan 2–3 key dari <b>akun Google berbeda</b> (mis. akun belajar.id kepala sekolah dan operator). Bila satu key habis, aplikasi otomatis memakai key berikutnya. Kuota pulih setiap hari ±pukul 14.00–15.00 WIB.<br>🔒 Key disimpan tersembunyi dan hanya dipakai untuk guru di sekolah Anda. Jangan bagikan key ke orang lain.</p>
+    </div>
+
+    <div class="card">
+      <h2>Guru &amp; Pengisian IDP</h2>
+      <p class="sub">Guru mendaftar sendiri lewat halaman masuk memakai password guru. <span id="admFolder"></span></p>
+      <div class="gulir"><table class="tabel" id="admGuru"></table></div>
+    </div>
+
+    <div class="card">
+      <h2>Data Sekolah</h2>
+      <p class="sub">NPSN: <b id="admNpsn"></b>. Dipakai di Formulir 1 &amp; 2 sebagai atasan langsung guru.</p>
+      <div class="grid">
+        <div><label>Nama sekolah</label><input data-isian="NAMA_SEKOLAH"></div>
+        <div><label>Wilayah</label><input data-isian="WILAYAH"></div>
+        <div><label>Kabupaten/Kota</label><input data-isian="KABUPATEN"></div>
+        <div><label>Tempat tanda tangan</label><input data-isian="TEMPAT"></div>
+      </div>
+      <div class="grid">
+        <div><label>Nama Kepala Sekolah</label><input data-isian="NAMA_KS"></div>
+        <div><label>NIP Kepala Sekolah</label><input data-isian="NIP_KS" inputmode="numeric"></div>
+        <div><label>Jabatan</label><input data-isian="JABATAN_KS"></div>
+      </div>
+      <p class="sub" style="margin:12px 0 0"><b>Atasan Kepala Sekolah</b> (untuk IDP Kepala Sekolah)</p>
+      <div class="grid">
+        <div><label>Nama</label><input data-isian="ATASAN_KS_NAMA"></div>
+        <div><label>NIP</label><input data-isian="ATASAN_KS_NIP" inputmode="numeric"></div>
+        <div><label>Jabatan</label><input data-isian="ATASAN_KS_JABATAN"></div>
+        <div><label>Unit kerja</label><input data-isian="ATASAN_KS_UNIT"></div>
+      </div>
+      <p class="sub" style="margin:12px 0 0"><b>Ganti password</b> (kosongkan bila tidak diganti)</p>
+      <div class="grid">
+        <div><label>Password admin baru</label><input id="admPwAdmin" type="password" autocomplete="new-password"></div>
+        <div><label>Password guru baru</label><input id="admPwGuru" type="text" autocomplete="off"></div>
+      </div>
+      <div style="margin-top:12px"><button class="btn" id="btnAdmSimpan" type="button">Simpan data sekolah</button></div>
+    </div>
+    <div style="text-align:center;margin-bottom:20px"><button class="btn-garis" id="btnAdmKeluar" type="button">Keluar</button></div>
   </div>
 
   <!-- FORM -->
@@ -193,26 +305,57 @@ function pesan(el,teks,jenis){$(el).innerHTML=teks?'<div class="msg '+(jenis||'e
 function run(fn,args,ok,fail){var r=google.script.run.withSuccessHandler(ok).withFailureHandler(function(e){loading(false);(fail||function(e){alert(e.message||e)})(e)});r[fn].apply(r,args)}
 
 // ---------- AWAL ----------
+var VIEW=['vLogin','vDaftar','vSekolahBaru','vAdminMasuk','vAdmin','vForm'];
+function tampil(v){VIEW.forEach(function(x){$(x).classList.toggle('hidden',x!==v)});$('bar').classList.toggle('hidden',v!=='vForm');window.scrollTo(0,0)}
+function ingat(k,v){try{if(v===undefined)return localStorage.getItem(k)||'';localStorage.setItem(k,v)}catch(e){return ''}}
+function namaSekolah(npsn){var x=(INIT.sekolah||[]).filter(function(s){return s.npsn===npsn})[0];return x?x.nama:''}
+function isiPilihanSekolah(){
+  ['lgSekolah','amSekolah'].forEach(function(id){
+    var el=$(id);el.length=1;
+    INIT.sekolah.forEach(function(x){var o=document.createElement('option');o.value=x.npsn;o.textContent=x.nama+(x.wilayah?' – '+x.wilayah:'');el.appendChild(o)});
+  });
+  var akhir=ingat('idp_npsn');
+  if(akhir&&namaSekolah(akhir)){$('lgSekolah').value=akhir;$('amSekolah').value=akhir;muatGuru()}
+}
+function muatGuru(){
+  var npsn=$('lgSekolah').value,el=$('lgNama');
+  el.length=0;el.disabled=true;
+  var o=document.createElement('option');o.value='';o.textContent=npsn?'Memuat…':'— pilih sekolah dulu —';el.appendChild(o);
+  if(!npsn)return;
+  run('namaGuruSekolah',[npsn],function(list){
+    if($('lgSekolah').value!==npsn)return;
+    el.length=0;
+    var a=document.createElement('option');a.value='';a.textContent=list.length?'— pilih nama —':'(belum ada guru — daftar dulu)';el.appendChild(a);
+    list.forEach(function(n){var o=document.createElement('option');o.value=n;o.textContent=n;el.appendChild(o)});
+    el.disabled=false;
+  },function(e){pesan('loginMsg',e.message||String(e))});
+}
 run('getInit',[],function(res){
   INIT=res;loading(false);
-  $('hdrSekolah').textContent=(res.sekolah||'')+(res.wilayah?' · '+res.wilayah:'');
-  if(!res.siap){pesan('loginMsg','Aplikasi belum disiapkan oleh admin sekolah.\nAdmin: buka spreadsheet → menu IDP Guru → 0. Pengaturan Sekolah & API Gemini.');$('vLogin').classList.remove('hidden');$('btnLogin').disabled=true;return}
-  res.guru.forEach(function(n){var o=document.createElement('option');o.value=n;o.textContent=n;$('lgNama').appendChild(o)});
-  $('vLogin').classList.remove('hidden');
-  if(!res.aiAktif){$('aiRencanaInfo').textContent=$('aiCatatanInfo').textContent='Mode saran bawaan (AI belum diaktifkan oleh admin).'}
+  $('hdrSekolah').textContent='Aplikasi bersama untuk SD';
+  isiPilihanSekolah();
+  $('sbKab').value=res.kabupaten||'';
+  tampil('vLogin');
 });
+$('lgSekolah').onchange=function(){ingat('idp_npsn',this.value);$('amSekolah').value=this.value;pesan('loginMsg','');muatGuru()};
+document.querySelectorAll('.keAwal').forEach(function(a){a.onclick=function(e){e.preventDefault();tampil('vLogin')}});
+$('keSekolahBaru').onclick=function(e){e.preventDefault();pesan('sbMsg','');tampil('vSekolahBaru')};
+$('keAdmin').onclick=function(e){e.preventDefault();pesan('amMsg','');$('amSekolah').value=$('lgSekolah').value;tampil('vAdminMasuk')};
 
 $('btnLogin').onclick=function(){
-  var n=$('lgNama').value,p=$('lgPw').value;
+  var npsn=$('lgSekolah').value,n=$('lgNama').value,p=$('lgPw').value;
+  if(!npsn){pesan('loginMsg','Pilih sekolah terlebih dahulu.');return}
   if(!n){pesan('loginMsg','Pilih nama terlebih dahulu.');return}
   loading(true,'Masuk…');
-  run('login',[n,p],function(res){masuk(res,n,p)},function(e){pesan('loginMsg',e.message||String(e))});
+  run('login',[npsn,n,p],function(res){masuk(res,n,p)},function(e){pesan('loginMsg',e.message||String(e))});
 };
 function masuk(res,n,p){
-  loading(false);SESI={nama:n,pw:p};
+  loading(false);SESI={npsn:res.sekolah.npsn,nama:n,pw:p};
   D=res.data||dataBaru(res.profil);
-  $('vLogin').classList.add('hidden');$('vDaftar').classList.add('hidden');
-  $('vForm').classList.remove('hidden');$('bar').classList.remove('hidden');
+  tampil('vForm');
+  $('hdrSekolah').textContent=res.sekolah.nama+(res.sekolah.wilayah?' · '+res.sekolah.wilayah:'');
+  var infoAi=res.aiAktif?'':'Mode saran bawaan (fitur AI belum diaktifkan oleh admin sekolah).';
+  $('aiRencanaInfo').textContent=infoAi;$('aiCatatanInfo').textContent=infoAi;
   PERAN=res.profil.peran||'Guru';
   $('ksNama').textContent=res.atasan.nama+' ('+res.atasan.jabatan+')';
   $('ksInfo').classList.toggle('hidden',PERAN!=='Kepala Sekolah');
@@ -221,15 +364,19 @@ function masuk(res,n,p){
   tampilkanFile(res.file,res.terakhir);
   isiForm();
 }
-$('keDaftar').onclick=function(e){e.preventDefault();$('vLogin').classList.add('hidden');$('vDaftar').classList.remove('hidden')};
-$('dPeran').onchange=function(){$('dPeranInfo').textContent=this.value==='Kepala Sekolah'?'Hanya untuk kepala sekolah (NIP harus sesuai data di pengaturan). Atasan langsung: Kabid Pembinaan Ketenagaan, Disdikbud.':''};
-$('keLogin').onclick=function(e){e.preventDefault();$('vDaftar').classList.add('hidden');$('vLogin').classList.remove('hidden')};
+$('keDaftar').onclick=function(e){
+  e.preventDefault();
+  if(!$('lgSekolah').value){pesan('loginMsg','Pilih sekolah Anda terlebih dahulu, lalu klik "Daftar sebagai guru".');return}
+  $('dSekolah').textContent=namaSekolah($('lgSekolah').value);pesan('daftarMsg','');tampil('vDaftar');
+};
+$('dPeran').onchange=function(){$('dPeranInfo').textContent=this.value==='Kepala Sekolah'?'Hanya untuk kepala sekolah (NIP harus sama dengan data sekolah). Atasan langsung: Kabid Pembinaan Ketenagaan, Disdikbud.':''};
+$('keLogin').onclick=function(e){e.preventDefault();tampil('vLogin')};
 $('btnDaftar').onclick=function(){
   var f={peran:$('dPeran').value,nama:$('dNama').value.trim(),nip:$('dNip').value.replace(/\D/g,''),jenjang:$('dJenjang').value,status:$('dStatus').value,pendidikan:$('dPend').value},p=$('dPw').value;
   if(!f.nama||f.nip.length!==18||!f.jenjang||!f.status){pesan('daftarMsg','Lengkapi semua isian. NIP harus 18 digit angka.');return}
   if(!confirm('Pastikan data sudah benar:\n\n'+f.nama+'\nNIP '+f.nip+'\n'+f.peran+' · Guru '+f.jenjang+' · '+f.status+' · '+f.pendidikan+'\n\nLanjutkan?'))return;
   loading(true,'Mendaftarkan…');
-  run('daftar',[f,p],function(res){masuk(res,res.profil.nama,p)},function(e){pesan('daftarMsg',e.message||String(e))});
+  run('daftar',[$('lgSekolah').value,f,p],function(res){masuk(res,res.profil.nama,p)},function(e){pesan('daftarMsg',e.message||String(e))});
 };
 $('lgPw').addEventListener('keydown',function(e){if(e.key==='Enter')$('btnLogin').click()});
 $('btnKeluar').onclick=function(){if(confirm('Keluar? Perubahan yang belum disimpan akan hilang.'))location.reload()};
@@ -336,7 +483,7 @@ document.addEventListener('change',function(e){
 // ---------- AI ----------
 function mintaCatatan(kat,i,btn){
   var x=arrOf(kat)[i];btn.disabled=true;btn.textContent='⏳ Memproses…';
-  run('saranAI',[SESI.nama,SESI.pw,{mode:'catatan',kategori:kat,idx:i,skor:x.skor,konteks:x.konteks||'',jabatan:D.identitas.jabatan}],function(r){
+  run('saranAI',[SESI.npsn,SESI.nama,SESI.pw,{mode:'catatan',kategori:kat,idx:i,skor:x.skor,konteks:x.konteks||'',jabatan:D.identitas.jabatan}],function(r){
     x.skor=r.skor;x.catatan=r.catatan;
     renderList(kat,defsOf(kat),arrOf(kat),listId(kat));renderRencana();
     $('inf_'+kat+i).textContent=(r.sumber==='ai'?'✨ Saran AI dipakai — silakan sesuaikan bila perlu. ':'Saran dari contoh kalimat bawaan — silakan sesuaikan. ')+(r.info||'');
@@ -351,7 +498,7 @@ $('btnAiCatatan').onclick=function(){
   })});
   if(!items.length){alert('Tidak ada catatan kosong untuk kompetensi dengan skor GAP 1–4.\nPilih skor terlebih dahulu; catatan yang sudah terisi tidak akan ditimpa.');return}
   var b=this;b.disabled=true;b.textContent='⏳ Menyusun '+items.length+' catatan…';
-  run('saranAI',[SESI.nama,SESI.pw,{mode:'catatanSemua',jabatan:D.identitas.jabatan,items:items}],function(res){
+  run('saranAI',[SESI.npsn,SESI.nama,SESI.pw,{mode:'catatanSemua',jabatan:D.identitas.jabatan,items:items}],function(res){
     items.forEach(function(it,n){arrOf(it.kategori)[it.idx].catatan=res.hasil[n].catatan});
     ['m','t','s'].forEach(function(k){renderList(k,defsOf(k),arrOf(k),listId(k))});renderRencana();
     b.disabled=false;b.textContent=LABEL_AI_CATATAN;
@@ -389,7 +536,7 @@ $('btnAiRencana').onclick=function(){
   var adaIsi=items.some(function(it){var r=D.rencana[it.key];return r&&r.rekomendasi});
   if(adaIsi&&!confirm('Rekomendasi yang sudah ada akan ditimpa saran baru. Lanjutkan?'))return;
   var b=this;b.disabled=true;b.textContent='⏳ Menyusun rekomendasi…';
-  run('saranAI',[SESI.nama,SESI.pw,{mode:'rencana',jabatan:D.identitas.jabatan,items:items}],function(res){
+  run('saranAI',[SESI.npsn,SESI.nama,SESI.pw,{mode:'rencana',jabatan:D.identitas.jabatan,items:items}],function(res){
     items.forEach(function(it,n){D.rencana[it.key]=res.hasil[n]});
     renderRencana();b.disabled=false;b.textContent='✨ Isi semua rekomendasi dengan AI';
     $('aiRencanaInfo').textContent=(res.sumber==='ai'?'✨ Rekomendasi dari AI — periksa dan sesuaikan. ':'Rekomendasi dari pola bawaan — periksa dan sesuaikan. ')+(res.info||'');
@@ -403,7 +550,7 @@ function kirim(buatFile){
   var keys=itemGap().map(function(i){return i.key});
   Object.keys(data.rencana).forEach(function(k){if(keys.indexOf(k)<0)delete data.rencana[k]});
   loading(true,buatFile?'Menyimpan & membuat file Excel… (±20 detik)':'Menyimpan draf…');
-  run('simpan',[SESI.nama,SESI.pw,data,buatFile],function(r){
+  run('simpan',[SESI.npsn,SESI.nama,SESI.pw,data,buatFile],function(r){
     loading(false);
     if(!r.ok){pesan('formMsg',r.pesan,'err');window.scrollTo(0,0);return}
     var t=buatFile?'File IDP berhasil dibuat ('+r.waktu+'). Unduh di bawah ini.':'Draf tersimpan ('+r.waktu+').'+(r.lengkap?' Isian sudah lengkap, tekan “Simpan & Buat File Excel”.':'\nMasih perlu dilengkapi:\n• '+r.masalah.join('\n• '));
@@ -412,6 +559,82 @@ function kirim(buatFile){
 }
 $('btnDraf').onclick=function(){kirim(false)};
 $('btnFile').onclick=function(){kirim(true)};
+
+// ---------- DAFTARKAN SEKOLAH ----------
+$('btnSekolahBaru').onclick=function(){
+  var f={npsn:$('sbNpsn').value.replace(/\D/g,''),nama:$('sbNama').value.trim(),wilayah:$('sbWilayah').value.trim(),kabupaten:$('sbKab').value.trim(),
+    tempat:$('sbTempat').value.trim(),namaKs:$('sbKs').value.trim(),nipKs:$('sbNipKs').value.replace(/\D/g,''),jabatanKs:$('sbJab').value,
+    pwAdmin:$('sbPwAdmin').value,pwGuru:$('sbPwGuru').value};
+  if(f.npsn.length!==8){pesan('sbMsg','NPSN harus 8 digit angka.');return}
+  if(!f.nama||!f.namaKs){pesan('sbMsg','Nama sekolah dan nama kepala sekolah wajib diisi.');return}
+  if(f.nipKs.length!==18){pesan('sbMsg','NIP kepala sekolah harus 18 digit angka.');return}
+  if(f.pwAdmin.length<8||f.pwGuru.length<6){pesan('sbMsg','Password admin minimal 8 karakter dan password guru minimal 6 karakter.');return}
+  if(f.pwAdmin===f.pwGuru){pesan('sbMsg','Password admin dan password guru harus berbeda.');return}
+  if(!confirm('Daftarkan sekolah ini?\n\n'+f.nama+' (NPSN '+f.npsn+')\nKepala Sekolah: '+f.namaKs+'\n\nCatat password admin dan password guru Anda.'))return;
+  loading(true,'Mendaftarkan sekolah…');
+  run('daftarSekolah',[f],function(res){
+    INIT.sekolah.push({npsn:f.npsn,nama:f.nama,wilayah:f.wilayah});
+    INIT.sekolah.sort(function(a,b){return a.nama.localeCompare(b.nama)});
+    ingat('idp_npsn',f.npsn);isiPilihanSekolah();
+    ADM={npsn:f.npsn,pw:f.pwAdmin};loading(false);tampilAdmin(res);
+    pesan('admMsg','Sekolah berhasil didaftarkan. Langkah berikutnya: aktifkan fitur AI di bawah ini, lalu bagikan alamat aplikasi dan password guru ke guru-guru.','ok');
+  },function(e){pesan('sbMsg',e.message||String(e))});
+};
+
+// ---------- ADMIN SEKOLAH ----------
+var ADM=null;
+$('btnAdminMasuk').onclick=function(){
+  var npsn=$('amSekolah').value,p=$('amPw').value;
+  if(!npsn){pesan('amMsg','Pilih sekolah terlebih dahulu.');return}
+  loading(true,'Masuk…');
+  run('adminMasuk',[npsn,p],function(res){ADM={npsn:npsn,pw:p};ingat('idp_npsn',npsn);loading(false);pesan('admMsg','');tampilAdmin(res)},
+    function(e){pesan('amMsg',e.message||String(e))});
+};
+$('amPw').addEventListener('keydown',function(e){if(e.key==='Enter')$('btnAdminMasuk').click()});
+function tampilAdmin(d){
+  tampil('vAdmin');
+  $('hdrSekolah').textContent='Admin · '+d.isian.NAMA_SEKOLAH;
+  $('admNpsn').textContent=d.npsn;
+  document.querySelectorAll('[data-isian]').forEach(function(el){el.value=d.isian[el.dataset.isian]||''});
+  $('admPwAdmin').value='';$('admPwGuru').value='';
+  var aktif=d.kunci.length>0;
+  $('admAiStatus').textContent=aktif?'AKTIF':'BELUM AKTIF';
+  $('admAiStatus').style.background=aktif?'#e8f5e9':'#fdecea';$('admAiStatus').style.color=aktif?'var(--hijau)':'var(--merah)';
+  $('admDaftarKunci').innerHTML=d.kunci.length?d.kunci.map(function(k,i){return '<div class="kunci"><span>Key '+(i+1)+' '+esc(k)+'</span><button class="btn-hapus" type="button" data-hapus-kunci="'+i+'">Hapus</button></div>'}).join(''):'<p class="sub">Belum ada API key.</p>';
+  $('admFolder').innerHTML=d.folder?'<a href="'+esc(d.folder)+'" target="_blank">Buka folder file IDP sekolah</a>':'';
+  var baris='<tr><th>Nama</th><th>Status</th><th>Terakhir</th><th></th></tr>';
+  if(!d.guru.length)baris+='<tr><td colspan="4" class="sub">Belum ada guru terdaftar.</td></tr>';
+  d.guru.forEach(function(g){
+    var ok=g.status==='Selesai';
+    baris+='<tr><td>'+esc(g.nama)+(g.peran==='Kepala Sekolah'?' <span class="pill">KS</span>':'')+'<div class="sub" style="margin:0">'+esc(g.nip)+'</div></td>'+
+      '<td class="'+(ok?'status-ok':'status-belum')+'">'+esc(g.status)+(g.link?'<div><a href="'+esc(g.link)+'" target="_blank">lihat file</a></div>':'')+'</td>'+
+      '<td>'+esc(g.waktu||'-')+'</td><td><button class="btn-hapus" type="button" data-hapus-guru="'+esc(g.nama)+'">Hapus</button></td></tr>';
+  });
+  $('admGuru').innerHTML=baris;
+}
+function adm(fn,args,ok,btn,teks){
+  if(btn){btn.disabled=true;var asli=btn.textContent;if(teks)btn.textContent=teks}
+  run(fn,[ADM.npsn,ADM.pw].concat(args||[]),function(r){if(btn){btn.disabled=false;btn.textContent=asli}ok(r)},
+    function(e){if(btn){btn.disabled=false;btn.textContent=asli}pesan('admMsg',e.message||String(e));window.scrollTo(0,0)});
+}
+$('btnAdmKunci').onclick=function(){
+  var k=$('admKunci').value.trim();if(!k){pesan('admMsg','Tempel API key terlebih dahulu.');return}
+  adm('adminTambahKunci',[k],function(d){$('admKunci').value='';tampilAdmin(d);pesan('admMsg',d.info,'ok')},this,'⏳ Menguji…');
+};
+$('btnAdmTes').onclick=function(){
+  adm('adminTesKunci',[],function(t){$('admTes').classList.remove('hidden');$('admTes').textContent=t},this,'⏳ Menguji… (±30 detik)');
+};
+$('btnAdmSimpan').onclick=function(){
+  var f={};document.querySelectorAll('[data-isian]').forEach(function(el){f[el.dataset.isian]=el.value});
+  f.pwAdminBaru=$('admPwAdmin').value;f.pwGuruBaru=$('admPwGuru').value;
+  adm('adminSimpan',[f],function(d){if(f.pwAdminBaru)ADM.pw=f.pwAdminBaru;tampilAdmin(d);pesan('admMsg','Data sekolah tersimpan.'+(f.pwGuruBaru?' Password guru sudah diganti — beri tahu semua guru.':''),'ok')},this,'Menyimpan…');
+};
+$('vAdmin').addEventListener('click',function(e){
+  var t=e.target;
+  if(t.dataset.hapusKunci!==undefined){if(!confirm('Hapus Key '+(+t.dataset.hapusKunci+1)+'?'))return;adm('adminHapusKunci',[+t.dataset.hapusKunci],function(d){tampilAdmin(d);pesan('admMsg','API key dihapus.','ok')},t)}
+  if(t.dataset.hapusGuru!==undefined){if(!confirm('Hapus "'+t.dataset.hapusGuru+'" dari daftar guru?\nIsian IDP-nya ikut terhapus dari aplikasi (file di Drive tetap ada).'))return;adm('adminHapusGuru',[t.dataset.hapusGuru],function(d){tampilAdmin(d);pesan('admMsg','Guru dihapus dari daftar.','ok')},t)}
+});
+$('btnAdmKeluar').onclick=function(){ADM=null;$('amPw').value='';$('hdrSekolah').textContent='Aplikasi bersama untuk SD';tampil('vLogin')};
 
 function tampilkanFile(f,waktu){
   if(!f){$('fileBox').classList.add('hidden');return}

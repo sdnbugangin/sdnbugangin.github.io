@@ -1,54 +1,52 @@
 /**
- * APLIKASI PENGISIAN IDP GURU SD
+ * APLIKASI IDP GURU SD – APLIKASI BERSAMA BANYAK SEKOLAH
  * Formulir 1 & 2 Individual Development Plan (dikembangkan oleh SD Negeri Bugangin, Kendal)
  *
- * Dipakai sekolah lain: buka salinan spreadsheet master → menu "IDP Guru" →
- * "0. Pengaturan Sekolah & API Gemini". Semua isian sekolah dan API key diatur dari sana.
- *
  * Cara kerja:
- *  - File Excel contoh (FORM 1 2 IDP ...) diubah ke Google Sheets → dipakai sebagai TEMPLATE.
- *  - Setiap guru mendapat SALINAN template itu; skrip hanya mengganti ISI sel,
- *    sehingga format, garis, lebar kolom, dan sheet lain tetap sama persis.
- *  - Data isian tersimpan di sheet _DATA agar bisa dibuka dan diedit lagi.
- *  - Saran AI memakai Google Gemini (opsional). Tanpa API key, aplikasi
- *    tetap memberi saran dari bank kalimat bawaan.
+ *  - Satu Web App dipakai banyak SD. Setiap sekolah mendaftar sendiri (NPSN), lalu admin sekolah
+ *    (kepala sekolah/operator) mengatur data sekolah, password guru, dan API key Gemini dari halaman Admin.
+ *    Sekolah lain tidak perlu membuka Google Sheets / Apps Script.
+ *  - Data semua sekolah tersimpan di spreadsheet ini: _SEKOLAH, _GURU (kolom NPSN), _DATA (kolom NPSN).
+ *    Password disimpan dalam bentuk acak (hash), API key disimpan di Script Properties per sekolah.
+ *  - Setiap guru mendapat SALINAN template (TEMPLATE_URL) di folder sekolahnya; skrip hanya mengganti ISI sel.
+ *  - Saran AI memakai API key Gemini MILIK SEKOLAH ITU SENDIRI, sehingga kuota antarsekolah terpisah.
+ *    Tanpa key, aplikasi tetap memberi saran dari bank kalimat bawaan.
  *
- * Hemat kuota AI (versi ini):
- *  - GEMINI_API_KEY boleh berisi BEBERAPA key (pisahkan dengan koma / baris baru).
- *    Key yang kena batas kuota otomatis diistirahatkan dan key berikutnya dipakai —
- *    tidak perlu lagi mengganti key secara manual. Pakai key dari project/email berbeda,
- *    karena kuota gratis dihitung per project Google Cloud, bukan per key.
- *  - Jawaban AI disimpan sementara (6 jam), jadi klik ulang dengan isian sama tidak memakai kuota.
- *  - "Isi semua catatan" memakai 1 permintaan untuk semua kompetensi, bukan 1 per kompetensi.
- *  - Mode "berpikir" (thinking) dimatikan/dikecilkan → jawaban lebih cepat dan hemat token.
- *  - Jalankan cekAI() dari editor untuk melihat status setiap key.
+ * Hemat kuota AI:
+ *  - Satu sekolah boleh punya beberapa key; key yang kena batas kuota diistirahatkan otomatis.
+ *  - Jawaban AI disimpan 6 jam; "Isi semua catatan" memakai 1 permintaan; mode "berpikir" dimatikan.
+ *
+ * Pemilik spreadsheet: menu "IDP Guru" → 1. Setup awal, lalu (sekali) 2. Pindahkan data lama.
  */
 
 // ====================== KONFIGURASI DASAR ======================
 var SHEET_CFG = '_PENGATURAN';
+var SHEET_SEKOLAH = '_SEKOLAH';
 var SHEET_GURU = '_GURU';
 var SHEET_DATA = '_DATA';
 
+/** Pengaturan global (berlaku untuk semua sekolah), diatur pemilik di sheet _PENGATURAN. */
 var DEFAULT_CFG = [
-  ['NAMA_KS', '', 'Nama Kepala Sekolah (atasan langsung)'],
-  ['NIP_KS', '', 'NIP Kepala Sekolah'],
-  ['JABATAN_KS', 'Kepala Sekolah', 'Isi "Plt. Kepala Sekolah" jika berstatus Plt'],
-  ['NAMA_SEKOLAH', '', 'Unit kerja / sub unit kerja guru'],
-  ['WILAYAH', 'Korwilcambiddik Kec. Kendal', 'Ditampilkan di judul aplikasi, mis. "Korwilcambiddik Kec. Kendal"'],
-  ['KABUPATEN', 'Kendal', 'Nama kabupaten/kota (dipakai dalam saran AI)'],
-  ['ATASAN_KS_NAMA', 'SUPARDI, S.Pd., M.Pd.', 'Atasan langsung Kepala Sekolah (untuk IDP Kepala Sekolah)'],
-  ['ATASAN_KS_NIP', '', 'NIP atasan Kepala Sekolah'],
-  ['ATASAN_KS_JABATAN', 'Kepala Bidang Pembinaan Ketenagaan', 'Jabatan atasan Kepala Sekolah'],
-  ['ATASAN_KS_UNIT', 'Dinas Pendidikan dan Kebudayaan', 'Unit kerja atasan Kepala Sekolah'],
-  ['TEMPAT', 'Kendal', 'Tempat pada bagian tanda tangan'],
-  ['PASSWORD', '', 'Password masuk untuk semua guru (wajib diisi)'],
-  ['TEMPLATE_URL', '', 'Tempel link Google Sheets hasil konversi Excel contoh IDP'],
-  ['FOLDER_ID', '', 'Diisi otomatis oleh setup()'],
-  ['GEMINI_API_KEY', '', 'Opsional. Satu atau beberapa API key dari aistudio.google.com, pisahkan dengan koma'],
-  ['GEMINI_MODEL', '', 'Kosongkan agar model dipilih otomatis (disarankan)']
+  ['TEMPLATE_URL', '', 'Link Google Sheets template IDP (berisi sheet FORM 1 dan FORM 2)'],
+  ['FOLDER_ID', '', 'Folder induk semua sekolah. Diisi otomatis oleh setup()'],
+  ['GEMINI_MODEL', '', 'Kosongkan agar model dipilih otomatis (disarankan)'],
+  ['KABUPATEN', 'Kendal', 'Isian awal kabupaten saat sekolah mendaftar'],
+  ['ATASAN_KS_NAMA', 'SUPARDI, S.Pd., M.Pd.', 'Isian awal atasan Kepala Sekolah saat sekolah mendaftar'],
+  ['ATASAN_KS_NIP', '', 'Isian awal NIP atasan Kepala Sekolah'],
+  ['ATASAN_KS_JABATAN', 'Kepala Bidang Pembinaan Ketenagaan', 'Isian awal jabatan atasan Kepala Sekolah'],
+  ['ATASAN_KS_UNIT', 'Dinas Pendidikan dan Kebudayaan', 'Isian awal unit kerja atasan Kepala Sekolah'],
+  ['BATAS_DAFTAR_PER_JAM', '20', 'Maksimal sekolah baru yang boleh mendaftar per jam (mencegah penyalahgunaan)']
 ];
 
-var CFG_MEMO = null; // pengaturan dibaca sekali per permintaan
+var KOLOM_SEKOLAH = ['NPSN', 'NAMA_SEKOLAH', 'WILAYAH', 'KABUPATEN', 'TEMPAT', 'NAMA_KS', 'NIP_KS', 'JABATAN_KS',
+  'ATASAN_KS_NAMA', 'ATASAN_KS_NIP', 'ATASAN_KS_JABATAN', 'ATASAN_KS_UNIT', 'HASH_ADMIN', 'HASH_GURU',
+  'FOLDER_ID', 'AKTIF', 'DIBUAT'];
+/** Kolom yang boleh diubah admin sekolah dari halaman Admin. */
+var KOLOM_UBAH = ['NAMA_SEKOLAH', 'WILAYAH', 'KABUPATEN', 'TEMPAT', 'NAMA_KS', 'NIP_KS', 'JABATAN_KS',
+  'ATASAN_KS_NAMA', 'ATASAN_KS_NIP', 'ATASAN_KS_JABATAN', 'ATASAN_KS_UNIT'];
+
+var CFG_MEMO = null;      // pengaturan global dibaca sekali per permintaan
+var SEKOLAH_MEMO = null;  // daftar sekolah dibaca sekali per permintaan
 
 var MANAJERIAL = [
   { nama: 'Integritas', aspek: 'konsistensi bertindak jujur, etis, dan sesuai aturan', def: 'Konsisten berperilaku sesuai nilai, norma, dan etika; jujur dan terbuka.' },
@@ -108,30 +106,41 @@ var CONTOH_TEKNIS = [
 // ====================== WEB APP ======================
 function doGet() {
   return HtmlService.createTemplateFromFile('Index').evaluate()
-    .setTitle('IDP Guru' + (getCfg_().NAMA_SEKOLAH ? ' – ' + getCfg_().NAMA_SEKOLAH : ''))
+    .setTitle('IDP Guru SD')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
 function onOpen() {
   SpreadsheetApp.getUi().createMenu('IDP Guru')
-    .addItem('0. Pengaturan Sekolah & API Gemini', 'bukaPengaturan')
     .addItem('1. Setup awal', 'setup')
-    .addItem('2. Buat ulang semua file Excel guru', 'buatUlangSemua')
-    .addItem('3. Cek status API key AI', 'cekAIMenu')
-    .addSeparator()
-    .addItem('Siapkan salinan bersih untuk dibagikan ke SD lain', 'siapkanSalinanBersih')
+    .addItem('2. Pindahkan data lama (satu sekolah) ke aplikasi bersama', 'pindahkanDataLama')
+    .addItem('3. Buat ulang semua file Excel guru', 'buatUlangSemua')
+    .addItem('4. Cek API key semua sekolah', 'cekAIMenu')
+    .addItem('5. Atur ulang password admin sekolah', 'aturUlangPasswordAdmin')
     .addToUi();
+}
+
+// ====================== KHUSUS PEMILIK SPREADSHEET ======================
+/**
+ * Fungsi pemilik hanya boleh dijalankan pemilik spreadsheet, bukan oleh pengunjung Web App
+ * (Web App berjalan atas nama pemilik; pengunjung lain terbaca kosong / berbeda).
+ */
+function hanyaPemilik_() {
+  var aktif = '', pemilik = '';
+  try { aktif = Session.getActiveUser().getEmail(); pemilik = Session.getEffectiveUser().getEmail(); } catch (e) { }
+  if (!aktif || aktif !== pemilik) throw new Error('Hanya pemilik spreadsheet yang boleh menjalankan fungsi ini.');
 }
 
 /** Jalankan sekali dari editor Apps Script atau menu "IDP Guru". Aman dijalankan ulang. */
 function setup() {
   hanyaPemilik_();
   siapkanSheet_();
-  var tpl = siapkanFolderTemplate_();
+  folderInduk_();
   try {
-    SpreadsheetApp.getUi().alert('Setup selesai.' + (tpl ? '\n\nTemplate IDP dibuat otomatis dari sheet FORM 1 & FORM 2.' : '') +
-      '\n\nLanjutkan lewat menu IDP Guru → 0. Pengaturan Sekolah & API Gemini.');
+    SpreadsheetApp.getUi().alert('Setup selesai.\n\n• Pastikan TEMPLATE_URL di _PENGATURAN berisi link template IDP.\n' +
+      '• Bila sebelumnya aplikasi dipakai satu sekolah, jalankan menu 2 (pindahkan data lama).\n' +
+      '• Terbitkan ulang Web App: Terapkan → Kelola deployment → Versi baru.');
   } catch (e) { /* dijalankan dari editor */ }
 }
 
@@ -143,7 +152,6 @@ function siapkanSheet_() {
     cfgSh.setColumnWidth(1, 160); cfgSh.setColumnWidth(2, 380); cfgSh.setColumnWidth(3, 420);
     cfgSh.getRange('B:B').setNumberFormat('@');
   }
-  // tambahkan kunci yang belum ada (nilai yang sudah diisi tidak diubah)
   var adaKunci = cfgSh.getDataRange().getValues().map(function (r) { return String(r[0]).trim(); });
   DEFAULT_CFG.forEach(function (r) {
     if (adaKunci.indexOf(r[0]) >= 0) return;
@@ -151,218 +159,292 @@ function siapkanSheet_() {
     cfgSh.getRange(row, 2).setNumberFormat('@');
     cfgSh.getRange(row, 1, 1, 3).setValues([r]);
   });
+  var sek = ss.getSheetByName(SHEET_SEKOLAH) || ss.insertSheet(SHEET_SEKOLAH);
+  sek.getRange(1, 1, 1, KOLOM_SEKOLAH.length).setValues([KOLOM_SEKOLAH]).setFontWeight('bold');
+  sek.getRange(1, 1, sek.getMaxRows(), KOLOM_SEKOLAH.length).setNumberFormat('@');
   var guru = ss.getSheetByName(SHEET_GURU) || ss.insertSheet(SHEET_GURU);
-  guru.getRange(1, 1, 1, 7).setValues([['NAMA (dengan gelar)', 'NIP', 'JABATAN', 'STATUS (PNS/PPPK)', 'PENDIDIKAN TERAKHIR', 'PERAN (Guru/Kepala Sekolah)', 'JENJANG JF']]).setFontWeight('bold');
+  guru.getRange(1, 1, 1, 8).setValues([['NAMA (dengan gelar)', 'NIP', 'JABATAN', 'STATUS (PNS/PPPK)', 'PENDIDIKAN TERAKHIR', 'PERAN (Guru/Kepala Sekolah)', 'JENJANG JF', 'NPSN']]).setFontWeight('bold');
   guru.getRange('B:B').setNumberFormat('@');
-  guru.setColumnWidths(1, 7, 190);
+  guru.getRange('H:H').setNumberFormat('@');
   var data = ss.getSheetByName(SHEET_DATA) || ss.insertSheet(SHEET_DATA);
-  if (data.getLastRow() < 1) {
-    data.getRange(1, 1, 1, 6).setValues([['NAMA', 'TERAKHIR DISIMPAN', 'STATUS', 'LINK FILE', 'FILE ID', 'DATA (JSON – jangan diedit)']]).setFontWeight('bold');
-  }
-  CFG_MEMO = null;
+  data.getRange(1, 1, 1, 7).setValues([['NAMA', 'TERAKHIR DISIMPAN', 'STATUS', 'LINK FILE', 'FILE ID', 'DATA (JSON – jangan diedit)', 'NPSN']]).setFontWeight('bold');
+  data.getRange('G:G').setNumberFormat('@');
+  CFG_MEMO = null; SEKOLAH_MEMO = null;
 }
 
-/** Membuat folder Drive (bila belum ada) dan template (bila belum ada). Hasil: true bila template baru dibuat. */
-function siapkanFolderTemplate_() {
-  var ss = SpreadsheetApp.getActive();
+function folderInduk_() {
   var cfg = getCfg_();
-  var folderOk = false;
-  if (cfg.FOLDER_ID) { try { folderOk = !DriveApp.getFolderById(cfg.FOLDER_ID).isTrashed(); } catch (e) { } }
-  if (!folderOk) {
-    var folder = DriveApp.createFolder('IDP Guru ' + (cfg.NAMA_SEKOLAH || ss.getName()) + ' 2026');
-    setCfg_('FOLDER_ID', folder.getId());
-  }
-  return buatTemplateBawaan_();
+  if (cfg.FOLDER_ID) { try { var f = DriveApp.getFolderById(cfg.FOLDER_ID); if (!f.isTrashed()) return f; } catch (e) { } }
+  var baru = DriveApp.createFolder('IDP Guru SD – Aplikasi Bersama');
+  setCfg_('FOLDER_ID', baru.getId());
+  return baru;
+}
+
+/** Folder Drive milik satu sekolah (dibuat bila belum ada / terhapus). */
+function folderSekolah_(s) {
+  if (s.FOLDER_ID) { try { var f = DriveApp.getFolderById(s.FOLDER_ID); if (!f.isTrashed()) return f; } catch (e) { } }
+  var baru = folderInduk_().createFolder(s.NPSN + ' – ' + s.NAMA_SEKOLAH);
+  ubahSekolah_(s.NPSN, { FOLDER_ID: baru.getId() });
+  s.FOLDER_ID = baru.getId();
+  return baru;
 }
 
 /**
- * Sekolah lain tidak perlu mengurus TEMPLATE_URL: bila spreadsheet ini memuat sheet "FORM 1" dan "FORM 2"
- * (ikut terbawa dari salinan master), template dibuat otomatis di folder IDP sekolah tersebut.
+ * Sekali saja: data aplikasi lama (satu sekolah, isian di _PENGATURAN) dijadikan sekolah pertama
+ * di aplikasi bersama. Guru, isian IDP, file, password guru, dan API key ikut dipindahkan.
  */
-function buatTemplateBawaan_() {
-  var ss = SpreadsheetApp.getActive();
+function pindahkanDataLama() {
+  hanyaPemilik_();
+  var ui = SpreadsheetApp.getUi();
+  siapkanSheet_();
   var cfg = getCfg_();
-  var lama = idDariUrl_(cfg.TEMPLATE_URL);
-  if (lama) { try { if (!DriveApp.getFileById(lama).isTrashed()) return false; } catch (e) { } }
-  if (!ss.getSheetByName('FORM 1') || !ss.getSheetByName('FORM 2')) return false;
-  var baru = SpreadsheetApp.create('TEMPLATE IDP ' + (cfg.NAMA_SEKOLAH || ''));
-  var kosong = baru.getSheets()[0];
-  ss.getSheets().forEach(function (sh) {
-    if (sh.getName().charAt(0) === '_') return;
-    var c = sh.copyTo(baru).setName(sh.getName());
-    c.showSheet();
+  if (!cfg.NAMA_SEKOLAH) { ui.alert('Tidak ada data lama (NAMA_SEKOLAH di _PENGATURAN kosong).'); return; }
+  var r1 = ui.prompt('Pindahkan data ' + cfg.NAMA_SEKOLAH, 'Ketik NPSN ' + cfg.NAMA_SEKOLAH + ' (8 digit):', ui.ButtonSet.OK_CANCEL);
+  if (r1.getSelectedButton() !== ui.Button.OK) return;
+  var npsn = r1.getResponseText().replace(/\D/g, '');
+  if (npsn.length !== 8) { ui.alert('NPSN harus 8 digit.'); return; }
+  if (cariSekolah_(npsn, true)) { ui.alert('NPSN ' + npsn + ' sudah ada di _SEKOLAH. Data lama tidak dipindahkan dua kali.'); return; }
+  var r2 = ui.prompt('Password ADMIN sekolah', 'Buat password admin untuk ' + cfg.NAMA_SEKOLAH + ' (min. 8 karakter, berbeda dengan password guru).\nDipakai untuk membuka halaman Admin Sekolah di aplikasi.', ui.ButtonSet.OK_CANCEL);
+  if (r2.getSelectedButton() !== ui.Button.OK) return;
+  var pwAdmin = r2.getResponseText().trim();
+  var pwGuru = cfg.PASSWORD;
+  if (!pwGuru) {
+    var r3 = ui.prompt('Password GURU', 'Password guru lama kosong. Buat password guru (min. 6 karakter):', ui.ButtonSet.OK_CANCEL);
+    if (r3.getSelectedButton() !== ui.Button.OK) return;
+    pwGuru = r3.getResponseText().trim();
+  }
+  if (pwAdmin.length < 8 || pwGuru.length < 6 || pwAdmin === pwGuru) { ui.alert('Password admin min. 8 karakter, password guru min. 6 karakter, dan keduanya harus berbeda.'); return; }
+
+  var folderLama = cfg.FOLDER_ID;
+  var induk = DriveApp.createFolder('IDP Guru SD – Aplikasi Bersama');
+  setCfg_('FOLDER_ID', induk.getId());
+  if (folderLama) { try { DriveApp.getFolderById(folderLama).moveTo(induk); } catch (e) { folderLama = ''; } }
+
+  var s = {};
+  KOLOM_SEKOLAH.forEach(function (k) { s[k] = cfg[k] || ''; });
+  s.NPSN = npsn; s.KABUPATEN = cfg.KABUPATEN || 'Kendal'; s.TEMPAT = cfg.TEMPAT || s.KABUPATEN;
+  s.HASH_ADMIN = buatHash_(pwAdmin); s.HASH_GURU = buatHash_(pwGuru);
+  s.FOLDER_ID = folderLama; s.AKTIF = 'YA'; s.DIBUAT = Utilities.formatDate(new Date(), 'Asia/Jakarta', 'yyyy-MM-dd HH:mm');
+  tambahBarisSekolah_(s);
+
+  var ss = SpreadsheetApp.getActive();
+  [[SHEET_GURU, 8], [SHEET_DATA, 7]].forEach(function (x) {
+    var sh = ss.getSheetByName(x[0]);
+    var n = sh.getLastRow() - 1;
+    if (n < 1) return;
+    var kol = sh.getRange(2, x[1], n, 1).getValues();
+    kol.forEach(function (r) { if (!String(r[0]).trim()) r[0] = npsn; });
+    sh.getRange(2, x[1], n, 1).setNumberFormat('@').setValues(kol);
   });
-  baru.deleteSheet(kosong);
-  DriveApp.getFileById(baru.getId()).moveTo(DriveApp.getFolderById(getCfg_().FOLDER_ID));
-  setCfg_('TEMPLATE_URL', baru.getUrl());
-  return true;
+
+  var props = PropertiesService.getScriptProperties();
+  var kunciLama = ((cfg.GEMINI_API_KEY || '') + '\n' + (props.getProperty('GEMINI_API_KEYS') || '')).split(/[\s,;]+/).filter(String);
+  simpanKunciSekolah_(npsn, kunciLama.filter(function (k, i) { return kunciLama.indexOf(k) === i; }));
+  props.deleteProperty('GEMINI_API_KEYS');
+  ['PASSWORD', 'GEMINI_API_KEY'].forEach(function (k) { if (cfg[k] !== undefined) setCfg_(k, ''); });
+
+  ui.alert('Selesai. ' + cfg.NAMA_SEKOLAH + ' (NPSN ' + npsn + ') kini menjadi sekolah pertama di aplikasi bersama.\n\n' +
+    '• Guru tetap masuk dengan password guru yang sama.\n• Halaman Admin Sekolah memakai password admin yang baru dibuat.\n' +
+    '• ' + kunciLama.length + ' API key dipindahkan ke sekolah ini.\n\nTerbitkan ulang Web App: Terapkan → Kelola deployment → Versi baru.');
 }
 
-// ====================== PENGATURAN SEKOLAH (khusus pemilik spreadsheet) ======================
-/**
- * Fungsi pengaturan hanya boleh dijalankan pemilik spreadsheet, bukan oleh pengunjung Web App
- * (Web App berjalan atas nama pemilik, jadi pengunjung tanpa akun Google terbaca kosong).
- */
-function hanyaPemilik_() {
-  var aktif = '', pemilik = '';
-  try { aktif = Session.getActiveUser().getEmail(); pemilik = Session.getEffectiveUser().getEmail(); } catch (e) { }
-  if (!aktif || aktif !== pemilik) throw new Error('Hanya pemilik spreadsheet yang boleh menjalankan fungsi ini.');
-}
-
-function daerah_(cfg) {
-  var k = String(cfg.KABUPATEN || '').trim();
-  return k ? (/^(kab|kota)/i.test(k) ? k : 'Kabupaten ' + k) : 'Indonesia';
-}
-
-function bukaPengaturan() {
+/** Menu: admin sekolah lupa password → pemilik membuat password admin baru untuk sekolah itu. */
+function aturUlangPasswordAdmin() {
   hanyaPemilik_();
-  siapkanSheet_();
-  SpreadsheetApp.getUi().showSidebar(HtmlService.createHtmlOutputFromFile('Pengaturan').setTitle('Pengaturan IDP Guru'));
+  var ui = SpreadsheetApp.getUi();
+  var r1 = ui.prompt('Atur ulang password admin', 'NPSN sekolah:', ui.ButtonSet.OK_CANCEL);
+  if (r1.getSelectedButton() !== ui.Button.OK) return;
+  var s = cariSekolah_(r1.getResponseText(), true);
+  if (!s) { ui.alert('NPSN tidak ditemukan di _SEKOLAH.'); return; }
+  var r2 = ui.prompt('Atur ulang password admin', 'Password admin baru untuk ' + s.NAMA_SEKOLAH + ' (min. 8 karakter):', ui.ButtonSet.OK_CANCEL);
+  if (r2.getSelectedButton() !== ui.Button.OK) return;
+  var pw = r2.getResponseText().trim();
+  if (pw.length < 8) { ui.alert('Password minimal 8 karakter.'); return; }
+  if (cocok_(pw, s.HASH_GURU)) { ui.alert('Password admin tidak boleh sama dengan password guru.'); return; }
+  ubahSekolah_(s.NPSN, { HASH_ADMIN: buatHash_(pw) });
+  CacheService.getScriptCache().remove('gagal_' + hash_('admin:' + s.NPSN));
+  ui.alert('Password admin ' + s.NAMA_SEKOLAH + ' sudah diganti. Kirimkan ke kepala sekolah lewat pesan pribadi.');
 }
 
-var KOLOM_PENGATURAN = ['NAMA_SEKOLAH', 'WILAYAH', 'KABUPATEN', 'TEMPAT', 'NAMA_KS', 'NIP_KS', 'JABATAN_KS',
-  'ATASAN_KS_NAMA', 'ATASAN_KS_NIP', 'ATASAN_KS_JABATAN', 'ATASAN_KS_UNIT', 'PASSWORD', 'TEMPLATE_URL', 'GEMINI_MODEL'];
-
-function ambilPengaturan() {
+/** Menu: menulis ulang semua file guru (mis. setelah data kepala sekolah diubah). */
+function buatUlangSemua() {
   hanyaPemilik_();
-  siapkanSheet_();
-  var cfg = getCfg_();
-  var isian = {};
-  KOLOM_PENGATURAN.forEach(function (k) { isian[k] = cfg[k] || ''; });
-  var url = '';
-  try { url = ScriptApp.getService().getUrl() || ''; } catch (e) { }
-  var tplOk = false;
-  try { tplOk = !!idDariUrl_(cfg.TEMPLATE_URL) && !DriveApp.getFileById(idDariUrl_(cfg.TEMPLATE_URL)).isTrashed(); } catch (e) { }
+  var sh = SpreadsheetApp.getActive().getSheetByName(SHEET_DATA);
+  var vals = sh.getDataRange().getValues();
+  var n = 0;
+  for (var r = 1; r < vals.length; r++) {
+    var d = JSON.parse(vals[r][5] || '{}');
+    if (!d.identitas || validasi_(d).length) continue;
+    var s = cariSekolah_(String(vals[r][6]), true);
+    if (!s) continue;
+    var g = cariGuru_(s, vals[r][0]);
+    var fid = siapkanFile_(vals[r][4], g.nama, s);
+    tulisFile_(fid, g, d, s);
+    sh.getRange(r + 1, 4, 1, 2).setValues([[linkFile_(fid).sheet, fid]]);
+    n++;
+  }
+  SpreadsheetApp.getUi().alert(n + ' file guru telah diperbarui.');
+}
+
+// ====================== HALAMAN AWAL ======================
+function getInit() {
   return {
-    isian: isian,
-    kunci: daftarKunci_(cfg).map(function (k) { return '…' + k.slice(-4); }),
-    status: {
-      sekolah: !!(cfg.NAMA_SEKOLAH && cfg.NAMA_KS && cfg.NIP_KS),
-      password: !!cfg.PASSWORD,
-      template: tplOk,
-      formBawaan: !!SpreadsheetApp.getActive().getSheetByName('FORM 1'),
-      guru: daftarGuru_().length,
-      webApp: url
-    }
+    sekolah: semuaSekolah_().filter(aktif_).map(function (s) { return { npsn: s.NPSN, nama: s.NAMA_SEKOLAH, wilayah: s.WILAYAH }; })
+      .sort(function (a, b) { return a.nama.localeCompare(b.nama); }),
+    manajerial: MANAJERIAL, teknis: TEKNIS, sosio: SOSIO,
+    jalur: JALUR, tahun: TAHUN_RPK, predikat: PREDIKAT_GAP,
+    kabupaten: getCfg_().KABUPATEN || ''
   };
 }
 
-function simpanPengaturan(f) {
-  hanyaPemilik_();
-  siapkanSheet_();
-  f = f || {};
-  ['NIP_KS', 'ATASAN_KS_NIP'].forEach(function (k) {
-    if (f[k] === undefined) return;
-    var nip = String(f[k] || '').replace(/\D/g, '');
-    if (nip && nip.length !== 18) throw new Error(k.replace(/_/g, ' ') + ' harus 18 digit angka (sekarang ' + nip.length + ').');
-    f[k] = nip;
-  });
-  if (f.PASSWORD !== undefined && String(f.PASSWORD).trim().length < 6) throw new Error('Password minimal 6 karakter.');
-  KOLOM_PENGATURAN.forEach(function (k) { if (f[k] !== undefined) setCfg_(k, String(f[k]).trim()); });
-  siapkanFolderTemplate_();
-  return ambilPengaturan();
+/** Nama guru satu sekolah, untuk pilihan saat masuk. */
+function namaGuruSekolah(npsn) {
+  var s = cariSekolah_(npsn);
+  return daftarGuru_(s).map(function (g) { return g.nama; }).sort();
 }
 
-/** Menambah API key: diuji dulu ke Google, lalu disimpan di Script Properties (tidak terlihat di sheet). */
-function tambahKunci(kunci) {
-  hanyaPemilik_();
-  kunci = String(kunci || '').trim();
-  if (kunci.length < 30 || /\s/.test(kunci)) throw new Error('Format API key tidak dikenali. Salin ulang key secara utuh dari AI Studio.');
+/**
+ * Pendaftaran sekolah baru oleh kepala sekolah/operator.
+ * f = {npsn, nama, wilayah, kabupaten, tempat, namaKs, nipKs, jabatanKs, pwAdmin, pwGuru}
+ */
+function daftarSekolah(f) {
+  f = f || {};
   var cfg = getCfg_();
-  if (daftarKunci_(cfg).indexOf(kunci) >= 0) throw new Error('API key ini sudah tersimpan.');
-  var res = UrlFetchApp.fetch(GEMINI_BASE + 'models?pageSize=1', { muteHttpExceptions: true, headers: { 'x-goog-api-key': kunci } });
+  var npsn = String(f.npsn || '').replace(/\D/g, '');
+  var nipKs = String(f.nipKs || '').replace(/\D/g, '');
+  var nama = rapikan_(f.nama), namaKs = rapikan_(f.namaKs);
+  if (npsn.length !== 8) throw new Error('NPSN harus 8 digit angka (lihat di referensi.data.kemdikbud.go.id).');
+  if (nama.length < 5) throw new Error('Nama sekolah wajib diisi.');
+  if (namaKs.length < 3) throw new Error('Nama kepala sekolah (dengan gelar) wajib diisi.');
+  if (nipKs.length !== 18) throw new Error('NIP kepala sekolah harus 18 digit angka (sekarang ' + nipKs.length + ').');
+  var pwAdmin = String(f.pwAdmin || ''), pwGuru = String(f.pwGuru || '');
+  if (pwAdmin.length < 8) throw new Error('Password admin minimal 8 karakter.');
+  if (pwGuru.length < 6) throw new Error('Password guru minimal 6 karakter.');
+  if (pwAdmin === pwGuru) throw new Error('Password admin dan password guru harus berbeda.');
+
+  var cache = CacheService.getScriptCache();
+  var jumlah = Number(cache.get('daftar_sekolah_jam')) || 0;
+  if (jumlah >= (Number(cfg.BATAS_DAFTAR_PER_JAM) || 20)) throw new Error('Pendaftaran sekolah sedang ramai. Coba lagi 1 jam lagi.');
+
+  kunci_(function () {
+    SEKOLAH_MEMO = null;
+    if (cariSekolah_(npsn, true)) throw new Error('NPSN ' + npsn + ' sudah terdaftar. Bila ini sekolah Anda dan password admin lupa, hubungi pengelola aplikasi.');
+    var kab = rapikan_(f.kabupaten) || cfg.KABUPATEN || '';
+    tambahBarisSekolah_({
+      NPSN: npsn, NAMA_SEKOLAH: nama, WILAYAH: rapikan_(f.wilayah), KABUPATEN: kab, TEMPAT: rapikan_(f.tempat) || kab,
+      NAMA_KS: namaKs, NIP_KS: nipKs, JABATAN_KS: rapikan_(f.jabatanKs) || 'Kepala Sekolah',
+      ATASAN_KS_NAMA: cfg.ATASAN_KS_NAMA, ATASAN_KS_NIP: cfg.ATASAN_KS_NIP, ATASAN_KS_JABATAN: cfg.ATASAN_KS_JABATAN, ATASAN_KS_UNIT: cfg.ATASAN_KS_UNIT,
+      HASH_ADMIN: buatHash_(pwAdmin), HASH_GURU: buatHash_(pwGuru), FOLDER_ID: '', AKTIF: 'YA',
+      DIBUAT: Utilities.formatDate(new Date(), 'Asia/Jakarta', 'yyyy-MM-dd HH:mm')
+    });
+  });
+  cache.put('daftar_sekolah_jam', String(jumlah + 1), 3600);
+  return adminMasuk(npsn, pwAdmin);
+}
+
+// ====================== ADMIN SEKOLAH ======================
+function adminMasuk(npsn, pw) {
+  return infoAdmin_(cekAdmin_(npsn, pw));
+}
+
+function infoAdmin_(s) {
+  var data = {};
+  var sh = SpreadsheetApp.getActive().getSheetByName(SHEET_DATA);
+  sh.getDataRange().getValues().slice(1).forEach(function (r) {
+    if (String(r[6]) !== s.NPSN) return;
+    data[r[0]] = { status: r[2], waktu: r[1] ? Utilities.formatDate(new Date(r[1]), 'Asia/Jakarta', 'dd/MM/yyyy HH:mm') : '', link: r[3] };
+  });
+  var isian = {};
+  KOLOM_UBAH.forEach(function (k) { isian[k] = s[k] || ''; });
+  return {
+    npsn: s.NPSN, isian: isian,
+    kunci: kunciSekolah_(s.NPSN).map(function (k) { return '…' + k.slice(-4); }),
+    guru: daftarGuru_(s).map(function (g) {
+      var x = data[g.nama] || {};
+      return { nama: g.nama, nip: g.nip, peran: g.peran, status: x.status || 'Belum mengisi', waktu: x.waktu || '', link: x.link || '' };
+    }).sort(function (a, b) { return a.nama.localeCompare(b.nama); }),
+    folder: s.FOLDER_ID ? 'https://drive.google.com/drive/folders/' + s.FOLDER_ID : ''
+  };
+}
+
+function adminSimpan(npsn, pw, f) {
+  var s = cekAdmin_(npsn, pw);
+  f = f || {};
+  var ubah = {};
+  KOLOM_UBAH.forEach(function (k) { if (f[k] !== undefined) ubah[k] = rapikan_(f[k]); });
+  ['NIP_KS', 'ATASAN_KS_NIP'].forEach(function (k) {
+    if (ubah[k] === undefined) return;
+    ubah[k] = ubah[k].replace(/\D/g, '');
+    if (ubah[k] && ubah[k].length !== 18) throw new Error(k.replace(/_/g, ' ') + ' harus 18 digit angka.');
+  });
+  if (ubah.NAMA_SEKOLAH !== undefined && ubah.NAMA_SEKOLAH.length < 5) throw new Error('Nama sekolah wajib diisi.');
+  if (ubah.NAMA_KS !== undefined && ubah.NAMA_KS.length < 3) throw new Error('Nama kepala sekolah wajib diisi.');
+  var pwAdminBaru = String(f.pwAdminBaru || ''), pwGuruBaru = String(f.pwGuruBaru || '');
+  if (pwAdminBaru) { if (pwAdminBaru.length < 8) throw new Error('Password admin minimal 8 karakter.'); ubah.HASH_ADMIN = buatHash_(pwAdminBaru); }
+  if (pwGuruBaru) { if (pwGuruBaru.length < 6) throw new Error('Password guru minimal 6 karakter.'); ubah.HASH_GURU = buatHash_(pwGuruBaru); }
+  if (pwAdminBaru && pwAdminBaru === pwGuruBaru) throw new Error('Password admin dan password guru harus berbeda.');
+  if (pwGuruBaru && cocok_(pwGuruBaru, ubah.HASH_ADMIN || s.HASH_ADMIN)) throw new Error('Password guru tidak boleh sama dengan password admin.');
+  if (pwAdminBaru && cocok_(pwAdminBaru, ubah.HASH_GURU || s.HASH_GURU)) throw new Error('Password admin tidak boleh sama dengan password guru.');
+  kunci_(function () { ubahSekolah_(s.NPSN, ubah); });
+  return infoAdmin_(cariSekolah_(s.NPSN));
+}
+
+/** Menambah API key Gemini sekolah: diuji ke Google dulu, lalu disimpan tersembunyi (Script Properties). */
+function adminTambahKunci(npsn, pw, kunciBaru) {
+  var s = cekAdmin_(npsn, pw);
+  var k = String(kunciBaru || '').trim();
+  if (k.length < 30 || /\s/.test(k)) throw new Error('Format API key tidak dikenali. Salin ulang key secara utuh dari Google AI Studio.');
+  var list = kunciSekolah_(s.NPSN);
+  if (list.indexOf(k) >= 0) throw new Error('API key ini sudah tersimpan.');
+  if (list.length >= 5) throw new Error('Maksimal 5 API key per sekolah. Hapus salah satu terlebih dahulu.');
+  var res = UrlFetchApp.fetch(GEMINI_BASE + 'models?pageSize=1', { muteHttpExceptions: true, headers: { 'x-goog-api-key': k } });
   var kode = res.getResponseCode();
   if (kode === 400 || kode === 401 || kode === 403) throw new Error('API key ditolak Google (HTTP ' + kode + '). Pastikan key disalin utuh dan masih aktif.');
-  var props = PropertiesService.getScriptProperties();
-  var list = (props.getProperty('GEMINI_API_KEYS') || '').split(/[\s,;]+/).filter(String);
-  list.push(kunci);
-  props.setProperty('GEMINI_API_KEYS', list.join('\n'));
-  pindahkanKunciDariSheet_();
-  var hasil = ambilPengaturan();
-  hasil.info = kode === 200 ? 'API key valid dan tersimpan.' : 'API key tersimpan, tetapi Google menjawab HTTP ' + kode + '. Coba "Tes semua key" beberapa saat lagi.';
+  list.push(k);
+  simpanKunciSekolah_(s.NPSN, list);
+  var hasil = infoAdmin_(s);
+  hasil.info = kode === 200 ? 'API key valid dan tersimpan. Fitur AI sudah aktif untuk ' + s.NAMA_SEKOLAH + '.' :
+    'API key tersimpan, tetapi Google menjawab HTTP ' + kode + '. Coba "Tes API key" beberapa saat lagi.';
   return hasil;
 }
 
-function hapusKunci(urutan) {
-  hanyaPemilik_();
-  pindahkanKunciDariSheet_();
-  var props = PropertiesService.getScriptProperties();
-  var list = (props.getProperty('GEMINI_API_KEYS') || '').split(/[\s,;]+/).filter(String);
+function adminHapusKunci(npsn, pw, urutan) {
+  var s = cekAdmin_(npsn, pw);
+  var list = kunciSekolah_(s.NPSN);
   list.splice(Number(urutan), 1);
-  props.setProperty('GEMINI_API_KEYS', list.join('\n'));
-  return ambilPengaturan();
+  simpanKunciSekolah_(s.NPSN, list);
+  return infoAdmin_(s);
 }
 
-/** Key lama yang ditulis di sel GEMINI_API_KEY dipindah ke Script Properties agar tidak terlihat di sheet. */
-function pindahkanKunciDariSheet_() {
-  var cfg = getCfg_();
-  if (!cfg.GEMINI_API_KEY) return;
-  var props = PropertiesService.getScriptProperties();
-  props.setProperty('GEMINI_API_KEYS', daftarKunci_(cfg).join('\n'));
-  setCfg_('GEMINI_API_KEY', '');
+function adminTesKunci(npsn, pw) {
+  var s = cekAdmin_(npsn, pw);
+  return tesKunci_(s).join('\n');
 }
 
-function tesSemuaKunci() {
-  return cekAI();
-}
-
-/**
- * Menyiapkan MASTER untuk dibagikan. HANYA dijalankan pada SALINAN (File → Buat salinan):
- * template FORM ikut dimasukkan, lalu data guru, isian IDP, password, API key, dan data kepala sekolah dihapus.
- */
-function siapkanSalinanBersih() {
-  hanyaPemilik_();
-  var ui = SpreadsheetApp.getUi(), ss = SpreadsheetApp.getActive();
-  if (!/salinan|copy/i.test(ss.getName())) {
-    ui.alert('Berhenti: fungsi ini hanya untuk SALINAN spreadsheet.\n\nBuat dulu salinannya (File → Buat salinan), buka salinan tersebut, lalu jalankan menu ini dari sana. Spreadsheet asli Bapak/Ibu tidak boleh dikosongkan.');
-    return;
-  }
-  var r = ui.prompt('Kosongkan salinan ini', 'Data guru, isian IDP, password, API key, dan data kepala sekolah di spreadsheet INI akan dihapus agar siap dibagikan ke SD lain.\n\nKetik KOSONGKAN untuk melanjutkan.', ui.ButtonSet.OK_CANCEL);
-  if (r.getSelectedButton() !== ui.Button.OK || r.getResponseText().trim().toUpperCase() !== 'KOSONGKAN') return;
-  siapkanSheet_();
-  var cfg = getCfg_();
-  // template ikut dibawa di dalam spreadsheet (disembunyikan), agar sekolah lain tidak perlu TEMPLATE_URL
-  var tplId = idDariUrl_(cfg.TEMPLATE_URL);
-  if (!ss.getSheetByName('FORM 1') && tplId) {
-    SpreadsheetApp.openById(tplId).getSheets().forEach(function (sh) {
-      if (ss.getSheetByName(sh.getName())) return;
-      sh.copyTo(ss).setName(sh.getName()).hideSheet();
+/** Menghapus guru dari daftar sekolah (mis. salah ketik / pindah tugas). File IDP di Drive tidak dihapus. */
+function adminHapusGuru(npsn, pw, nama) {
+  var s = cekAdmin_(npsn, pw);
+  kunci_(function () {
+    var ss = SpreadsheetApp.getActive();
+    [[SHEET_GURU, 7], [SHEET_DATA, 6]].forEach(function (x) {
+      var sh = ss.getSheetByName(x[0]);
+      var v = sh.getDataRange().getValues();
+      for (var i = v.length - 1; i >= 1; i--) if (String(v[i][0]).trim() === nama && String(v[i][x[1]]) === s.NPSN) sh.deleteRow(i + 1);
     });
-  }
-  [SHEET_GURU, SHEET_DATA].forEach(function (n) {
-    var sh = ss.getSheetByName(n);
-    if (sh && sh.getLastRow() > 1) sh.deleteRows(2, sh.getLastRow() - 1);
   });
-  ['NAMA_KS', 'NIP_KS', 'NAMA_SEKOLAH', 'PASSWORD', 'TEMPLATE_URL', 'FOLDER_ID', 'GEMINI_API_KEY', 'GEMINI_MODEL']
-    .forEach(function (k) { setCfg_(k, ''); });
-  setCfg_('JABATAN_KS', 'Kepala Sekolah');
-  PropertiesService.getScriptProperties().deleteAllProperties();
-  ss.rename('MASTER – Aplikasi IDP Guru SD (buat salinan)');
-  ui.alert('Salinan bersih siap.\n\nData atasan Kepala Sekolah (Kabid) dan WILAYAH tetap disimpan; ubah bila perlu.\n\nBagikan spreadsheet ini dengan akses "Siapa saja yang memiliki link: Pelihat", lalu kirim linknya bersama panduan ke SD lain.');
+  return infoAdmin_(s);
 }
 
-// ====================== FUNGSI YANG DIPANGGIL HALAMAN ======================
-function getInit() {
-  var cfg = getCfg_();
+// ====================== GURU ======================
+function login(npsn, nama, pw) {
+  var s = cekGuru_(npsn, nama, pw);
+  var g = cariGuru_(s, nama);
+  var rec = cariData_(s.NPSN, nama);
   return {
-    siap: !!(cfg.NAMA_SEKOLAH && cfg.PASSWORD && cfg.NAMA_KS),
-    sekolah: cfg.NAMA_SEKOLAH,
-    wilayah: cfg.WILAYAH,
-    ks: cfg.NAMA_KS,
-    guru: daftarGuru_().map(function (g) { return g.nama; }),
-    manajerial: MANAJERIAL, teknis: TEKNIS, sosio: SOSIO,
-    jalur: JALUR, tahun: TAHUN_RPK, predikat: PREDIKAT_GAP,
-    aiAktif: daftarKunci_(cfg).length > 0
-  };
-}
-
-function login(nama, pw) {
-  cekLogin_(nama, pw);
-  var g = cariGuru_(nama);
-  var rec = cariData_(nama);
-  return {
+    sekolah: { npsn: s.NPSN, nama: s.NAMA_SEKOLAH, wilayah: s.WILAYAH },
+    aiAktif: kunciSekolah_(s.NPSN).length > 0,
     profil: g,
-    atasan: atasan_(g, getCfg_()),
+    atasan: atasan_(g, s),
     data: rec ? JSON.parse(rec.json) : null,
     file: rec && rec.fileId ? linkFile_(rec.fileId) : null,
     terakhir: rec ? rec.waktu : ''
@@ -370,25 +452,23 @@ function login(nama, pw) {
 }
 
 /**
- * Pendaftaran mandiri oleh guru. f = {nama, nip, jenjang, status, pendidikan}
+ * Pendaftaran mandiri oleh guru. f = {peran, nama, nip, jenjang, status, pendidikan}
  * Data langsung ditambahkan ke sheet _GURU, lalu guru otomatis masuk.
  */
-function daftar(f, pw) {
-  var cfg = getCfg_();
-  cekPassword_('daftar:' + String(f.nip || ''), pw);
+function daftar(npsn, f, pw) {
+  var s = cariSekolah_(npsn);
+  cekPassword_('daftar:' + s.NPSN + ':' + String(f.nip || ''), pw, s.HASH_GURU);
   var isKS = f.peran === 'Kepala Sekolah';
-  var nama = String(f.nama || '').replace(/\s+/g, ' ').trim();
+  var nama = rapikan_(f.nama);
   var nip = String(f.nip || '').replace(/\D/g, '');
   if (nama.length < 3) throw new Error('Nama lengkap (dengan gelar) wajib diisi.');
   if (nip.length !== 18) throw new Error('NIP harus 18 digit angka (sekarang ' + nip.length + ' digit).');
   if (['Ahli Pertama', 'Ahli Muda', 'Ahli Madya', 'Ahli Utama'].indexOf(f.jenjang) < 0) throw new Error('Pilih jenjang jabatan.');
   if (['PNS', 'PPPK'].indexOf(f.status) < 0) throw new Error('Pilih status kepegawaian.');
-  if (isKS && nip !== String(cfg.NIP_KS).replace(/\D/g, ''))
-    throw new Error('Pendaftaran sebagai Kepala Sekolah hanya untuk NIP kepala sekolah yang tercatat di pengaturan.');
-  var lock = LockService.getScriptLock();
-  lock.waitLock(30000);
-  try {
-    var ada = daftarGuru_();
+  if (isKS && nip !== String(s.NIP_KS).replace(/\D/g, ''))
+    throw new Error('Pendaftaran sebagai Kepala Sekolah hanya untuk NIP kepala sekolah yang tercatat di data sekolah.');
+  kunci_(function () {
+    var ada = daftarGuru_(s);
     if (isKS && ada.some(function (g) { return g.peran === 'Kepala Sekolah'; }))
       throw new Error('Kepala Sekolah sudah terdaftar. Silakan pilih nama Anda lalu masuk.');
     ada.forEach(function (g) {
@@ -397,86 +477,85 @@ function daftar(f, pw) {
     });
     var sh = SpreadsheetApp.getActive().getSheetByName(SHEET_GURU);
     var row = sh.getLastRow() + 1;
-    sh.getRange(row, 2).setNumberFormat('@');
-    sh.getRange(row, 1, 1, 7).setValues([[nama, nip, isKS ? cfg.JABATAN_KS : 'Guru ' + f.jenjang, f.status, f.pendidikan || 'S1',
-      isKS ? 'Kepala Sekolah' : 'Guru', f.jenjang]]);
-  } finally {
-    lock.releaseLock();
-  }
-  return login(nama, pw);
+    sh.getRange(row, 1, 1, 8).setNumberFormat('@');
+    sh.getRange(row, 1, 1, 8).setValues([[nama, nip, isKS ? s.JABATAN_KS : 'Guru ' + f.jenjang, f.status, f.pendidikan || 'S1',
+      isKS ? 'Kepala Sekolah' : 'Guru', f.jenjang, s.NPSN]]);
+  });
+  return login(s.NPSN, nama, pw);
 }
 
 /** Menyamakan data di _GURU dengan isian terbaru guru (NIP, jabatan, status, pendidikan). */
-function perbaruiGuru_(nama, d) {
+function perbaruiGuru_(s, nama, d) {
   var sh = SpreadsheetApp.getActive().getSheetByName(SHEET_GURU);
   var v = sh.getDataRange().getValues();
   for (var i = 1; i < v.length; i++) {
-    if (String(v[i][0]).trim() !== nama) continue;
+    if (String(v[i][0]).trim() !== nama || String(v[i][7]) !== s.NPSN) continue;
     var nip = String(d.identitas.nip || '').replace(/\D/g, '');
     sh.getRange(i + 1, 2).setNumberFormat('@');
     sh.getRange(i + 1, 2, 1, 4).setValues([[nip || v[i][1], d.identitas.jabatan || v[i][2], d.identitas.status || v[i][3], d.kualifikasi.pendidikan || v[i][4]]]);
     if (d.identitas.jenjang) sh.getRange(i + 1, 7).setValue(d.identitas.jenjang);
-    var nipKS = String(getCfg_().NIP_KS || '').replace(/\D/g, '');
+    var nipKS = String(s.NIP_KS || '').replace(/\D/g, '');
     sh.getRange(i + 1, 6).setValue((nip || String(v[i][1]).replace(/\D/g, '')) === nipKS || /kepala/i.test(v[i][5] || '') ? 'Kepala Sekolah' : 'Guru');
     return;
   }
 }
 
-function simpan(nama, pw, data, buatFile) {
-  cekLogin_(nama, pw);
-  var lock = LockService.getScriptLock();
-  lock.waitLock(30000);
-  try {
-    var cfg = getCfg_();
-    perbaruiGuru_(nama, data);
-    var g = cariGuru_(nama);
-    var masalah = validasi_(data);
-    var lengkap = masalah.length === 0;
-    if (buatFile && !lengkap) {
-      return { ok: false, pesan: 'Belum bisa membuat file:\n• ' + masalah.join('\n• ') };
-    }
-    var rec = cariData_(nama);
-    var fileId = rec ? rec.fileId : '';
-    var hasilFile = null;
-    if (buatFile) {
-      fileId = siapkanFile_(fileId, g.nama, cfg);
-      tulisFile_(fileId, g, data, cfg);
+/**
+ * Menyimpan isian guru. Kunci (lock) hanya dipakai sebentar saat menulis sheet; pembuatan file
+ * (±20 detik) dilakukan di luar kunci, sehingga guru dari banyak sekolah tidak saling menunggu.
+ */
+function simpan(npsn, nama, pw, data, buatFile) {
+  var s = cekGuru_(npsn, nama, pw);
+  var masalah = validasi_(data);
+  var lengkap = masalah.length === 0;
+  if (buatFile && !lengkap) return { ok: false, pesan: 'Belum bisa membuat file:\n• ' + masalah.join('\n• ') };
+  kunci_(function () { perbaruiGuru_(s, nama, data); });
+  var g = cariGuru_(s, nama);
+  var rec = cariData_(s.NPSN, nama);
+  var fileId = rec ? rec.fileId : '';
+  var hasilFile = null;
+  if (buatFile) {
+    var cache = CacheService.getScriptCache(), ck = 'buat_' + hash_(s.NPSN + '|' + nama);
+    if (cache.get(ck)) throw new Error('File Anda sedang dibuat. Tunggu ±30 detik lalu coba lagi.');
+    cache.put(ck, '1', 120);
+    try {
+      fileId = siapkanFile_(fileId, g.nama, s);
+      tulisFile_(fileId, g, data, s);
       hasilFile = linkFile_(fileId);
-    }
-    simpanData_(nama, data, lengkap ? (fileId && buatFile ? 'Selesai' : 'Lengkap, file belum dibuat') : 'Draf', fileId);
-    return { ok: true, file: hasilFile || (fileId ? linkFile_(fileId) : null), lengkap: lengkap, masalah: masalah,
-             waktu: Utilities.formatDate(new Date(), 'Asia/Jakarta', 'dd/MM/yyyy HH:mm') };
-  } finally {
-    lock.releaseLock();
+    } finally { cache.remove(ck); }
   }
+  kunci_(function () { simpanData_(s.NPSN, nama, data, lengkap ? (fileId && buatFile ? 'Selesai' : 'Lengkap, file belum dibuat') : 'Draf', fileId); });
+  return { ok: true, file: hasilFile || (fileId ? linkFile_(fileId) : null), lengkap: lengkap, masalah: masalah,
+           waktu: Utilities.formatDate(new Date(), 'Asia/Jakarta', 'dd/MM/yyyy HH:mm') };
 }
 
 /**
  * req.mode = 'catatan'      → {kategori:'m'|'t'|'s', idx, skor, konteks, jabatan}
  * req.mode = 'catatanSemua' → {items:[{kategori, idx, skor, konteks}], jabatan}  (1 permintaan AI)
  * req.mode = 'rencana'      → {items:[{kategori, idx, skor, catatan}], jabatan}
+ * Memakai API key milik sekolah guru tersebut.
  */
-function saranAI(nama, pw, req) {
-  cekLogin_(nama, pw);
-  var cfg = getCfg_();
-  var aktif = daftarKunci_(cfg).length > 0;
+function saranAI(npsn, nama, pw, req) {
+  var s = cekGuru_(npsn, nama, pw);
+  var aktif = kunciSekolah_(s.NPSN).length > 0;
+  var garam = s.NPSN + '|' + nama;
   var alasan = function (e) { return 'AI sedang tidak tersedia (' + e.message + '), dipakai '; };
   if (req.mode === 'catatan') {
     if (aktif) {
-      try { return aiCatatan_(req, cfg, nama); } catch (e) { return fallbackCatatan_(req, alasan(e) + 'kalimat bawaan.'); }
+      try { return aiCatatan_(req, s, garam); } catch (e) { return fallbackCatatan_(req, alasan(e) + 'kalimat bawaan.'); }
     }
     return fallbackCatatan_(req, '');
   }
   if (req.mode === 'catatanSemua') {
     if (!(req.items || []).length) throw new Error('Tidak ada catatan yang perlu diisi.');
     if (aktif) {
-      try { return aiCatatanSemua_(req, cfg, nama); } catch (e) { return fallbackCatatanSemua_(req, alasan(e) + 'kalimat bawaan.'); }
+      try { return aiCatatanSemua_(req, s, garam); } catch (e) { return fallbackCatatanSemua_(req, alasan(e) + 'kalimat bawaan.'); }
     }
     return fallbackCatatanSemua_(req, '');
   }
   if (req.mode === 'rencana') {
     if (aktif) {
-      try { return aiRencana_(req, cfg, nama); } catch (e) { return fallbackRencana_(req, alasan(e) + 'saran bawaan.'); }
+      try { return aiRencana_(req, s, garam); } catch (e) { return fallbackRencana_(req, alasan(e) + 'saran bawaan.'); }
     }
     return fallbackRencana_(req, '');
   }
@@ -519,14 +598,13 @@ function itemGap_(d) {
 }
 
 // ====================== PENULISAN FILE (FORMAT SAMA PERSIS TEMPLATE) ======================
-function siapkanFile_(fileId, nama, cfg) {
+function siapkanFile_(fileId, nama, s) {
   if (fileId) {
     try { var f = DriveApp.getFileById(fileId); if (!f.isTrashed()) return fileId; } catch (e) { }
   }
-  var tplId = idDariUrl_(cfg.TEMPLATE_URL);
-  if (!tplId) throw new Error('TEMPLATE_URL di sheet _PENGATURAN belum diisi. Hubungi kepala sekolah.');
-  var folder = DriveApp.getFolderById(cfg.FOLDER_ID);
-  var copy = DriveApp.getFileById(tplId).makeCopy('FORM 1 2 IDP ' + nama, folder);
+  var tplId = idDariUrl_(getCfg_().TEMPLATE_URL);
+  if (!tplId) throw new Error('Template IDP belum diatur oleh pengelola aplikasi.');
+  var copy = DriveApp.getFileById(tplId).makeCopy('FORM 1 2 IDP ' + nama, folderSekolah_(s));
   try { copy.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch (e) { }
   return copy.getId();
 }
@@ -633,25 +711,6 @@ function tulisFile_(fileId, g, d, cfg) {
   SpreadsheetApp.flush();
 }
 
-/** Menu: menulis ulang semua file guru (mis. setelah data KS di _PENGATURAN diubah). */
-function buatUlangSemua() {
-  hanyaPemilik_();
-  var cfg = getCfg_();
-  var sh = SpreadsheetApp.getActive().getSheetByName(SHEET_DATA);
-  var vals = sh.getDataRange().getValues();
-  var n = 0;
-  for (var r = 1; r < vals.length; r++) {
-    var d = JSON.parse(vals[r][5] || '{}');
-    if (!d.identitas || validasi_(d).length) continue;
-    var g = cariGuru_(vals[r][0]);
-    var fid = siapkanFile_(vals[r][4], g.nama, cfg);
-    tulisFile_(fid, g, d, cfg);
-    sh.getRange(r + 1, 4, 1, 2).setValues([[linkFile_(fid).sheet, fid]]);
-    n++;
-  }
-  SpreadsheetApp.getUi().alert(n + ' file guru telah diperbarui.');
-}
-
 // ====================== AI (GEMINI) ======================
 var GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/';
 var MODEL_CADANGAN = ['gemini-flash-lite-latest', 'gemini-flash-latest'];
@@ -659,12 +718,9 @@ var AI_MAKS_PANGGILAN = 6;      // batas permintaan HTTP ke Google per satu klik
 var AI_MAKS_WAKTU = 25000;      // ms; lewat dari ini langsung pakai saran bawaan
 var AI_SIMPAN_DETIK = 21600;    // jawaban disimpan 6 jam (batas maksimal CacheService)
 
-/** Semua API key: dari sel GEMINI_API_KEY dan/atau Script Properties "GEMINI_API_KEYS". */
-function daftarKunci_(cfg) {
-  var teks = (cfg.GEMINI_API_KEY || '') + '\n' + (PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEYS') || '');
-  var out = [];
-  teks.split(/[\s,;]+/).forEach(function (k) { if (k && out.indexOf(k) < 0) out.push(k); });
-  return out;
+/** API key milik sekolah (s = objek sekolah). */
+function daftarKunci_(s) {
+  return kunciSekolah_(s.NPSN);
 }
 
 function hash_(s) {
@@ -685,8 +741,8 @@ function urutanKunci_(cfg) {
   var semua = daftarKunci_(cfg);
   if (!semua.length) return [];
   var cache = CacheService.getScriptCache();
-  var giliran = (Number(cache.get('ai_giliran')) || 0) % semua.length;
-  cache.put('ai_giliran', String(giliran + 1), 21600);
+  var giliran = (Number(cache.get('ai_giliran_' + cfg.NPSN)) || 0) % semua.length;
+  cache.put('ai_giliran_' + cfg.NPSN, String(giliran + 1), 21600);
   return semua.slice(giliran).concat(semua.slice(0, giliran)).filter(function (k) { return !sedangRehat_(k); });
 }
 
@@ -842,21 +898,32 @@ function cekAIMenu() {
 }
 
 /**
- * Jalankan dari editor: menguji setiap API key satu per satu. Hasil di Log eksekusi.
- * (Tidak memakai kotak pesan, karena dari editor kotak itu muncul di tab spreadsheet dan
- *  eksekusi menunggu sampai tombol OK diklik — terlihat seperti "muter terus".)
+ * Pemilik: menguji API key semua sekolah. Jalankan dari editor → hasil di Log eksekusi.
+ * (Tanpa kotak pesan, karena dari editor kotak itu muncul di tab spreadsheet dan eksekusi menunggu OK.)
  */
 function cekAI() {
   hanyaPemilik_();
-  var cfg = getCfg_();
-  var semua = daftarKunci_(cfg);
-  var baris = [];
-  if (!semua.length) baris.push('GEMINI_API_KEY belum diisi di _PENGATURAN.');
   PropertiesService.getScriptProperties().deleteProperty('MODEL_MATI');   // uji ulang dari awal
+  var baris = [];
+  semuaSekolah_().forEach(function (x) {
+    var s = cariSekolah_(x.NPSN, true);
+    s.GEMINI_MODEL = getCfg_().GEMINI_MODEL;
+    baris.push(s.NAMA_SEKOLAH + ' (' + s.NPSN + '):\n  ' + tesKunci_(s).join('\n  '));
+  });
+  if (!baris.length) baris.push('Belum ada sekolah terdaftar.');
+  Logger.log(baris.join('\n'));
+  return baris.join('\n\n');
+}
+
+/** Menguji setiap API key satu sekolah; tiap key dicoba ke beberapa model sampai berhasil. */
+function tesKunci_(s) {
+  var semua = daftarKunci_(s);
+  if (!semua.length) return ['Belum ada API key.'];
+  var baris = [];
   semua.forEach(function (k, i) {
     var label = 'Key ' + (i + 1) + ' (…' + k.slice(-4) + ')';
-    var models = daftarModel_(cfg, k, i === 0), catatan = [];
-    for (var m = 0; m < models.length; m++) {                            // coba model satu per satu sampai berhasil
+    var models = daftarModel_(s, k, false), catatan = [];
+    for (var m = 0; m < models.length; m++) {
       var h = kirimGemini_(models[m], 'Balas HANYA JSON: {"ok": true}', k, null, false);
       if (h.kode === 200) { baris.push(label + ': OK – model ' + models[m] + (catatan.length ? ' (dilewati: ' + catatan.join('; ') + ')' : '')); return; }
       if (h.kode === 404) { tandaiModelMati_(models[m]); catatan.push(models[m] + ' sudah tidak tersedia'); continue; }
@@ -867,11 +934,7 @@ function cekAI() {
     }
     baris.push(label + ': GAGAL – ' + catatan.join('; '));
   });
-  if (cfg.GEMINI_MODEL && JSON.parse(PropertiesService.getScriptProperties().getProperty('MODEL_MATI') || '[]').indexOf(cfg.GEMINI_MODEL) >= 0)
-    baris.push('PERHATIAN: GEMINI_MODEL di _PENGATURAN berisi "' + cfg.GEMINI_MODEL + '" yang sudah tidak tersedia. Kosongkan sel tersebut agar model dipilih otomatis.');
-  baris.push('Urutan model: ' + daftarModel_(cfg, semua[0] || '', false).join(', '));
-  Logger.log(baris.join('\n'));
-  return baris.join('\n\n');
+  return baris;
 }
 
 function kompetensi_(kat, idx) {
@@ -1016,12 +1079,27 @@ function fallbackRencana_(req, info) {
 
 // ====================== DATA & UTILITAS ======================
 /** Atasan langsung: guru → Kepala Sekolah; Kepala Sekolah → Kabid Pembinaan Ketenagaan. */
-function atasan_(g, cfg) {
+function atasan_(g, s) {
   if (g.peran === 'Kepala Sekolah')
-    return { nama: cfg.ATASAN_KS_NAMA, nip: cfg.ATASAN_KS_NIP, jabatan: cfg.ATASAN_KS_JABATAN, unit: cfg.ATASAN_KS_UNIT };
-  return { nama: cfg.NAMA_KS, nip: cfg.NIP_KS, jabatan: cfg.JABATAN_KS, unit: cfg.NAMA_SEKOLAH };
+    return { nama: s.ATASAN_KS_NAMA, nip: s.ATASAN_KS_NIP, jabatan: s.ATASAN_KS_JABATAN, unit: s.ATASAN_KS_UNIT };
+  return { nama: s.NAMA_KS, nip: s.NIP_KS, jabatan: s.JABATAN_KS, unit: s.NAMA_SEKOLAH };
 }
 
+function daerah_(s) {
+  var k = String(s.KABUPATEN || '').trim();
+  return k ? (/^(kab|kota)/i.test(k) ? k : 'Kabupaten ' + k) : 'Indonesia';
+}
+
+function rapikan_(t) { return String(t == null ? '' : t).replace(/\s+/g, ' ').trim(); }
+
+/** Kunci tulis sheet bersama. Hanya dipakai untuk penulisan singkat. */
+function kunci_(fn) {
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(20000)) throw new Error('Server sedang sibuk. Coba lagi beberapa detik lagi.');
+  try { return fn(); } finally { lock.releaseLock(); }
+}
+
+// ---------- pengaturan global ----------
 function getCfg_() {
   if (CFG_MEMO) return CFG_MEMO;
   var sh = SpreadsheetApp.getActive().getSheetByName(SHEET_CFG);
@@ -1040,28 +1118,107 @@ function setCfg_(kunci, nilai) {
   sh.getRange(row, 2).setNumberFormat('@');
   sh.getRange(row, 1, 1, 3).setValues([[kunci, nilai, '']]);
 }
-/** Password dicek dengan batas: 5x salah → akun dikunci 10 menit (mencegah tebak-tebakan password). */
-function cekPassword_(id, pw) {
-  var cfg = getCfg_();
-  if (!cfg.PASSWORD) throw new Error('Password belum diatur di _PENGATURAN. Hubungi kepala sekolah.');
+
+// ---------- password (disimpan sebagai hash, bukan teks asli) ----------
+function sha256_(s) {
+  return Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, s, Utilities.Charset.UTF_8)
+    .map(function (b) { return ('0' + (b & 255).toString(16)).slice(-2); }).join('');
+}
+function buatHash_(pw) {
+  var garam = Utilities.getUuid().replace(/-/g, '').slice(0, 12);
+  return garam + '$' + sha256_(garam + '|' + pw);
+}
+function cocok_(pw, tersimpan) {
+  var p = String(tersimpan || '').split('$');
+  return p.length === 2 && sha256_(p[0] + '|' + pw) === p[1];
+}
+
+/** 5x salah → dikunci 10 menit (mencegah tebak-tebakan password). */
+function cekPassword_(id, pw, tersimpan) {
+  if (!tersimpan) throw new Error('Password sekolah belum diatur. Hubungi admin sekolah.');
   var cache = CacheService.getScriptCache();
   var kunci = 'gagal_' + hash_(String(id));
   var gagal = Number(cache.get(kunci)) || 0;
   if (gagal >= 5) throw new Error('Terlalu banyak percobaan password salah. Coba lagi 10 menit lagi.');
-  if (String(pw) !== cfg.PASSWORD) {
+  if (!cocok_(String(pw), tersimpan)) {
     cache.put(kunci, String(gagal + 1), 600);
     throw new Error('Password salah.');
   }
 }
-function cekLogin_(nama, pw) {
-  cekPassword_('login:' + nama, pw);
-  cariGuru_(nama);
+function cekGuru_(npsn, nama, pw) {
+  var s = cariSekolah_(npsn);
+  cekPassword_('guru:' + s.NPSN + ':' + nama, pw, s.HASH_GURU);
+  cariGuru_(s, nama);
+  return s;
 }
-function daftarGuru_() {
+function cekAdmin_(npsn, pw) {
+  var s = cariSekolah_(npsn);
+  cekPassword_('admin:' + s.NPSN, pw, s.HASH_ADMIN);
+  return s;
+}
+
+// ---------- sekolah ----------
+function semuaSekolah_() {
+  if (SEKOLAH_MEMO) return SEKOLAH_MEMO;
+  var sh = SpreadsheetApp.getActive().getSheetByName(SHEET_SEKOLAH);
+  if (!sh) return (SEKOLAH_MEMO = []);
+  var v = sh.getDataRange().getDisplayValues();
+  var kepala = v[0];
+  SEKOLAH_MEMO = v.slice(1).filter(function (r) { return String(r[0]).trim(); }).map(function (r, i) {
+    var s = { _baris: i + 2 };
+    kepala.forEach(function (k, j) { if (k) s[k] = String(r[j]).trim(); });
+    return s;
+  });
+  return SEKOLAH_MEMO;
+}
+function aktif_(s) { return String(s.AKTIF || 'YA').toUpperCase() !== 'TIDAK'; }
+
+/** Mencari sekolah aktif berdasarkan NPSN. bolehKosong = true → hasil null bila tidak ada (tanpa error). */
+function cariSekolah_(npsn, bolehKosong) {
+  npsn = String(npsn || '').replace(/\D/g, '');
+  var s = semuaSekolah_().filter(function (x) { return x.NPSN === npsn; })[0] || null;
+  if (bolehKosong) return s;
+  if (!s) throw new Error('Sekolah tidak ditemukan. Pilih sekolah Anda dari daftar.');
+  if (!aktif_(s)) throw new Error('Sekolah ini sedang dinonaktifkan oleh pengelola aplikasi.');
+  var cfg = getCfg_();
+  s.GEMINI_MODEL = cfg.GEMINI_MODEL;   // model AI diatur global oleh pemilik
+  return s;
+}
+function tambahBarisSekolah_(s) {
+  var sh = SpreadsheetApp.getActive().getSheetByName(SHEET_SEKOLAH);
+  var row = sh.getLastRow() + 1;
+  sh.getRange(row, 1, 1, KOLOM_SEKOLAH.length).setNumberFormat('@')
+    .setValues([KOLOM_SEKOLAH.map(function (k) { return s[k] == null ? '' : String(s[k]); })]);
+  SEKOLAH_MEMO = null;
+}
+function ubahSekolah_(npsn, ubah) {
+  SEKOLAH_MEMO = null;
+  var s = cariSekolah_(npsn, true);
+  if (!s) throw new Error('Sekolah tidak ditemukan.');
+  var sh = SpreadsheetApp.getActive().getSheetByName(SHEET_SEKOLAH);
+  Object.keys(ubah).forEach(function (k) {
+    var kol = KOLOM_SEKOLAH.indexOf(k);
+    if (kol >= 0) sh.getRange(s._baris, kol + 1).setNumberFormat('@').setValue(String(ubah[k]));
+  });
+  SEKOLAH_MEMO = null;
+}
+
+// ---------- API key per sekolah (Script Properties, tidak tampil di sheet) ----------
+function kunciSekolah_(npsn) {
+  return (PropertiesService.getScriptProperties().getProperty('KUNCI_' + npsn) || '').split(/[\s,;]+/).filter(String);
+}
+function simpanKunciSekolah_(npsn, list) {
+  var props = PropertiesService.getScriptProperties();
+  if (list.length) props.setProperty('KUNCI_' + npsn, list.join('\n'));
+  else props.deleteProperty('KUNCI_' + npsn);
+}
+
+// ---------- guru & isian ----------
+function daftarGuru_(s) {
   var sh = SpreadsheetApp.getActive().getSheetByName(SHEET_GURU);
   if (!sh) return [];
-  var nipKS = String(getCfg_().NIP_KS || '').replace(/\D/g, '');
-  return sh.getDataRange().getDisplayValues().slice(1).filter(function (r) { return String(r[0]).trim(); }).map(function (r) {
+  var nipKS = String(s.NIP_KS || '').replace(/\D/g, '');
+  return sh.getDataRange().getDisplayValues().slice(1).filter(function (r) { return String(r[0]).trim() && String(r[7]).trim() === s.NPSN; }).map(function (r) {
     // Kepala Sekolah dikenali dari NIP (sama dengan NIP_KS) atau kolom PERAN
     var nipBaris = String(r[1]).replace(/\D/g, '');
     var peran = (/kepala/i.test(r[5] || '') || (nipKS && nipBaris === nipKS)) ? 'Kepala Sekolah' : 'Guru';
@@ -1069,26 +1226,28 @@ function daftarGuru_() {
     return { nama: String(r[0]).trim(), nip: String(r[1]).replace(/\s/g, ''), jabatan: r[2], status: r[3] || 'PNS', pendidikan: r[4] || 'S1', peran: peran, jenjang: jenjang };
   });
 }
-function cariGuru_(nama) {
-  var g = daftarGuru_().filter(function (x) { return x.nama === nama; })[0];
-  if (!g) throw new Error('Nama tidak terdaftar.');
+function cariGuru_(s, nama) {
+  var g = daftarGuru_(s).filter(function (x) { return x.nama === nama; })[0];
+  if (!g) throw new Error('Nama tidak terdaftar di sekolah ini.');
   return g;
 }
-function cariData_(nama) {
+function cariData_(npsn, nama) {
   var sh = SpreadsheetApp.getActive().getSheetByName(SHEET_DATA);
   var v = sh.getDataRange().getValues();
-  for (var i = 1; i < v.length; i++) if (v[i][0] === nama)
+  for (var i = 1; i < v.length; i++) if (v[i][0] === nama && String(v[i][6]) === npsn)
     return { row: i + 1, waktu: v[i][1] ? Utilities.formatDate(new Date(v[i][1]), 'Asia/Jakarta', 'dd/MM/yyyy HH:mm') : '', fileId: v[i][4], json: v[i][5] || 'null' };
   return null;
 }
-function simpanData_(nama, data, status, fileId) {
+function simpanData_(npsn, nama, data, status, fileId) {
   var sh = SpreadsheetApp.getActive().getSheetByName(SHEET_DATA);
-  var rec = cariData_(nama);
-  var link = fileId ? linkFile_(fileId).sheet : '';
-  var row = [nama, new Date(), status, link, fileId || '', JSON.stringify(data)];
-  if (rec) sh.getRange(rec.row, 1, 1, 6).setValues([row]);
-  else sh.appendRow(row);
+  var rec = cariData_(npsn, nama);
+  var link = fileId ? 'https://docs.google.com/spreadsheets/d/' + fileId + '/edit' : '';
+  var row = [nama, new Date(), status, link, fileId || '', JSON.stringify(data), npsn];
+  var baris = rec ? rec.row : sh.getLastRow() + 1;
+  sh.getRange(baris, 7).setNumberFormat('@');
+  sh.getRange(baris, 1, 1, 7).setValues([row]);
 }
+
 function linkFile_(id) {
   var gid1 = '', gid2 = '';
   try {
