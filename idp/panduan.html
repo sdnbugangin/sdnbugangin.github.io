@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Panduan Aplikasi IDP ASN</title>
+<meta name="description" content="Panduan memakai aplikasi IDP ASN: mendaftarkan unit kerja (sekolah atau dinas), mengaktifkan saran AI Gemini, dan pengisian IDP oleh pegawai.">
+<link rel="icon" type="image/png" href="../logo.png">
+<style>
+:root{--red:#d71920;--yellow:#ffd21f;--blue:#12314f;--cream:#fffaf0;--ink:#16202a;--muted:#64748b;--line:#eadfc7;--ok:#1d7a37}
+*{box-sizing:border-box}
+body{margin:0;background:var(--cream);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:15px;line-height:1.6}
+.topline{height:6px;background:linear-gradient(90deg,var(--red) 0 42%,var(--yellow) 42% 68%,var(--blue) 68%)}
+.wrap{max-width:820px;margin:auto;padding:22px 16px 40px}
+header{padding:22px 24px;border-radius:22px;background:linear-gradient(135deg,var(--blue),#1f4f7a);color:#fff}
+header small{color:#ffd21f;font-weight:800;letter-spacing:.08em;font-size:12px}
+h1{margin:4px 0 6px;font-size:clamp(1.5rem,4vw,2.1rem);letter-spacing:-.02em}
+header p{margin:0;color:#d6e2ee;font-size:14px}
+nav.isi{margin:16px 0 0;background:#fff;border:1px solid var(--line);border-radius:18px;padding:14px 18px}
+nav.isi b{display:block;color:var(--blue);margin-bottom:4px}
+nav.isi ol{margin:0;padding-left:20px;columns:2;column-gap:24px}
+code{font-size:13px;background:#f2eee4;border-radius:5px;padding:0 5px}
+nav.isi a{color:var(--blue);text-decoration:none}nav.isi a:hover{color:var(--red)}
+section{background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px 22px;margin-top:14px;break-inside:avoid-page}
+h2{margin:0 0 4px;font-size:19px;color:var(--blue);display:flex;gap:10px;align-items:center}
+h2 .no{flex:none;width:30px;height:30px;border-radius:10px;background:var(--red);color:#fff;display:grid;place-items:center;font-size:15px}
+.siapa{display:inline-block;font-size:12px;font-weight:800;padding:2px 10px;border-radius:999px;background:#eef3f8;color:var(--blue);margin:2px 0 8px}
+ol.langkah{margin:6px 0 0;padding-left:22px}ol.langkah li{margin:4px 0}
+.menu{font-weight:700;color:var(--blue);white-space:nowrap}
+.kotak{background:#fff8e1;border:1px solid #f0d77a;border-radius:12px;padding:10px 14px;margin-top:10px;font-size:14px;color:#5c4400}
+.kotak.hijau{background:#e9f6ec;border-color:#b8dfc3;color:#1d4d2b}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-top:6px}
+th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:var(--blue);color:#fff;font-size:13px}
+kbd{font:inherit;font-size:12.5px;font-weight:700;background:#f2eee4;border:1px solid #d9cfb8;border-bottom-width:2px;border-radius:6px;padding:0 6px}
+footer{margin-top:18px;text-align:center;font-size:13px;color:var(--muted)}
+footer a{color:var(--blue)}
+.cetak{display:inline-block;margin-top:12px;background:#fff;color:var(--blue);border:1px solid #fff;border-radius:10px;padding:7px 14px;font:inherit;font-weight:800;font-size:13px;cursor:pointer}
+@media(max-width:560px){nav.isi ol{columns:1}section{padding:16px}.menu{white-space:normal}}
+@page{size:A4;margin:14mm 14mm}
+@media print{
+  body{background:#fff;font-size:10pt;line-height:1.4}h2{font-size:13pt}table{font-size:9.5pt}.kotak{font-size:9.5pt;padding:6px 10px;margin-top:6px}ol.langkah li{margin:2px 0}
+  .wrap{max-width:none;padding:0}.topline,.cetak,nav.isi{display:none}
+  header{border-radius:10px;padding:12px 16px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  section{border-radius:10px;padding:10px 14px;margin-top:8px;break-inside:auto}h2,.siapa{break-after:avoid}li,tr,.kotak{break-inside:avoid}
+  h2 .no,th,.kotak,.siapa{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  a{color:inherit;text-decoration:none}
+}
+</style>
+</head>
+<body>
+<div class="topline"></div>
+<div class="wrap">
+  <header>
+    <small>PANDUAN KEPALA UNIT KERJA, OPERATOR &amp; PEGAWAI</small>
+    <h1>Aplikasi IDP ASN</h1>
+    <p>Pengisian Formulir 1 &amp; 2 Individual Development Plan untuk guru dan ASN di sekolah, dinas, badan, atau kantor, lengkap dengan saran AI Gemini. Gratis, cukup lewat browser — tanpa memasang apa pun. Alamat aplikasi: <span id="alamat"></span></p>
+    <button class="cetak" type="button" onclick="window.print()">Cetak / Simpan PDF panduan ini</button>
+  </header>
+
+  <nav class="isi" aria-label="Daftar isi">
+    <b>Isi panduan</b>
+    <ol>
+      <li><a href="#daftar">Mendaftarkan unit kerja</a></li>
+      <li><a href="#ai">Mengaktifkan saran AI</a></li>
+      <li><a href="#bagikan">Membagikan ke guru</a></li>
+      <li><a href="#guru">Pegawai: daftar &amp; mengisi IDP</a></li>
+      <li><a href="#pantau">Memantau &amp; mengubah data</a></li>
+      <li><a href="#aman">Keamanan data</a></li>
+      <li><a href="#masalah">Masalah umum</a></li>
+    </ol>
+  </nav>
+
+  <section id="daftar">
+    <h2><span class="no">1</span>Mendaftarkan unit kerja</h2>
+    <div class="siapa">Kepala unit kerja / operator · sekali saja</div>
+    <ol class="langkah">
+      <li>Buka alamat aplikasi dari laptop atau HP.</li>
+      <li>Di bawah kotak masuk, klik <span class="menu">Daftarkan unit kerja</span>.</li>
+      <li>Pilih <b>jenis unit kerja</b>:
+        <br>• <b>Sekolah</b>: isi NPSN (8 digit).
+        <br>• <b>Dinas/Badan/Kantor</b> atau <b>unit kerja lainnya</b> (bidang, UPTD, puskesmas, kecamatan, …): kode unit dibuat otomatis.</li>
+      <li>Isi nama unit kerja, wilayah/instansi induk, kabupaten, serta nama, <b>NIP</b> (18 digit), dan jabatan <b>kepala unit kerja</b>.</li>
+      <li>Buat <b>password unit kerja</b> (min. 6 karakter). Satu password ini dipakai semua pegawai dan kepala unit, baik untuk masuk mengisi IDP maupun membuka halaman Admin Unit Kerja.</li>
+      <li>Klik <span class="menu">Daftarkan Unit Kerja</span>. Anda langsung masuk ke halaman <b>Admin Unit Kerja</b>.</li>
+    </ol>
+    <div class="kotak">Tentukan sendiri seberapa besar unitnya. Contoh: satu dinas bisa didaftarkan per bidang, sehingga kepala bidang menjadi atasan bawaan stafnya. Catat password Anda; password disimpan teracak sehingga pengelola aplikasi pun tidak bisa melihatnya.</div>
+  </section>
+
+  <section id="ai">
+    <h2><span class="no">2</span>Mengaktifkan saran AI</h2>
+    <div class="siapa">Halaman Admin Sekolah · gratis</div>
+    <p style="margin:0">Setiap unit kerja memakai <b>API key Gemini miliknya sendiri</b>, jadi kuota tidak berbagi dengan unit lain. Tanpa key, aplikasi tetap jalan dengan kalimat saran bawaan.</p>
+    <ol class="langkah">
+      <li>Di bagian <b>Fitur AI Gemini</b>, klik tombol <span class="menu">🔑 Buka Google AI Studio – API Keys</span>, atau buka <a href="https://aistudio.google.com/api-keys" target="_blank" rel="noopener"><b>aistudio.google.com/api-keys</b></a>.</li>
+      <li>Masuk dengan akun Google kantor/sekolah atau akun <b>belajar.id</b>. Bila diminta, setujui persyaratan layanan.</li>
+      <li>Klik <span class="menu">Create API key</span> (Buat kunci API). Bila diminta memilih project, pilih yang ada atau buat project baru.</li>
+      <li>Klik ikon <b>salin</b> pada key yang muncul (biasanya berawalan <code>AQ.</code>).</li>
+      <li>Kembali ke aplikasi, tempel key di kotak <b>Tempel API key</b>, lalu klik <span class="menu">Simpan &amp; Aktifkan</span>.</li>
+      <li>Bila berhasil, status berubah menjadi <b>AKTIF</b>. Klik <span class="menu">Tes API key</span> untuk memastikan; hasil yang benar: <code>Key 1 (…xxxx): OK – model gemini-…</code></li>
+    </ol>
+    <div class="kotak hijau"><b>Agar kuota tidak cepat habis:</b> tambahkan 2–3 key dari <b>akun Google yang berbeda</b> (mis. akun kepala unit dan operator). Bila satu key habis, aplikasi otomatis memakai key berikutnya. Kuota pulih setiap hari ±pukul 14.00–15.00 WIB.</div>
+    <div class="kotak">Jangan membagikan API key ke orang lain atau ke grup WhatsApp. Key disimpan tersembunyi dan hanya dipakai untuk pegawai di unit kerja Anda.</div>
+  </section>
+
+  <section id="bagikan">
+    <h2><span class="no">3</span>Membagikan ke pegawai</h2>
+    <ol class="langkah">
+      <li>Kirim <b>alamat aplikasi</b> dan <b>password unit kerja</b> ke pegawai, misalnya lewat grup WA kantor/sekolah. Jangan dibagikan ke luar unit kerja.</li>
+      <li>Sampaikan bahwa skor GAP ditentukan bersama atasan langsung: IDP adalah <b>hasil dialog atasan–bawahan</b>. Saran AI hanya untuk draf kalimat.</li>
+    </ol>
+  </section>
+
+  <section id="guru">
+    <h2><span class="no">4</span>Pegawai: daftar &amp; mengisi IDP</h2>
+    <div class="siapa">Semua pegawai</div>
+    <ol class="langkah">
+      <li>Buka alamat aplikasi, lalu pilih <b>unit kerja</b> Anda.</li>
+      <li>Pertama kali: klik <span class="menu">Daftar sebagai pegawai</span>. Pilih jenis pegawai:
+        <br>• <b>Guru</b>: isi jenjang jabatan fungsional guru.
+        <br>• <b>ASN non-guru</b> (struktural, fungsional lain, pelaksana): pilih jenis jabatan dan tulis nama jabatan, mis. <i>Analis SDM Aparatur Ahli Muda</i>.
+        <br>Lalu isi nama dengan gelar, NIP, status, pendidikan, dan password unit kerja.</li>
+      <li>Selanjutnya cukup pilih unit kerja → nama → isi password → <span class="menu">Masuk</span>.</li>
+      <li>Bagian A: periksa <b>atasan langsung</b>. Bawaannya kepala unit kerja; ubah bila atasan langsung Anda berbeda (mis. Kepala Subbagian atau Kepala Bidang). Nama ini yang tercetak di kolom tanda tangan.</li>
+      <li>Bagian C2 – kompetensi teknis:
+        <br>• Guru: pilih 4 dari 5 modul kompetensi guru.
+        <br>• ASN non-guru: isi 1–5 kompetensi teknis sesuai <b>Standar Kompetensi Jabatan (SKJ)</b>/anjab Anda, atau tekan <span class="menu">✨ Sarankan kompetensi teknis dari nama jabatan</span> lalu sesuaikan.</li>
+      <li>Pilih skor GAP 0–4 untuk setiap kompetensi; skor 1–4 wajib diberi catatan. Klik <span class="menu">✨ Isi semua catatan yang masih kosong</span>, lalu <span class="menu">✨ Isi semua rekomendasi dengan AI</span> di bagian D. Periksa dan sesuaikan hasilnya.</li>
+      <li>Klik <span class="menu">💾 Simpan Draf</span> kapan saja. Bila sudah lengkap, klik <span class="menu">📄 Simpan &amp; Buat File Excel</span>, lalu unduh Excel atau PDF Formulir 1 dan 2.</li>
+    </ol>
+    <div class="kotak hijau">Kepala unit kerja juga bisa mengisi IDP-nya sendiri: saat mendaftar pilih “Mendaftar sebagai: Kepala unit kerja” (NIP harus sama dengan data unit kerja). Atasannya mengikuti data “atasan kepala unit kerja” di halaman Admin.</div>
+    <div class="kotak">Jangan menulis nama siswa/warga, NIK, atau data pribadi lain di kolom “ceritakan kondisi Anda”, karena teks itu dikirim ke layanan AI.</div>
+  </section>
+
+  <section id="pantau">
+    <h2><span class="no">5</span>Memantau &amp; mengubah data</h2>
+    <div class="siapa">Kepala unit kerja / operator</div>
+    <ol class="langkah">
+      <li>Di halaman masuk, klik <span class="menu">Masuk Admin Unit Kerja</span> → pilih unit kerja → isi password unit kerja.</li>
+      <li>Bagian <b>Pegawai &amp; Pengisian IDP</b> menampilkan status tiap pegawai (Draf / Lengkap / Selesai) beserta tautan filenya.</li>
+      <li>Bagian <b>Data Unit Kerja</b>: ubah nama kepala unit, NIP, jabatan (mis. Plt.), data atasan kepala unit, atau ganti password, lalu klik <span class="menu">Simpan data unit kerja</span>.</li>
+      <li>Pegawai salah ketik nama atau pindah tugas: klik <span class="menu">Hapus</span> di barisnya. Pegawai bisa mendaftar ulang.</li>
+    </ol>
+  </section>
+
+  <section id="aman">
+    <h2><span class="no">6</span>Keamanan data</h2>
+    <ol class="langkah">
+      <li>Data unit kerja dan pegawai (nama, NIP, hasil penilaian) adalah data pribadi (UU No. 27 Tahun 2022). Data disimpan di Google Drive pengelola aplikasi dan hanya dipakai untuk penyusunan IDP.</li>
+      <li>Password unit kerja juga membuka halaman Admin, jadi semua pegawai bisa mengubah data unit dan API key. Bagikan hanya ke pegawai di unit sendiri, dan ganti password bila ada pegawai pindah tugas.</li>
+      <li>File IDP bisa dibuka siapa saja yang memegang tautannya. Minta pegawai tidak menyebarkan tautan file.</li>
+    </ol>
+  </section>
+
+  <section id="masalah">
+    <h2><span class="no">7</span>Masalah umum</h2>
+    <table>
+      <tr><th>Gejala</th><th>Penyelesaian</th></tr>
+      <tr><td>Unit kerja tidak ada di daftar</td><td>Belum didaftarkan. Kepala unit/operator klik <i>Daftarkan unit kerja</i>.</td></tr>
+      <tr><td>“NPSN / unit kerja sudah terdaftar”</td><td>Unit Anda sudah didaftarkan sebelumnya. Tanyakan password ke kepala unit/operator, atau hubungi narahubung.</td></tr>
+      <tr><td>Nama tidak muncul</td><td>Pastikan unit kerja yang dipilih benar, lalu klik <i>Daftar sebagai pegawai</i>.</td></tr><tr><td>Tidak tahu kompetensi teknis jabatan (non-guru)</td><td>Lihat Standar Kompetensi Jabatan/anjab di bagian kepegawaian, atau isi nama jabatan lalu tekan <i>Sarankan kompetensi teknis</i>.</td></tr>
+      <tr><td>“Terlalu banyak percobaan password salah”</td><td>Tunggu 10 menit, lalu coba lagi dengan password yang benar.</td></tr>
+      <tr><td>Saran AI bertuliskan “dipakai kalimat bawaan”</td><td>Fitur AI unit kerja belum aktif, atau semua key sedang habis kuota. Admin: klik <i>Tes API key</i> dan tambahkan key dari akun lain bila perlu.</td></tr>
+      <tr><td>Tes key: <code>HTTP 429</code></td><td>Kuota harian key itu habis. Pulih ±pukul 14.00–15.00 WIB, atau tambahkan key dari akun lain.</td></tr>
+      <tr><td>Tes key: <code>HTTP 400/403</code></td><td>Key salah salin atau sudah dihapus. Hapus key itu dan buat yang baru.</td></tr>
+      <tr><td>Tampilan belum berubah setelah pembaruan</td><td>Muat ulang halaman (<kbd>Ctrl</kbd>+<kbd>F5</kbd> di laptop).</td></tr>
+    </table>
+  </section>
+
+  <footer>
+    Butuh bantuan? Narahubung: <b>Yos Putra Kurniawan, S.Pd.</b> · WhatsApp <a href="https://wa.me/6282220044779" target="_blank" rel="noopener">0822-2004-4779</a><br>
+    Aplikasi IDP ASN · dikembangkan oleh SD N BUGANGIN
+  </footer>
+</div>
+<script>
+// Isi dengan URL aplikasi web (berakhiran /exec) setelah diterbitkan.
+var LINK_APLIKASI = 'https://script.google.com/macros/s/AKfycbw2iEVDqIG7s0kQM7pnaw-3uMOu9t9V56p0IXIt6-tIgqWbdD2tKOleZuEe9NyeZQ4X/exec';
+document.getElementById('alamat').innerHTML = LINK_APLIKASI
+  ? '<a href="' + LINK_APLIKASI + '" target="_blank" rel="noopener" style="color:#ffd21f"><b>buka aplikasi</b></a>'
+  : '<b>minta ke narahubung</b> di bagian bawah halaman ini.';
+</script>
+</body>
+</html>
