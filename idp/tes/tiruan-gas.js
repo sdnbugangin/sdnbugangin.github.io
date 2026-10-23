@@ -20,6 +20,7 @@ class Sheet {
     return 0;
   }
   getMaxRows() { return 1000; }
+  getLastColumn() { return Math.max(0, ...this.data.map((r) => r.length)); }
   setColumnWidth() { return this; }
   setColumnWidths() { return this; }
   appendRow(r) { this.data[this.getLastRow()] = r.slice(); return this; }

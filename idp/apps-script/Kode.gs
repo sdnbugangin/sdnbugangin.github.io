@@ -169,6 +169,20 @@ function siapkanSheet_() {
     cfgSh.getRange(row, 1, 1, 3).setValues([r]);
   });
   var sek = ss.getSheetByName(SHEET_SEKOLAH) || ss.insertSheet(SHEET_SEKOLAH);
+  // Susunan kolom lama (mis. HASH_ADMIN/HASH_GURU) dipetakan ulang menurut nama kolom, bukan posisi,
+  // agar data tidak bergeser saat kode diperbarui.
+  var lama = sek.getLastRow() ? sek.getRange(1, 1, 1, sek.getLastColumn()).getDisplayValues()[0] : [];
+  var beda = lama.some(function (k, j) { return k && KOLOM_SEKOLAH[j] !== k; });
+  if (beda && sek.getLastRow() > 1) {
+    var isi = sek.getRange(2, 1, sek.getLastRow() - 1, lama.length).getDisplayValues().map(function (r) {
+      var o = {}; lama.forEach(function (k, j) { o[k] = r[j]; });
+      if (!o.HASH_PASSWORD) o.HASH_PASSWORD = o.HASH_GURU || o.HASH_ADMIN || '';
+      return KOLOM_SEKOLAH.map(function (k) { return o[k] == null ? '' : o[k]; });
+    });
+    sek.getRange(2, 1, isi.length, Math.max(lama.length, KOLOM_SEKOLAH.length)).clearContent();
+    sek.getRange(2, 1, isi.length, KOLOM_SEKOLAH.length).setNumberFormat('@').setValues(isi);
+  }
+  if (beda) sek.getRange(1, 1, 1, Math.max(lama.length, KOLOM_SEKOLAH.length)).clearContent();
   sek.getRange(1, 1, 1, KOLOM_SEKOLAH.length).setValues([KOLOM_SEKOLAH]).setFontWeight('bold');
   sek.getRange(1, 1, sek.getMaxRows(), KOLOM_SEKOLAH.length).setNumberFormat('@');
   var guru = ss.getSheetByName(SHEET_GURU) || ss.insertSheet(SHEET_GURU);
@@ -533,7 +547,7 @@ function simpan(npsn, nama, pw, data, buatFile) {
   var g = cariGuru_(s, nama);
   var rec = cariData_(s.NPSN, nama);
   var fileId = rec ? rec.fileId : '';
-  var hasilFile = null;
+  var hasilFile = null, gagal = '';
   if (buatFile) {
     var cache = CacheService.getScriptCache(), ck = 'buat_' + hash_(s.NPSN + '|' + nama);
     if (cache.get(ck)) throw new Error('File Anda sedang dibuat. Tunggu ±30 detik lalu coba lagi.');
@@ -542,11 +556,18 @@ function simpan(npsn, nama, pw, data, buatFile) {
       fileId = siapkanFile_(fileId, g.nama, s);
       tulisFile_(fileId, g, data, s);
       hasilFile = linkFile_(fileId);
+    } catch (e) {
+      // Isian tetap disimpan walau file gagal dibuat, supaya pekerjaan guru tidak hilang.
+      gagal = e.message || String(e);
+      console.error('Gagal membuat file IDP ' + s.NPSN + ' / ' + nama + ': ' + gagal);
     } finally { cache.remove(ck); }
   }
-  kunci_(function () { simpanData_(s.NPSN, nama, data, lengkap ? (fileId && buatFile ? 'Selesai' : 'Lengkap, file belum dibuat') : 'Draf', fileId); });
-  return { ok: true, file: hasilFile || (fileId ? linkFile_(fileId) : null), lengkap: lengkap, masalah: masalah,
-           waktu: Utilities.formatDate(new Date(), 'Asia/Jakarta', 'dd/MM/yyyy HH:mm') };
+  var status = gagal ? 'Lengkap, file gagal dibuat' : lengkap ? (hasilFile ? 'Selesai' : 'Lengkap, file belum dibuat') : 'Draf';
+  kunci_(function () { simpanData_(s.NPSN, nama, data, status, hasilFile ? fileId : (cariData_(s.NPSN, nama) || {}).fileId || ''); });
+  var waktu = Utilities.formatDate(new Date(), 'Asia/Jakarta', 'dd/MM/yyyy HH:mm');
+  if (gagal) return { ok: false, pesan: 'Isian Anda sudah tersimpan, tetapi file Excel gagal dibuat.\nPesan: ' + gagal +
+    '\nCoba tekan "Simpan & Buat File Excel" lagi beberapa menit kemudian. Bila tetap gagal, kirim pesan ini ke admin.', waktu: waktu };
+  return { ok: true, file: hasilFile || (fileId ? linkFile_(fileId) : null), lengkap: lengkap, masalah: masalah, waktu: waktu };
 }
 
 /**

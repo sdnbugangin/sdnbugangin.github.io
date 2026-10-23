@@ -269,3 +269,32 @@ test('kepala unit dinas mendaftar sebagai pegawai; atasannya = atasan kepala uni
   assert.equal(m.profil.jabatan, DINAS.jabatanKs);
   assert.equal(m.atasan.nama, 'Kepala Dinas X');
 });
+
+test('file gagal dibuat: isian tetap tersimpan dan pesan error jelas', () => {
+  const g = siap();
+  g.panggil('daftarSekolah', SD_A);
+  g.panggil('daftar', SD_A.npsn, GURU, SD_A.password);
+  g.ctx.setCfg_('TEMPLATE_URL', '');                           // template hilang → file gagal
+  const r = g.panggil('simpan', SD_A.npsn, GURU.nama, SD_A.password, dataLengkap(), true);
+  assert.equal(r.ok, false);
+  assert.match(r.pesan, /sudah tersimpan.*\n.*Template/s);
+  const baris = g.pusat.getSheetByName('_DATA').data[1];
+  assert.equal(baris[2], 'Lengkap, file gagal dibuat');
+  assert.equal(JSON.parse(baris[5]).kinerja.predikat, 'Baik');
+});
+
+test('setup memetakan ulang kolom _SEKOLAH susunan lama (HASH_ADMIN/HASH_GURU) tanpa menggeser data', () => {
+  const g = buatGas({ pengunjung: 'pemilik@gmail.com' });
+  const lama = ['NPSN', 'NAMA_SEKOLAH', 'WILAYAH', 'KABUPATEN', 'TEMPAT', 'NAMA_KS', 'NIP_KS', 'JABATAN_KS', 'ATASAN_KS_NAMA', 'ATASAN_KS_NIP',
+    'ATASAN_KS_JABATAN', 'ATASAN_KS_UNIT', 'HASH_ADMIN', 'HASH_GURU', 'FOLDER_ID', 'AKTIF', 'DIBUAT'];
+  const hashGuru = g.ctx.buatHash_('sdsuper');
+  g.pusat.insertSheet('_SEKOLAH').data = [lama, ['20321653', 'SD Negeri Bugangin', '', 'Kendal', 'Kendal', 'Yos', '198601282009031003', 'Kepala Sekolah',
+    'Supardi', '', 'Kabid', 'Dinas', g.ctx.buatHash_('adminxx1'), hashGuru, 'folderLama123', 'YA', '2026-10-23 07:27']];
+  g.ctx.setup();
+  g.sesi.aktif = '';
+  const s = g.ctx.cariSekolah_('20321653');
+  assert.equal(s.FOLDER_ID, 'folderLama123');
+  assert.equal(s.AKTIF, 'YA');
+  assert.equal(s.HASH_PASSWORD, hashGuru);
+  assert.equal(g.pusat.getSheetByName('_SEKOLAH').data[0].filter(Boolean).length, 17);
+});
