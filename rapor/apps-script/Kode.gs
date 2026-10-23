@@ -58,7 +58,9 @@ function siapkan() {
     ['NPSN Sumber TP Bawaan', '', 'NPSN sekolah yang TP-nya dipakai sebagai TP bawaan: disalin ke sekolah baru dan bisa diambil sekolah lain lewat tombol "Pakai TP bawaan".'],
     ['Mode Pemeliharaan', 'Tidak', 'Ya = semua sekolah hanya bisa melihat data (tidak bisa menyimpan, mendaftar, atau mengganti sandi). Pakai saat memasang pembaruan besar. Berlaku paling lambat 1 menit.'],
     ['Pesan Pemeliharaan', '', 'Pesan yang tampil saat mode pemeliharaan, misalnya "Sedang ada pembaruan sampai pukul 21.00 WIB." Kosong = pesan bawaan.'],
-    ['Pengumuman', '', 'Pengumuman untuk semua sekolah di halaman aplikasi, misalnya "Fitur baru: Transkrip & SKL kelas 6." Kosong = tidak ada pengumuman.']
+    ['Pengumuman', '', 'Pengumuman untuk semua sekolah di halaman aplikasi, misalnya "Fitur baru: Transkrip & SKL kelas 6." Kosong = tidak ada pengumuman.'],
+    ['Kode Akses', '', 'Kosong = halaman masuk terbuka. Diisi (misalnya sdsuper) = pengguna wajib memasukkan kode ini sebelum bisa masuk, mendaftar, atau meminta lupa sandi.'],
+    ['Narahubung', 'Yos Putra Kurniawan, S.Pd. (WhatsApp 0822-2004-4779)', 'Disebut dalam pesan untuk sekolah yang aksesnya ditutup (status Nonaktif).']
   ];
   var ada = atur.getDataRange().getValues().map(function (r) { return r[0]; });
   bawaan.forEach(function (b) { if (ada.indexOf(b[0]) < 0) atur.appendRow(b); });
@@ -105,7 +107,9 @@ function pengaturanPusat_() {
     sumberTp: String(nilai['NPSN Sumber TP Bawaan'] || '').trim().toUpperCase(),
     pemeliharaan: String(nilai['Mode Pemeliharaan'] || '').toLowerCase() === 'ya',
     pesanPemeliharaan: String(nilai['Pesan Pemeliharaan'] || '').slice(0, 300),
-    pengumuman: String(nilai.Pengumuman || '').slice(0, 500)
+    pengumuman: String(nilai.Pengumuman || '').slice(0, 500),
+    kodeAkses: String(nilai['Kode Akses'] || '').trim(),
+    narahubung: String(nilai.Narahubung || 'pengelola aplikasi').trim()
   };
 }
 
@@ -181,16 +185,29 @@ function doPost(e) {
  * Aksi yang hanya membaca. Saat mode pemeliharaan hanya aksi ini yang dilayani, sehingga guru tetap bisa
  * melihat dan mencetak, tetapi tidak ada data yang tersimpan setengah jalan selama pembaruan dipasang.
  */
-var AKSI_BACA = ['info', 'statistik', 'masuk', 'sesi', 'keluar', 'dataSekolah', 'siswaRombel', 'mapelSekolah', 'unduhExcel',
+var AKSI_BACA = ['info', 'cekKode', 'statistik', 'masuk', 'sesi', 'keluar', 'dataSekolah', 'siswaRombel', 'mapelSekolah', 'unduhExcel',
   'tpKelas', 'tpBawaan', 'tpEkspor', 'nilaiRombel', 'kokRombel', 'waliRombel', 'rekapRombel', 'lulusData', 'taBaruPratinjau'];
 
 var PESAN_PEMELIHARAAN = 'Aplikasi sedang dalam pemeliharaan. Data bisa dilihat dan dicetak, tetapi belum bisa disimpan. Silakan coba lagi nanti.';
 
-/** Info umum untuk semua halaman (tanpa masuk): pengumuman dan status pemeliharaan. */
+/** Info umum untuk semua halaman (tanpa masuk): pengumuman, status pemeliharaan, kode akses, pendaftaran. */
 function info_() {
   var atur = pengaturanPusat_();
   return { ok: true, pemeliharaan: atur.pemeliharaan, pesanPemeliharaan: atur.pemeliharaan ? (atur.pesanPemeliharaan || PESAN_PEMELIHARAAN) : '',
-    pengumuman: atur.pengumuman };
+    pengumuman: atur.pengumuman, kodeAkses: !!atur.kodeAkses, daftarDibuka: atur.daftarDibuka };
+}
+
+/* Aksi yang wajib membawa kode akses bila Pusat mengisi "Kode Akses". */
+var AKSI_BERKODE = ['cekKode', 'daftar', 'masuk', 'lupaSandi'];
+
+function kodeCocok_(kode) {
+  var harus = pengaturanPusat_().kodeAkses;
+  return !harus || String(kode || '').trim().toLowerCase() === harus.toLowerCase();
+}
+
+/** Pesan untuk sekolah yang aksesnya ditutup pengelola (status Nonaktif). */
+function pesanDitutup_() {
+  return 'Akses Rapor Digital SUPER untuk sekolah Anda sudah ditutup. Silakan hubungi pengembang: ' + pengaturanPusat_().narahubung + '.';
 }
 
 /** Memproses satu permintaan. Dipisah dari doPost agar bisa diuji tanpa ContentService. */
@@ -200,8 +217,12 @@ function layani_(req) {
     if (AKSI_BACA.indexOf(req.aksi) < 0 && pengaturanPusat_().pemeliharaan) {
       return { ok: false, pemeliharaan: true, pesan: pengaturanPusat_().pesanPemeliharaan || PESAN_PEMELIHARAAN };
     }
+    if (AKSI_BERKODE.indexOf(req.aksi) >= 0 && !kodeCocok_(req.kodeAkses)) {
+      return { ok: false, kodeSalah: true, pesan: req.kodeAkses ? 'Kode akses salah.' : 'Masukkan kode akses terlebih dahulu.' };
+    }
     switch (req.aksi) {
       case 'info': return info_();
+      case 'cekKode': return { ok: true };
       case 'daftar': return daftar_(req.data || {});
       case 'verifikasi': return verifikasi_(req.token);
       case 'masuk': return masuk_(req.email, req.sandi);
@@ -210,6 +231,7 @@ function layani_(req) {
       case 'statistik': return statistik_();
     }
     var sesi = bacaSesi_(req.sesi);
+    if (sesi && sesi.ditutup) return { ok: false, sesiHabis: true, ditutup: true, pesan: pesanDitutup_() };
     if (!sesi) return { ok: false, sesiHabis: true, pesan: 'Sesi berakhir. Silakan masuk lagi.' };
     switch (req.aksi) {
       case 'sesi': return { ok: true, sekolah: ringkasSekolah_(sesi.npsn) };
