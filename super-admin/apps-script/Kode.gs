@@ -143,6 +143,8 @@ function doPost(e) {
       case 'hapusKabar': return json_(denganKunci_(function () { return hapusKabar_(req.id, oleh); }));
       case 'simpanPrestasi': return json_(denganKunci_(function () { return simpanPrestasi_(req.data, oleh); }));
       case 'hapusPrestasi': return json_(denganKunci_(function () { return hapusPrestasi_(req.id, oleh); }));
+      case 'tumbuhKelas': return json_(tumbuhKelas_(req));
+      case 'simpanTumbuh': return json_(denganKunci_(function () { return simpanTumbuh_(req, oleh); }));
       default: return json_({ ok: false, pesan: 'Aksi tidak dikenal.' });
     }
   } catch (err) {
@@ -589,4 +591,143 @@ function grafikBantuanPublik_() {
   var hasil = { ok: true, tampil: true, jenis: JENIS, batasSamaran: atur.batasSamaran, data: data, diambil: new Date().toISOString() };
   cache.put('grafik-bantuan', JSON.stringify(hasil), 600);
   return hasil;
+}
+
+/* =====================================================================
+ * TUMBUH KEMBANG — berat & tinggi badan bulanan (diukur minggu pertama)
+ * ===================================================================== */
+
+var KOLOM_TUMBUH = ['ID Siswa', 'Kelas', 'Nama Siswa', 'Tahun Ajaran', 'Bulan', 'Tanggal Ukur', 'Berat (kg)', 'Tinggi (cm)',
+  'Dicatat Oleh', 'Dicatat Pada'];
+var BATAS_UKUR = { bbMin: 10, bbMaks: 100, tbMin: 80, tbMaks: 190 };
+
+/** Tahun ajaran untuk tanggal: Juli–Desember → "t/t+1", Januari–Juni → "t-1/t". */
+function tahunAjaranDari_(d) {
+  var t = d.getFullYear(), b = d.getMonth() + 1;
+  return b >= 7 ? t + '/' + (t + 1) : (t - 1) + '/' + t;
+}
+
+/** Bulan-bulan satu tahun ajaran: ["2026-07", …, "2027-06"]. */
+function bulanTahunAjaran_(ta) {
+  var t = Number(String(ta).split('/')[0]), hasil = [];
+  for (var i = 0; i < 12; i++) {
+    var b = 7 + i, th = t + (b > 12 ? 1 : 0);
+    b = b > 12 ? b - 12 : b;
+    hasil.push(th + '-' + (b < 10 ? '0' : '') + b);
+  }
+  return hasil;
+}
+
+/** "72,5" / 72.5 / '' → angka atau null; bukan angka → NaN. */
+function angkaUkur_(v) {
+  if (v === null || v === undefined || String(v).trim() === '') return null;
+  var n = typeof v === 'number' ? v : Number(String(v).trim().replace(',', '.'));
+  return isFinite(n) ? Math.round(n * 10) / 10 : NaN;
+}
+
+/**
+ * Memeriksa isian satu siswa. lalu = { bb, tb } pengukuran sebelumnya (boleh null).
+ * Hasil: { bb, tb, salah: '', peringatan: '' }. Salah → tidak boleh disimpan; peringatan → tetap disimpan.
+ */
+function cekUkur_(isi, lalu) {
+  var bb = angkaUkur_(isi && isi.bb), tb = angkaUkur_(isi && isi.tb), salah = '', peringatan = '';
+  if (isNaN(bb)) salah = 'berat badan bukan angka';
+  else if (isNaN(tb)) salah = 'tinggi badan bukan angka';
+  else if ((bb === null) !== (tb === null)) salah = 'berat dan tinggi harus diisi keduanya';
+  else if (bb !== null && (bb < BATAS_UKUR.bbMin || bb > BATAS_UKUR.bbMaks)) salah = 'berat badan ' + bb + ' kg di luar kewajaran (' + BATAS_UKUR.bbMin + '–' + BATAS_UKUR.bbMaks + ' kg)';
+  else if (tb !== null && (tb < BATAS_UKUR.tbMin || tb > BATAS_UKUR.tbMaks)) salah = 'tinggi badan ' + tb + ' cm di luar kewajaran (' + BATAS_UKUR.tbMin + '–' + BATAS_UKUR.tbMaks + ' cm)';
+  else if (bb !== null && lalu) {
+    if (lalu.tb && tb < lalu.tb - 1) peringatan = 'tinggi turun dari ' + lalu.tb + ' cm';
+    else if (lalu.bb && Math.abs(bb - lalu.bb) > 5) peringatan = 'berat berubah lebih dari 5 kg (sebelumnya ' + lalu.bb + ' kg)';
+  }
+  return { bb: bb, tb: tb, salah: salah, peringatan: peringatan };
+}
+
+function sheetTumbuh_() { return buatSheet_(SpreadsheetApp.getActive(), 'Tumbuh Kembang', KOLOM_TUMBUH); }
+
+function teksBulan_(v) {
+  if (Object.prototype.toString.call(v) === '[object Date]') {
+    return v.getFullYear() + '-' + (v.getMonth() < 9 ? '0' : '') + (v.getMonth() + 1);
+  }
+  return String(v || '').trim();
+}
+
+/** Semua pengukuran: [{ baris, id, kelas, nama, ta, bulan, tanggal, bb, tb }]. */
+function bacaTumbuh_() {
+  return sheetTumbuh_().getDataRange().getValues().slice(1).map(function (r, i) {
+    return { baris: i + 2, id: String(r[0]).trim(), kelas: String(r[1]).trim(), nama: String(r[2]).trim(), ta: String(r[3]).trim(),
+      bulan: teksBulan_(r[4]), tanggal: r[5] instanceof Date ? Utilities.formatDate(r[5], 'Asia/Jakarta', 'yyyy-MM-dd') : String(r[5] || ''),
+      bb: angkaUkur_(r[6]), tb: angkaUkur_(r[7]) };
+  }).filter(function (x) { return x.id && x.bulan; });
+}
+
+/** Pengukuran terakhir tiap siswa SEBELUM bulan tertentu: { id: { bulan, bb, tb } }. */
+function ukurSebelum_(semua, bulan) {
+  var hasil = {};
+  semua.forEach(function (x) {
+    if (x.bulan >= bulan || x.bb === null) return;
+    if (!hasil[x.id] || hasil[x.id].bulan < x.bulan) hasil[x.id] = { bulan: x.bulan, bb: x.bb, tb: x.tb };
+  });
+  return hasil;
+}
+
+function tumbuhKelas_(req) {
+  var sekarang = new Date(), ta = tahunAjaranDari_(sekarang), daftarBulan = bulanTahunAjaran_(ta);
+  var bulanIni = teksBulan_(sekarang);
+  var bulan = daftarBulan.indexOf(req.bulan) >= 0 && req.bulan <= bulanIni ? req.bulan : bulanIni;
+  var kelas = String(req.kelas || '').trim();
+  var siswa = daftarSiswa_().filter(function (s) { return s.kelas === kelas; })
+    .sort(function (a, b) { return a.urut - b.urut || (a.nama < b.nama ? -1 : 1); });
+  var semua = bacaTumbuh_(), nilai = {}, tanggal = '';
+  semua.forEach(function (x) { if (x.bulan === bulan) { nilai[x.id] = { bb: x.bb, tb: x.tb }; if (!tanggal && kelas === x.kelas) tanggal = x.tanggal; } });
+  var lalu = ukurSebelum_(semua, bulan);
+  var terisi = {};
+  semua.forEach(function (x) { if (x.ta === ta) terisi[x.bulan] = (terisi[x.bulan] || 0) + (x.kelas === kelas ? 1 : 0); });
+  return {
+    ok: true, tahunAjaran: ta, bulan: bulan,
+    bulanPilihan: daftarBulan.filter(function (b) { return b <= bulanIni; }),
+    terisi: terisi, tanggal: tanggal,
+    siswa: siswa.map(function (s) { return { id: s.id, nama: s.nama, urut: s.urut, nilai: nilai[s.id] || null, lalu: lalu[s.id] || null }; })
+  };
+}
+
+function simpanTumbuh_(req, oleh) {
+  if (!oleh) return { ok: false, pesan: 'Isi nama Anda dulu.' };
+  var sekarang = new Date(), ta = tahunAjaranDari_(sekarang), bulanIni = teksBulan_(sekarang);
+  var bulan = String(req.bulan || '');
+  if (bulanTahunAjaran_(ta).indexOf(bulan) < 0 || bulan > bulanIni) return { ok: false, pesan: 'Bulan tidak sah. Pilih bulan di tahun ajaran ini.' };
+  var tanggal = String(req.tanggal || '');
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(tanggal) || tanggal.slice(0, 7) !== bulan) return { ok: false, pesan: 'Tanggal ukur harus di bulan yang dipilih.' };
+  var kelas = String(req.kelas || '').trim();
+  var siswa = daftarSiswa_().filter(function (s) { return s.kelas === kelas; });
+  if (!siswa.length) return { ok: false, pesan: 'Kelas tidak ditemukan.' };
+  var isian = req.isian && typeof req.isian === 'object' ? req.isian : {};
+  var semua = bacaTumbuh_(), lalu = ukurSebelum_(semua, bulan);
+  var salah = [], peringatan = [], baru = {};
+  siswa.forEach(function (s) {
+    var c = cekUkur_(isian[s.id] || {}, lalu[s.id]);
+    if (c.salah) salah.push(s.nama + ': ' + c.salah + '.');
+    else { baru[s.id] = c; if (c.peringatan) peringatan.push(s.nama + ': ' + c.peringatan + '.'); }
+  });
+  if (salah.length) return { ok: false, salah: salah, pesan: 'Belum tersimpan. ' + salah[0] };
+
+  var sh = sheetTumbuh_(), waktu = new Date(), jumlah = 0, hapus = [];
+  var ada = {};
+  semua.forEach(function (x) { if (x.bulan === bulan) ada[x.id] = x.baris; });
+  siswa.forEach(function (s) {
+    var c = baru[s.id];
+    if (c.bb === null) { if (ada[s.id]) hapus.push(ada[s.id]); return; }
+    var baris = [s.id, s.kelas, s.nama, ta, "'" + bulan, tanggal, c.bb, c.tb, oleh, waktu];
+    if (ada[s.id]) sh.getRange(ada[s.id], 1, 1, baris.length).setValues([baris]);
+    else sh.appendRow(baris);
+    jumlah++;
+  });
+  hapus.sort(function (a, b) { return b - a; }).forEach(function (r) { sh.deleteRow(r); });
+  catat_(oleh, 'Tumbuh kembang', { id: '', nama: 'Kelas ' + kelas }, bulan + ': ' + jumlah + ' siswa' + (hapus.length ? ', ' + hapus.length + ' dikosongkan' : ''));
+  return { ok: true, jumlah: jumlah, peringatan: peringatan,
+    pesan: 'Tersimpan: ' + jumlah + ' dari ' + siswa.length + ' siswa kelas ' + kelas + '.' };
+}
+
+if (typeof module !== 'undefined') {
+  module.exports = { tahunAjaranDari_: tahunAjaranDari_, bulanTahunAjaran_: bulanTahunAjaran_, cekUkur_: cekUkur_, angkaUkur_: angkaUkur_ };
 }

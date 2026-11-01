@@ -106,6 +106,7 @@ header.ringkas{padding:16px 20px;border-radius:20px;margin-top:12px}header.ringk
 input[type=date],input[type=file]{width:100%;font:inherit;font-size:15px;padding:10px 12px;border:1px solid #d9cfb8;border-radius:12px;background:#fff}
 @media(max-width:640px){.wrap{padding:16px}header{padding:20px;gap:14px}header img{width:60px;height:60px}.grid2,.checks{grid-template-columns:1fr}.months{grid-template-columns:repeat(4,1fr)}.sheet-bg{padding:0}.sheet{border-radius:0;min-height:100%}.sheet-h{border-radius:0}.hide-sm{display:none}}
 @media print{.topline,.back,header,.bar,.tabs,.tools,.no-print,footer{display:none!important}body{background:#fff}.wrap{padding:0;max-width:none}.tbl{max-height:none;overflow:visible;border:0}th{position:static;background:#ddd;color:#000}#print-head{display:block!important}}
+.tb-atas{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}.tb-atas select,.tb-atas input{width:100%;font:inherit;font-size:16px;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff}.tb-wrap{overflow-x:auto;border-radius:14px;border:1px solid var(--line)}.tb-tabel td{vertical-align:middle}.tb-tabel input{width:92px;font:inherit;font-size:18px;padding:8px;border:2px solid var(--line);border-radius:10px;text-align:center}.tb-tabel input:focus{outline:none;border-color:var(--blue)}.tb-tabel input.salah{border-color:var(--bad);background:#fde4e1}.tb-tabel .lalu{display:block;font-size:12px;color:var(--muted);margin-top:3px;text-align:center}.tb-tabel tr.ubah td{background:#fffbe6}#tb-msg ul{margin:6px 0 0;padding-left:18px;text-align:left}
 </style>
 </head>
 <body>
@@ -141,6 +142,7 @@ input[type=date],input[type=file]{width:100%;font:inherit;font-size:15px;padding
       <div class="menu-grid">
         <button class="menu-item" data-buka="prestasi"><span class="mi-ikon" style="background:#fff3c0">&#127942;</span><span class="mi-teks"><b>Prestasi Siswa</b><small>Catat juara lomba. Tampil di beranda website.</small><em id="mi-prestasi"></em></span><span class="mi-panah" aria-hidden="true">&rsaquo;</span></button>
         <button class="menu-item" data-buka="kabar"><span class="mi-ikon" style="background:#e5eff8">&#128240;</span><span class="mi-teks"><b>Kabar Sekolah</b><small>Tulis artikel kegiatan, tersusun otomatis.</small><em id="mi-kabar"></em></span><span class="mi-panah" aria-hidden="true">&rsaquo;</span></button>
+        <button class="menu-item" data-buka="tumbuh"><span class="mi-ikon" style="background:#e7f5e8">&#128207;</span><span class="mi-teks"><b>Tumbuh Kembang</b><small>Berat &amp; tinggi badan siswa tiap bulan (minggu pertama).</small><em id="mi-tumbuh">Isi per kelas</em></span><span class="mi-panah" aria-hidden="true">&rsaquo;</span></button>
         <button class="menu-item" data-buka="bantuan"><span class="mi-ikon" style="background:#ffe4e1">&#127891;</span><span class="mi-teks"><b>Bantuan Siswa</b><small>PIP, BAZNAS, santunan yatim piatu, nominasi SiPINTAR. &#128274; Rahasia</small><em id="mi-bantuan"></em></span><span class="mi-panah" aria-hidden="true">&rsaquo;</span></button>
         <a class="menu-item" href="../persuratan/" style="text-decoration:none"><span class="mi-ikon" style="background:#e7f1fb">&#128232;</span><span class="mi-teks"><b>Persuratan</b><small>Buat surat dinas dan ambil nomor surat. Masuk dengan akun Persuratan.</small></span><span class="mi-panah" aria-hidden="true">&rsaquo;</span></a>
       </div>
@@ -175,6 +177,25 @@ input[type=date],input[type=file]{width:100%;font:inherit;font-size:15px;padding
         <p class="tip">Ada yang salah setelah terbit? Tekan <b>Ubah</b> pada artikel. Semua guru bisa memperbaiki, dan nama yang mengubah tercatat.</p></details>
       <div class="pr-head"><div class="legend" id="kb-info" style="margin:0"></div><button class="btn big" id="kb-tambah">+ Tulis Kabar</button></div>
       <div class="pr-list" id="kb-list"></div>
+    </div>
+
+    <!-- Tumbuh Kembang -->
+    <div id="tab-tumbuh" class="hidden">
+      <details class="guide" data-g="tumbuh" open><summary>&#128214; Petunjuk: cara mengisi berat dan tinggi badan</summary><ol>
+        <li>Ukur siswa di <b>minggu pertama</b> setiap bulan.</li>
+        <li>Ketuk <b>kelas</b> Anda. Bulan dan tanggal ukur sudah terisi hari ini; ubah bila perlu.</li>
+        <li>Tulis <b>berat badan (kg)</b> dan <b>tinggi badan (cm)</b>. Boleh pakai koma, misalnya <i>25,5</i>. Tekan <b>Enter</b> untuk pindah ke bawah.</li>
+        <li>Siswa yang tidak masuk saat pengukuran <b>biarkan kosong</b>.</li>
+        <li>Tekan <b>Simpan</b>. Angka bulan lalu tampil abu-abu sebagai pembanding.</li></ol>
+        <p class="tip">Salah ketik? Ubah angkanya lalu tekan Simpan lagi. Mengosongkan berat dan tinggi akan menghapus data siswa itu di bulan tersebut.</p></details>
+      <label>Kelas</label><div class="pills" id="tb-kelas"></div>
+      <div class="tb-atas">
+        <div><label for="tb-bulan">Bulan</label><select id="tb-bulan"></select></div>
+        <div><label for="tb-tanggal">Tanggal ukur</label><input type="date" id="tb-tanggal"></div>
+      </div>
+      <div class="legend" id="tb-info"></div>
+      <div class="tb-wrap hidden" id="tb-wrap"><table class="tb-tabel"><thead><tr><th>No</th><th>Nama</th><th>Berat (kg)</th><th>Tinggi (cm)</th></tr></thead><tbody id="tb-body"></tbody></table></div>
+      <div class="sheet-actions hidden" id="tb-aksi"><div class="msg" id="tb-msg"></div><button class="btn big" id="tb-simpan" style="width:100%">Simpan</button></div>
     </div>
 
     <!-- Bantuan Siswa: tiga bagian -->
@@ -641,7 +662,7 @@ $('#keluar').onclick = () => keluar();
 $('#muat-ulang').onclick = async () => { $('#muat-ulang').disabled = true; await muat(); $('#muat-ulang').disabled = false; };
 
 /* ---------- menu & navigasi (alamat #prestasi, #kabar, #bantuan/usulan) ---------- */
-const ALAT = { prestasi:'&#127942; Prestasi Siswa', kabar:'&#128240; Kabar Sekolah', bantuan:'&#127891; Bantuan Siswa' };
+const ALAT = { prestasi:'&#127942; Prestasi Siswa', kabar:'&#128240; Kabar Sekolah', tumbuh:'&#128207; Tumbuh Kembang', bantuan:'&#127891; Bantuan Siswa' };
 const SUB_BANTUAN = ['siswa','usulan','rekap'];
 function tampilkan(alat, sub){
   const ada = !!ALAT[alat];
@@ -649,6 +670,8 @@ function tampilkan(alat, sub){
   $('#alat-bar').classList.toggle('hidden', !ada);
   $('#tab-prestasi').classList.toggle('hidden', alat !== 'prestasi');
   $('#tab-kabar').classList.toggle('hidden', alat !== 'kabar');
+  $('#tab-tumbuh').classList.toggle('hidden', alat !== 'tumbuh');
+  if (alat === 'tumbuh') bukaTumbuh();
   $('#alat-bantuan').classList.toggle('hidden', alat !== 'bantuan');
   if (ada) $('#alat-judul').innerHTML = ALAT[alat];
   if (alat === 'bantuan') {
@@ -1097,6 +1120,66 @@ $('#kb-list').addEventListener('click', async e => {
 $('#oleh').value = OLEH;
 if (!API_URL) $('#cfg-notice').classList.remove('hidden');
 else if (SANDI && OLEH) { $('#login-msg').textContent = 'Memuat data…'; muat().then(ok => { if (ok) { tampilApp(); $('#login-msg').textContent=''; } }); }
+
+/* ---------- Tumbuh Kembang ---------- */
+const NAMA_BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+const labelBulan = b => NAMA_BULAN[Number(b.slice(5, 7)) - 1] + ' ' + b.slice(0, 4);
+let TB = null, TB_KELAS = ls.get('tb-kelas') || '', TB_UBAH = false;
+function hariIni(){ const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function bukaTumbuh(){
+  const kelas = [...new Set(DATA.siswa.map(s => s.kelas))].sort((a, b) => a.localeCompare(b, 'id', { numeric: true }));
+  if (!kelas.includes(TB_KELAS)) TB_KELAS = '';
+  $('#tb-kelas').innerHTML = kelas.map(k => `<button class="pill${k === TB_KELAS ? ' on' : ''}" data-k="${esc(k)}">Kelas ${esc(k)}</button>`).join('');
+  if (TB_KELAS && !TB) muatTumbuh(); else if (!TB_KELAS) $('#tb-info').textContent = 'Ketuk kelas Anda untuk mulai.';
+}
+async function muatTumbuh(bulan){
+  if (TB_UBAH && !confirm('Ada angka yang belum disimpan. Tinggalkan tanpa menyimpan?')) return;
+  TB_UBAH = false;
+  $('#tb-info').textContent = 'Memuat…'; $('#tb-wrap').classList.add('hidden'); $('#tb-aksi').classList.add('hidden'); $('#tb-msg').innerHTML = '';
+  const res = await api({ aksi: 'tumbuhKelas', kelas: TB_KELAS, bulan });
+  if (!res.ok) { $('#tb-info').textContent = res.pesan || 'Gagal memuat.'; if (res.sandiSalah) keluar(res.pesan); return; }
+  TB = res;
+  $('#tb-bulan').innerHTML = res.bulanPilihan.slice().reverse().map(b => `<option value="${b}"${b === res.bulan ? ' selected' : ''}>${labelBulan(b)}${res.terisi[b] ? ' ✓' : ''}</option>`).join('');
+  $('#tb-tanggal').value = res.tanggal || (hariIni().slice(0, 7) === res.bulan ? hariIni() : res.bulan + '-01');
+  $('#tb-tanggal').min = res.bulan + '-01'; $('#tb-tanggal').max = res.bulan + '-31';
+  const ada = res.siswa.filter(s => s.nilai).length;
+  $('#tb-info').textContent = `Kelas ${TB_KELAS} · ${labelBulan(res.bulan)} · sudah diisi ${ada} dari ${res.siswa.length} siswa`;
+  if (!res.siswa.length) return;
+  const angka = v => v == null ? '' : String(v).replace('.', ',');
+  $('#tb-body').innerHTML = res.siswa.map((s, i) => `<tr data-id="${esc(s.id)}"><td>${i + 1}</td><td>${esc(s.nama)}</td>
+    <td><input inputmode="decimal" data-k="bb" data-i="${i}" value="${angka(s.nilai && s.nilai.bb)}" aria-label="Berat ${esc(s.nama)}">${s.lalu ? `<span class="lalu">${labelBulan(s.lalu.bulan).split(' ')[0].slice(0, 3)}: ${angka(s.lalu.bb)}</span>` : ''}</td>
+    <td><input inputmode="decimal" data-k="tb" data-i="${i}" value="${angka(s.nilai && s.nilai.tb)}" aria-label="Tinggi ${esc(s.nama)}">${s.lalu ? `<span class="lalu">${labelBulan(s.lalu.bulan).split(' ')[0].slice(0, 3)}: ${angka(s.lalu.tb)}</span>` : ''}</td></tr>`).join('');
+  $('#tb-wrap').classList.remove('hidden'); $('#tb-aksi').classList.remove('hidden');
+}
+$('#tb-kelas').addEventListener('click', e => { const b = e.target.closest('[data-k]'); if (!b) return; TB_KELAS = b.dataset.k; ls.set('tb-kelas', TB_KELAS); document.querySelectorAll('#tb-kelas .pill').forEach(x => x.classList.toggle('on', x === b)); muatTumbuh(); });
+$('#tb-bulan').addEventListener('change', e => muatTumbuh(e.target.value));
+$('#tb-body').addEventListener('input', e => {
+  if (!e.target.dataset.k) return;
+  TB_UBAH = true; e.target.closest('tr').classList.add('ubah');
+  const v = e.target.value.trim(); e.target.classList.toggle('salah', v !== '' && !/^\d{1,3}([.,]\d{1,2})?$/.test(v));
+});
+$('#tb-body').addEventListener('keydown', e => {
+  if (e.key !== 'Enter' || !e.target.dataset.k) return;
+  e.preventDefault();
+  const n = document.querySelector(`#tb-body input[data-k="${e.target.dataset.k}"][data-i="${Number(e.target.dataset.i) + 1}"]`);
+  if (n) { n.focus(); n.select(); } else $('#tb-simpan').focus();
+});
+$('#tb-simpan').onclick = async () => {
+  const isian = {};
+  document.querySelectorAll('#tb-body tr').forEach(tr => { isian[tr.dataset.id] = { bb: tr.querySelector('[data-k="bb"]').value, tb: tr.querySelector('[data-k="tb"]').value }; });
+  const m = $('#tb-msg'); m.className = 'msg'; m.textContent = 'Menyimpan…'; $('#tb-simpan').disabled = true;
+  const res = await api({ aksi: 'simpanTumbuh', kelas: TB_KELAS, bulan: TB.bulan, tanggal: $('#tb-tanggal').value, isian });
+  $('#tb-simpan').disabled = false;
+  if (!res.ok) {
+    m.className = 'msg err';
+    m.innerHTML = esc(res.salah ? 'Belum tersimpan. Perbaiki dulu:' : (res.pesan || 'Gagal menyimpan.')) + (res.salah ? '<ul>' + res.salah.map(x => '<li>' + esc(x) + '</li>').join('') + '</ul>' : '');
+    if (res.sandiSalah) keluar(res.pesan); return;
+  }
+  TB_UBAH = false; const bulan = TB.bulan; await muatTumbuh(bulan);
+  m.className = 'msg ok';
+  m.innerHTML = '&#9989; ' + esc(res.pesan) + (res.peringatan && res.peringatan.length ? '<br><span style="color:var(--warn)">Mohon dicek ulang (tetap tersimpan):</span><ul>' + res.peringatan.map(x => '<li>' + esc(x) + '</li>').join('') + '</ul>' : '');
+};
+window.addEventListener('beforeunload', e => { if (TB_UBAH) { e.preventDefault(); e.returnValue = ''; } });
 </script>
 </body>
 </html>
