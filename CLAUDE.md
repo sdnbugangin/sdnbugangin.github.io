@@ -38,9 +38,15 @@ Untuk website (repo ini): kerjakan di cabang kerja, bukan langsung di cabang uta
 
 ## Rapor (dikelola di bolonulis.github.io)
 
-- Aplikasi rapor ada di `https://bolonulis.github.io/app/` (repo terpisah, dipakai banyak SD). Website ini hanya menautkan ke sana (kartu di halaman depan dan pengalih `rapor/index.html`); jangan menyalin kode rapor ke repo ini, supaya setiap pembaruan di bolonulis langsung berlaku.
-- Data rapor SD N Bugangin adalah master: spreadsheet `1NOW-sx-lwBiPAYpV3xjtm8uDomlYTyMFhR0lyThKH8U` milik akun Kepala Sekolah, akses terbatas (pemilik + bolonulis@gmail.com). Jangan pernah mengubahnya menjadi "siapa saja yang memiliki link".
-- Rencana: halaman pantauan ketuntasan untuk orang tua (nama siswa, mapel, TP, tuntas/belum) dari nilai sumatif. Orang tua hanya boleh melihat anaknya sendiri (kode akses per siswa), tanpa angka nilai.
+- Aplikasi rapor ada di `https://bolonulis.github.io/app/` (repo `bolonulis/bolonulis.github.io`; server di repo privat `bolonulis/rapor-merdeka-digital-server`, proyek Apps Script `1WT1XoYN7HLAI8o7z0QphYhik--LohlXH8KPPeZbRWwlMRSRRAID3RDmk`, dipakai banyak SD). Website ini hanya menautkan ke sana (kartu di halaman depan dan pengalih `rapor/index.html`); jangan menyalin kode rapor ke repo ini.
+- Spreadsheet `1NOW-sx-lwBiPAYpV3xjtm8uDomlYTyMFhR0lyThKH8U` adalah **Pusat** (daftar semua sekolah pengguna). Nilai SD N Bugangin ada di spreadsheet sekolah `1CnMyQq9ToDt8t4wxlDn_o7XPPb5ewhSjQCzwomz0bKo` ("Rapor - SD NEGERI BUGANGIN (20321653)"). Semua di folder Drive rapor milik akun Kepala Sekolah, akses terbatas (pemilik + bolonulis@gmail.com). Jangan pernah mengubahnya menjadi "siapa saja yang memiliki link".
+
+## Pantau Belajar Anak (`pantau/`, khusus SD N Bugangin)
+
+- Orang tua masuk dengan NISN anak, melihat ketuntasan TP per mapel (Tuntas / Belum tuntas / Belum dinilai), tanpa angka nilai. Belum tuntas → saran meminta jadwal ulangan perbaikan ke guru kelas; semua tuntas → kalimat apresiasi.
+- Aplikasi Apps Script tersendiri milik akun Kepala Sekolah; kode di `pantau/apps-script/Kode.gs`, tes `node --test pantau/tes/*.test.js`. Spreadsheet rapor sekolah **hanya dibaca**; server bolonulis tidak disentuh.
+- Sandi awal semua siswa `muridsuper`, wajib diganti saat pertama masuk (min. 4 karakter); 5 kali salah → dikunci 15 menit; guru mengatur ulang sandi dengan PIN Guru. Batas Tuntas (bawaan 70) dan PIN Guru diatur di sheet Pengaturan spreadsheet "DB Pantau Belajar SD N Bugangin" (dibuat `setupAwal()`).
+- Membaca sheet rapor berdasarkan judul kolom (Pengaturan, Rombel, Siswa, Anggota Rombel, Mapel Aktif, Tujuan Pembelajaran, Nilai). **Setiap kali server bolonulis mengubah susunan sheet, cek dan uji ulang aplikasi ini.**
 
 ## Aturan data
 
