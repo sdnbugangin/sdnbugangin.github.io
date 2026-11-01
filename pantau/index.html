@@ -244,6 +244,7 @@ async function muatKelas(){
   if (!r.ok) { $('#kelas').innerHTML = '<option value="">Gagal memuat. Muat ulang halaman.</option>'; return pesan('#m-masuk', r.pesan); }
   KELAS = r.kelas;
   isiKelas('#kelas', '#siswa');
+  if (!KELAS.length) { $('#kelas').innerHTML = '<option value="">Belum ada data kelas</option>'; return pesan('#m-masuk', 'Data siswa belum dimasukkan guru ke Rapor Digital. Silakan coba lagi nanti.', true); }
   // HP yang sama: kelas dan nama terakhir langsung terpilih
   const k = localStorage.getItem('pantau-kelas'), s = localStorage.getItem('pantau-siswa');
   if (k && KELAS[Number(k)]) { $('#kelas').value = k; isiSiswa('#kelas', '#siswa'); if (s && KELAS[Number(k)].siswa.some(x => x.id === s)) $('#siswa').value = s; }
