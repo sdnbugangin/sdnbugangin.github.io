@@ -114,7 +114,7 @@ footer{text-align:center;color:var(--muted);font-size:14px;padding:22px 10px 8px
   <footer>SD N Bugangin · Nilai berasal dari Rapor Digital yang diisi guru kelas.<br>Data Ananda hanya dapat dilihat dengan NISN dan sandi.</footer>
 </div>
 <script>
-const API_URL = 'GANTI_DENGAN_ALAMAT_WEB_APP'; // diisi setelah aplikasi Apps Script dipasang
+const API_URL = 'https://script.google.com/macros/s/AKfycbxY8_LcuMcMR4Tv9zPraZJGduHPDOKtwOzHUpwhLiAx4wnzdLlkDdTmrAjWwbxMpuB_/exec';
 const $ = s => document.querySelector(s);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 let SESI = sessionStorage.getItem('pantau-sesi') || '';

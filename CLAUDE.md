@@ -10,6 +10,7 @@ Situs statis GitHub Pages. Layanan yang butuh data berjalan sebagai aplikasi Goo
 | Super Admin (bantuan, prestasi, kabar) | `1y7MANEjhRxo58zEOe_InzrfFQIp55pQKVHhuToNBddbUjhtMYylpKGAu` | `AKfycbyE3fM1cmCXeMsdoygOAP92MIKSngirrd3pOd2U1t4Nr63wAO3lOfEjUyCPBUA7PTor` | spreadsheet Database Bantuan Siswa (terikat); salinan kode di `super-admin/apps-script/Kode.gs` |
 | Persuratan | `15Mpx2pij8a_ICLDbyJVuaFwtLc6ga-QOre8WSePZCplAGYLhvRbRAb2D` | `AKfycbzYhvR7D-rcUx64s0navcLL4JZBtZ6e_PgQ1zEQSKcVDqqtWL9Z7hrASOd26_WRqchX` | spreadsheet dibuat oleh `setupAwal()` |
 | Update Nomor WA | `1UPX-pcnR8qEpkcUI0EqBqcRh1Bju3D_n5z8bp09h2UPZDWE5RlW69Kng` | `AKfycbxYn87T_TmCMIT30VdE7M_zNERwLIxMin_ILewdt2OT4_z4fu9MviA5mQmTmJ3szYHD` | — |
+| Pantau Belajar Anak | `15Zy0e4sRWSmcld2FV7Y_9PVoamAhmB7m3qjCZ2j_XGnQp-xZXs_x22YL` | `AKfycbxY8_LcuMcMR4Tv9zPraZJGduHPDOKtwOzHUpwhLiAx4wnzdLlkDdTmrAjWwbxMpuB_` | spreadsheet DB Pantau Belajar SD N Bugangin (dibuat `setupAwal()`); membaca spreadsheet rapor sekolah |
 
 ## Mengubah kode Apps Script lewat clasp
 
