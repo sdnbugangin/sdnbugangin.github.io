@@ -16,8 +16,8 @@ h1{margin:0;font-size:clamp(1.5rem,5vw,2.1rem);letter-spacing:-.03em}header p{ma
 .panel{background:#fff;border:1px solid var(--line);border-radius:20px;padding:22px;margin-top:16px;box-shadow:0 8px 20px rgba(18,49,79,.06)}
 .panel h2{margin:0 0 6px;font-size:22px}.sub{color:var(--muted);margin:0 0 16px}
 label{display:block;font-weight:700;margin:14px 0 6px}
-input{width:100%;font-size:20px;padding:14px;border:2px solid var(--line);border-radius:12px;background:#fff}
-input:focus{outline:none;border-color:var(--blue)}
+input,select{width:100%;font-size:19px;padding:14px;border:2px solid var(--line);border-radius:12px;background:#fff;color:var(--ink)}
+input:focus,select:focus{outline:none;border-color:var(--blue)}select:disabled{background:#f5f5f5;color:var(--muted)}
 button{font:inherit;cursor:pointer}
 .btn{display:block;width:100%;margin-top:18px;padding:16px;border:0;border-radius:14px;background:var(--red);color:#fff;font-weight:800;font-size:19px}
 .btn:disabled{opacity:.6}.btn.dua{background:#fff;color:var(--blue);border:2px solid var(--blue)}
@@ -51,10 +51,12 @@ footer{text-align:center;color:var(--muted);font-size:14px;padding:22px 10px 8px
   <!-- Masuk -->
   <section class="panel" id="l-masuk">
     <h2>Masuk</h2>
-    <p class="sub">Masukkan NISN Ananda. Sandi awal diberikan oleh sekolah.</p>
+    <p class="sub">Pilih kelas dan nama Ananda, lalu masukkan sandi. Sandi awal diberikan oleh sekolah.</p>
     <form id="f-masuk">
-      <label for="nisn">NISN Ananda (10 angka)</label>
-      <input id="nisn" inputmode="numeric" autocomplete="username" maxlength="14" required>
+      <label for="kelas">Kelas</label>
+      <select id="kelas" required><option value="">Memuat daftar kelas…</option></select>
+      <label for="siswa">Nama Ananda</label>
+      <select id="siswa" required disabled><option value="">Pilih kelas dulu</option></select>
       <label for="sandi">Sandi</label>
       <input id="sandi" type="password" autocomplete="current-password" required>
       <button class="btn" type="submit">Masuk</button>
@@ -103,7 +105,8 @@ footer{text-align:center;color:var(--muted);font-size:14px;padding:22px 10px 8px
     <h2>Atur Ulang Sandi Orang Tua</h2>
     <p class="sub">Khusus guru. Sandi orang tua kembali ke sandi awal, dan orang tua wajib membuat sandi baru saat masuk.</p>
     <form id="f-guru">
-      <label for="g-nisn">NISN siswa</label><input id="g-nisn" inputmode="numeric" maxlength="14" required>
+      <label for="g-kelas">Kelas</label><select id="g-kelas" required></select>
+      <label for="g-siswa">Nama siswa</label><select id="g-siswa" required disabled><option value="">Pilih kelas dulu</option></select>
       <label for="g-pin">PIN Guru</label><input id="g-pin" type="password" autocomplete="off" required>
       <button class="btn" type="submit">Atur Ulang Sandi</button>
     </form>
@@ -111,7 +114,7 @@ footer{text-align:center;color:var(--muted);font-size:14px;padding:22px 10px 8px
     <button class="link" type="button" id="guru-kembali">← Kembali</button>
   </section>
 
-  <footer>SD N Bugangin · Nilai berasal dari Rapor Digital yang diisi guru kelas.<br>Data Ananda hanya dapat dilihat dengan NISN dan sandi.</footer>
+  <footer>SD N Bugangin · Nilai berasal dari Rapor Digital yang diisi guru kelas.<br>Data Ananda hanya dapat dilihat dengan sandi orang tua.</footer>
 </div>
 <script>
 const API_URL = 'https://script.google.com/macros/s/AKfycbxY8_LcuMcMR4Tv9zPraZJGduHPDOKtwOzHUpwhLiAx4wnzdLlkDdTmrAjWwbxMpuB_/exec';
@@ -141,7 +144,7 @@ function keluarLokal(){ SESI = ''; sessionStorage.removeItem('pantau-sesi'); DAT
 
 $('#f-masuk').addEventListener('submit', async e => {
   e.preventDefault(); pesan('#m-masuk', ''); sibuk(e.target, true);
-  const r = await api({ aksi: 'masuk', nisn: $('#nisn').value, sandi: $('#sandi').value });
+  const r = await api({ aksi: 'masuk', siswa: $('#siswa').value, sandi: $('#sandi').value });
   sibuk(e.target, false);
   if (!r.ok) return pesan('#m-masuk', r.pesan);
   SESI = r.sesi; sessionStorage.setItem('pantau-sesi', SESI); $('#sandi').value = '';
@@ -211,16 +214,42 @@ $('#daftar-mapel').addEventListener('click', e => {
 });
 $('#kembali').addEventListener('click', () => tampil('#l-mapel'));
 
-$('#ke-guru').addEventListener('click', () => { $('#f-guru').reset(); pesan('#m-guru', ''); tampil('#l-guru'); });
+$('#ke-guru').addEventListener('click', () => { $('#f-guru').reset(); isiKelas('#g-kelas', '#g-siswa'); pesan('#m-guru', ''); tampil('#l-guru'); });
 $('#guru-kembali').addEventListener('click', () => tampil('#l-masuk'));
 $('#f-guru').addEventListener('submit', async e => {
   e.preventDefault(); sibuk(e.target, true);
-  const r = await api({ aksi: 'guruReset', nisn: $('#g-nisn').value, pin: $('#g-pin').value });
+  const r = await api({ aksi: 'guruReset', siswa: $('#g-siswa').value, pin: $('#g-pin').value });
   sibuk(e.target, false);
   pesan('#m-guru', r.pesan, r.ok);
-  if (r.ok) { $('#g-nisn').value = ''; }
+  if (r.ok) { $('#g-pin').value = ''; }
 });
 
+/* ---------- daftar kelas & nama ---------- */
+let KELAS = [];
+function isiKelas(selKelas, selSiswa){
+  $(selKelas).innerHTML = '<option value="">— Pilih kelas —</option>' + KELAS.map((k, i) => '<option value="' + i + '">' + esc(k.nama) + '</option>').join('');
+  isiSiswa(selKelas, selSiswa);
+}
+function isiSiswa(selKelas, selSiswa){
+  const k = KELAS[Number($(selKelas).value)];
+  $(selSiswa).disabled = !k;
+  $(selSiswa).innerHTML = k ? '<option value="">— Pilih nama —</option>' + k.siswa.map(s => '<option value="' + esc(s.id) + '">' + esc(s.nama) + '</option>').join('')
+    : '<option value="">Pilih kelas dulu</option>';
+}
+$('#kelas').addEventListener('change', () => { isiSiswa('#kelas', '#siswa'); localStorage.setItem('pantau-kelas', $('#kelas').value); });
+$('#siswa').addEventListener('change', () => localStorage.setItem('pantau-siswa', $('#siswa').value));
+$('#g-kelas').addEventListener('change', () => isiSiswa('#g-kelas', '#g-siswa'));
+async function muatKelas(){
+  const r = await api({ aksi: 'daftarKelas' });
+  if (!r.ok) { $('#kelas').innerHTML = '<option value="">Gagal memuat. Muat ulang halaman.</option>'; return pesan('#m-masuk', r.pesan); }
+  KELAS = r.kelas;
+  isiKelas('#kelas', '#siswa');
+  if (!KELAS.length) { $('#kelas').innerHTML = '<option value="">Belum ada data kelas</option>'; return pesan('#m-masuk', 'Data siswa belum dimasukkan guru ke Rapor Digital. Silakan coba lagi nanti.', true); }
+  // HP yang sama: kelas dan nama terakhir langsung terpilih
+  const k = localStorage.getItem('pantau-kelas'), s = localStorage.getItem('pantau-siswa');
+  if (k && KELAS[Number(k)]) { $('#kelas').value = k; isiSiswa('#kelas', '#siswa'); if (s && KELAS[Number(k)].siswa.some(x => x.id === s)) $('#siswa').value = s; }
+}
+muatKelas();
 if (SESI) muat(); else tampil('#l-masuk');
 </script>
 </body>
