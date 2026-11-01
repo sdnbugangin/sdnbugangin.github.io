@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="theme-color" content="#d71920">
+<meta name="robots" content="noindex">
+<title>Pantau Belajar Anak | SD N BUGANGIN</title><link rel="icon" type="image/png" href="../logo.png">
+<style>
+:root{--red:#d71920;--red-dark:#9e1117;--yellow:#ffd21f;--blue:#12314f;--cream:#fffaf0;--ink:#16202a;--muted:#5b6b7f;--line:#eadfc7;--green:#15803d;--amber:#b45309}
+*{box-sizing:border-box}body{margin:0;background:var(--cream);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:17px;line-height:1.5}
+.topline{height:6px;background:linear-gradient(90deg,var(--red) 0 42%,var(--yellow) 42% 68%,var(--blue) 68%)}
+.wrap{max-width:720px;margin:auto;padding:18px}
+.back{color:var(--blue);text-decoration:none;font-weight:800;font-size:15px}
+header{margin-top:14px;padding:22px;border-radius:22px;background:linear-gradient(135deg,var(--red),var(--blue));color:#fff;display:flex;align-items:center;gap:16px}
+header img{width:64px;height:64px;object-fit:contain;background:#fff;border-radius:14px;padding:6px;flex:none}
+h1{margin:0;font-size:clamp(1.5rem,5vw,2.1rem);letter-spacing:-.03em}header p{margin:4px 0 0;color:#ffecef}
+.panel{background:#fff;border:1px solid var(--line);border-radius:20px;padding:22px;margin-top:16px;box-shadow:0 8px 20px rgba(18,49,79,.06)}
+.panel h2{margin:0 0 6px;font-size:22px}.sub{color:var(--muted);margin:0 0 16px}
+label{display:block;font-weight:700;margin:14px 0 6px}
+input{width:100%;font-size:20px;padding:14px;border:2px solid var(--line);border-radius:12px;background:#fff}
+input:focus{outline:none;border-color:var(--blue)}
+button{font:inherit;cursor:pointer}
+.btn{display:block;width:100%;margin-top:18px;padding:16px;border:0;border-radius:14px;background:var(--red);color:#fff;font-weight:800;font-size:19px}
+.btn:disabled{opacity:.6}.btn.dua{background:#fff;color:var(--blue);border:2px solid var(--blue)}
+.link{background:none;border:0;color:var(--blue);font-weight:700;text-decoration:underline;padding:8px 0;font-size:16px}
+.msg{margin-top:14px;padding:12px 14px;border-radius:12px;display:none}.msg.on{display:block}
+.msg.salah{background:#fdecec;color:var(--red-dark)}.msg.ok{background:#e9f7ee;color:var(--green)}
+.anak{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap}
+.anak b{font-size:21px}.sem{display:flex;gap:8px;margin:14px 0 4px}
+.sem button{flex:1;padding:10px;border-radius:10px;border:2px solid var(--blue);background:#fff;color:var(--blue);font-weight:800}
+.sem button.on{background:var(--blue);color:#fff}
+.mapel{display:flex;width:100%;text-align:left;align-items:center;gap:10px;padding:16px;margin-top:10px;border:1px solid var(--line);border-radius:14px;background:#fff;color:var(--ink)}
+.mapel:active{background:#fff9df}.mapel .nm{flex:1;font-weight:800;font-size:18px}.mapel .ket{display:block;font-weight:600;font-size:15px;margin-top:3px}
+.panah{font-size:26px;color:var(--muted)}
+.t{color:var(--green)}.p{color:var(--red-dark)}.b{color:var(--muted)}
+.tp{padding:14px 0;border-top:1px solid var(--line)}.tp:first-of-type{border-top:0}
+.tp .kode{font-weight:800}.tp .isi{margin:2px 0 6px}.tp .materi{color:var(--muted);font-size:15px}
+.lencana{display:inline-block;padding:4px 12px;border-radius:999px;font-weight:800;font-size:15px}
+.lencana.t{background:#e9f7ee}.lencana.p{background:#fdecec}.lencana.b{background:#eef2f6}
+.pesan{margin-top:16px;padding:16px;border-radius:14px;font-size:17px}
+.pesan.perbaikan{background:#fff4e5;border:2px solid #f5c26b}.pesan.apresiasi,.pesan.semangat{background:#e9f7ee;border:2px solid #9bd5ae}
+.hidden{display:none!important}
+footer{text-align:center;color:var(--muted);font-size:14px;padding:22px 10px 8px}
+</style>
+</head>
+<body>
+<div class="topline"></div>
+<div class="wrap">
+  <a class="back" href="../">← Beranda SD N Bugangin</a>
+  <header><img src="../logo.png" alt="Logo SD N Bugangin"><div><h1>Pantau Belajar Anak</h1><p>Ketuntasan Tujuan Pembelajaran (TP) Ananda</p></div></header>
+
+  <!-- Masuk -->
+  <section class="panel" id="l-masuk">
+    <h2>Masuk</h2>
+    <p class="sub">Masukkan NISN Ananda. Sandi awal diberikan oleh sekolah.</p>
+    <form id="f-masuk">
+      <label for="nisn">NISN Ananda (10 angka)</label>
+      <input id="nisn" inputmode="numeric" autocomplete="username" maxlength="14" required>
+      <label for="sandi">Sandi</label>
+      <input id="sandi" type="password" autocomplete="current-password" required>
+      <button class="btn" type="submit">Masuk</button>
+    </form>
+    <div class="msg" id="m-masuk"></div>
+    <p class="sub" style="margin-top:16px">Lupa sandi? Silakan hubungi wali kelas untuk mengatur ulang.</p>
+    <button class="link" type="button" id="ke-guru">Untuk guru: atur ulang sandi orang tua</button>
+  </section>
+
+  <!-- Ganti sandi -->
+  <section class="panel hidden" id="l-ganti">
+    <h2>Buat Sandi Baru</h2>
+    <p class="sub" id="ganti-sub">Demi keamanan data Ananda, buat sandi baru milik Ayah/Bunda sendiri (minimal 4 karakter). Jangan beri tahu orang lain.</p>
+    <form id="f-ganti">
+      <div id="lama-wrap" class="hidden"><label for="lama">Sandi lama</label><input id="lama" type="password" autocomplete="current-password"></div>
+      <label for="baru">Sandi baru</label><input id="baru" type="password" autocomplete="new-password" required>
+      <label for="ulangi">Ulangi sandi baru</label><input id="ulangi" type="password" autocomplete="new-password" required>
+      <button class="btn" type="submit">Simpan Sandi Baru</button>
+    </form>
+    <button class="link hidden" type="button" id="batal-ganti">← Kembali</button>
+    <div class="msg" id="m-ganti"></div>
+  </section>
+
+  <!-- Daftar mapel -->
+  <section class="panel hidden" id="l-mapel">
+    <div class="anak"><div><b id="a-nama"></b><div class="sub" id="a-kelas" style="margin:0"></div></div></div>
+    <div class="sem" id="sem"></div>
+    <p class="sub" id="a-ta" style="margin-top:6px"></p>
+    <div id="daftar-mapel"></div>
+    <div class="msg" id="m-mapel"></div>
+    <p class="sub" style="margin-top:16px">✅ Tuntas: nilai TP sudah mencapai batas ketuntasan. ⏳ Belum tuntas: perlu ulangan perbaikan. – Belum dinilai: guru belum memasukkan nilai.</p>
+    <button class="link" type="button" id="ke-ganti">Ganti sandi</button> · <button class="link" type="button" id="keluar">Keluar</button>
+  </section>
+
+  <!-- Rincian TP -->
+  <section class="panel hidden" id="l-tp">
+    <button class="link" type="button" id="kembali">← Kembali ke daftar mapel</button>
+    <h2 id="tp-judul"></h2>
+    <p class="sub" id="tp-ringkas"></p>
+    <div id="daftar-tp"></div>
+    <div class="pesan hidden" id="tp-pesan"></div>
+  </section>
+
+  <!-- Guru -->
+  <section class="panel hidden" id="l-guru">
+    <h2>Atur Ulang Sandi Orang Tua</h2>
+    <p class="sub">Khusus guru. Sandi orang tua kembali ke sandi awal, dan orang tua wajib membuat sandi baru saat masuk.</p>
+    <form id="f-guru">
+      <label for="g-nisn">NISN siswa</label><input id="g-nisn" inputmode="numeric" maxlength="14" required>
+      <label for="g-pin">PIN Guru</label><input id="g-pin" type="password" autocomplete="off" required>
+      <button class="btn" type="submit">Atur Ulang Sandi</button>
+    </form>
+    <div class="msg" id="m-guru"></div>
+    <button class="link" type="button" id="guru-kembali">← Kembali</button>
+  </section>
+
+  <footer>SD N Bugangin · Nilai berasal dari Rapor Digital yang diisi guru kelas.<br>Data Ananda hanya dapat dilihat dengan NISN dan sandi.</footer>
+</div>
+<script>
+const API_URL = 'https://script.google.com/macros/s/AKfycbxY8_LcuMcMR4Tv9zPraZJGduHPDOKtwOzHUpwhLiAx4wnzdLlkDdTmrAjWwbxMpuB_/exec';
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+let SESI = sessionStorage.getItem('pantau-sesi') || '';
+let DATA = null;
+
+function tampil(id){
+  ['#l-masuk', '#l-ganti', '#l-mapel', '#l-tp', '#l-guru'].forEach(x => $(x).classList.toggle('hidden', x !== id));
+  window.scrollTo(0, 0);
+}
+function pesan(sel, teks, ok){ const m = $(sel); m.textContent = teks || ''; m.className = 'msg' + (teks ? ' on ' + (ok ? 'ok' : 'salah') : ''); }
+
+async function api(data){
+  try {
+    const r = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(data) });
+    const j = await r.json();
+    if (j.sesiHabis) { keluarLokal(); pesan('#m-masuk', j.pesan); }
+    return j;
+  } catch (e) {
+    return { ok: false, pesan: 'Tidak tersambung. Periksa sinyal internet lalu coba lagi.' };
+  }
+}
+function sibuk(form, ya){ form.querySelectorAll('button,input').forEach(x => { x.disabled = ya; }); }
+function keluarLokal(){ SESI = ''; sessionStorage.removeItem('pantau-sesi'); DATA = null; tampil('#l-masuk'); }
+
+$('#f-masuk').addEventListener('submit', async e => {
+  e.preventDefault(); pesan('#m-masuk', ''); sibuk(e.target, true);
+  const r = await api({ aksi: 'masuk', nisn: $('#nisn').value, sandi: $('#sandi').value });
+  sibuk(e.target, false);
+  if (!r.ok) return pesan('#m-masuk', r.pesan);
+  SESI = r.sesi; sessionStorage.setItem('pantau-sesi', SESI); $('#sandi').value = '';
+  if (r.wajibGanti) return bukaGanti(true);
+  muat();
+});
+
+function bukaGanti(wajib){
+  $('#f-ganti').reset(); pesan('#m-ganti', '');
+  $('#lama-wrap').classList.toggle('hidden', wajib);
+  $('#batal-ganti').classList.toggle('hidden', wajib);
+  $('#ganti-sub').textContent = wajib
+    ? 'Ini pertama kali Ayah/Bunda masuk. Demi keamanan data Ananda, buat sandi baru milik sendiri (minimal 4 karakter). Jangan beri tahu orang lain.'
+    : 'Masukkan sandi lama, lalu buat sandi baru (minimal 4 karakter).';
+  tampil('#l-ganti');
+}
+$('#f-ganti').addEventListener('submit', async e => {
+  e.preventDefault(); sibuk(e.target, true);
+  const r = await api({ aksi: 'gantiSandi', sesi: SESI, lama: $('#lama').value, baru: $('#baru').value, ulangi: $('#ulangi').value });
+  sibuk(e.target, false);
+  if (!r.ok) return pesan('#m-ganti', r.pesan);
+  alert(r.pesan);
+  muat();
+});
+$('#ke-ganti').addEventListener('click', () => bukaGanti(false));
+$('#batal-ganti').addEventListener('click', () => tampil('#l-mapel'));
+$('#keluar').addEventListener('click', async () => { await api({ aksi: 'keluar', sesi: SESI }); keluarLokal(); });
+
+async function muat(semester){
+  tampil('#l-mapel'); pesan('#m-mapel', 'Memuat data…', true); $('#daftar-mapel').innerHTML = '';
+  const r = await api({ aksi: 'ketuntasan', sesi: SESI, semester });
+  if (r.wajibGanti) return bukaGanti(true);
+  if (!r.ok) return pesan('#m-mapel', r.pesan);
+  pesan('#m-mapel', '');
+  DATA = r;
+  $('#a-nama').textContent = r.siswa.nama;
+  $('#a-kelas').textContent = 'Kelas ' + r.siswa.kelas + (r.siswa.wali ? ' · Wali kelas: ' + r.siswa.wali : '');
+  $('#a-ta').textContent = 'Tahun ajaran ' + r.tahunAjaran + ' · Semester ' + r.semester;
+  $('#sem').innerHTML = [1, 2].filter(s => s <= r.semesterAktif).map(s =>
+    '<button type="button" data-s="' + s + '" class="' + (s === r.semester ? 'on' : '') + '">Semester ' + s + '</button>').join('');
+  if (r.semesterAktif < 2) $('#sem').innerHTML = '';
+  if (!r.mapel.length) return pesan('#m-mapel', 'Belum ada Tujuan Pembelajaran untuk semester ini.', true);
+  $('#daftar-mapel').innerHTML = r.mapel.map((m, i) => {
+    const j = m.jumlah, bagian = [];
+    if (j.tuntas) bagian.push('<span class="t">✅ ' + j.tuntas + ' tuntas</span>');
+    if (j.perbaikan) bagian.push('<span class="p">⏳ ' + j.perbaikan + ' belum tuntas</span>');
+    if (j.belum) bagian.push('<span class="b">– ' + j.belum + ' belum dinilai</span>');
+    return '<button type="button" class="mapel" data-i="' + i + '"><span class="nm">' + esc(m.nama) +
+      '<span class="ket">' + bagian.join(' · ') + '</span></span><span class="panah">›</span></button>';
+  }).join('');
+}
+$('#sem').addEventListener('click', e => { const s = e.target.dataset.s; if (s) muat(Number(s)); });
+
+const LABEL = { tuntas: ['t', '✅ Tuntas'], perbaikan: ['p', '⏳ Belum tuntas'], belum: ['b', '– Belum dinilai'] };
+$('#daftar-mapel').addEventListener('click', e => {
+  const b = e.target.closest('.mapel'); if (!b) return;
+  const m = DATA.mapel[Number(b.dataset.i)];
+  $('#tp-judul').textContent = m.nama;
+  $('#tp-ringkas').textContent = 'Semester ' + DATA.semester + ' · ' + m.tp.length + ' Tujuan Pembelajaran';
+  $('#daftar-tp').innerHTML = m.tp.map(t => '<div class="tp"><div class="kode">' + esc(t.kode) + '</div><div class="isi">' + esc(t.tp) +
+    (t.materi ? '<div class="materi">Materi: ' + esc(t.materi) + '</div>' : '') + '</div><span class="lencana ' + LABEL[t.status][0] + '">' +
+    LABEL[t.status][1] + '</span></div>').join('');
+  const p = $('#tp-pesan');
+  p.classList.toggle('hidden', !m.pesan);
+  if (m.pesan) { p.className = 'pesan ' + m.pesan.jenis; p.textContent = (m.pesan.jenis === 'perbaikan' ? '💬 ' : '') + m.pesan.teks; }
+  tampil('#l-tp');
+});
+$('#kembali').addEventListener('click', () => tampil('#l-mapel'));
+
+$('#ke-guru').addEventListener('click', () => { $('#f-guru').reset(); pesan('#m-guru', ''); tampil('#l-guru'); });
+$('#guru-kembali').addEventListener('click', () => tampil('#l-masuk'));
+$('#f-guru').addEventListener('submit', async e => {
+  e.preventDefault(); sibuk(e.target, true);
+  const r = await api({ aksi: 'guruReset', nisn: $('#g-nisn').value, pin: $('#g-pin').value });
+  sibuk(e.target, false);
+  pesan('#m-guru', r.pesan, r.ok);
+  if (r.ok) { $('#g-nisn').value = ''; }
+});
+
+if (SESI) muat(); else tampil('#l-masuk');
+</script>
+</body>
+</html>
