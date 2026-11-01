@@ -8,7 +8,7 @@ Situs statis GitHub Pages. Layanan yang butuh data berjalan sebagai aplikasi Goo
 |---|---|---|---|
 | Presensi Digital | `1YSGZGQn0fMHCXY8DRWa8EudCHbclZcBx6-gKiYEC_muEv-5L2cE1ZN3L` | `AKfycbwlW-dmXA93oPWO03GVUhirEt2Smu1dPzhRoST4xQwlpSiNKVZRamVwp1M5enwfXu1N` | spreadsheet Database_Presensi_SDN_Bugangin (terikat) |
 | Super Admin (bantuan, prestasi, kabar) | `1y7MANEjhRxo58zEOe_InzrfFQIp55pQKVHhuToNBddbUjhtMYylpKGAu` | `AKfycbyE3fM1cmCXeMsdoygOAP92MIKSngirrd3pOd2U1t4Nr63wAO3lOfEjUyCPBUA7PTor` | spreadsheet Database Bantuan Siswa (terikat); salinan kode di `super-admin/apps-script/Kode.gs` |
-| Persuratan | `1zRk7JfnPEqO1cp03BuD4HrZl73g03ggRKK6EGhWiL4ReU0rKQTnKz5i0` | `AKfycbzYhvR7D-rcUx64s0navcLL4JZBtZ6e_PgQ1zEQSKcVDqqtWL9Z7hrASOd26_WRqchX` | spreadsheet dibuat oleh `setupAwal()` |
+| Persuratan | `15Mpx2pij8a_ICLDbyJVuaFwtLc6ga-QOre8WSePZCplAGYLhvRbRAb2D` (proyek lama `1zRk7Jfn…` tidak dipakai, tidak punya deployment) | `AKfycbzYhvR7D-rcUx64s0navcLL4JZBtZ6e_PgQ1zEQSKcVDqqtWL9Z7hrASOd26_WRqchX` | spreadsheet dibuat oleh `setupAwal()` |
 | Update Nomor WA | `1UPX-pcnR8qEpkcUI0EqBqcRh1Bju3D_n5z8bp09h2UPZDWE5RlW69Kng` | `AKfycbxYn87T_TmCMIT30VdE7M_zNERwLIxMin_ILewdt2OT4_z4fu9MviA5mQmTmJ3szYHD` | — |
 
 ## Mengubah kode Apps Script lewat clasp
