@@ -1,13 +1,13 @@
 /**
  * Pantau Belajar Anak — SD N Bugangin.
  *
- * Orang tua masuk dengan NISN anak, lalu melihat ketuntasan setiap Tujuan Pembelajaran (TP)
+ * Orang tua memilih kelas dan nama anak, memasukkan sandi, lalu melihat ketuntasan setiap Tujuan Pembelajaran (TP)
  * dari nilai sumatif yang diisi guru di aplikasi Rapor Merdeka Digital (bolonulis.github.io).
  *
  * - Spreadsheet rapor sekolah HANYA DIBACA, tidak pernah ditulis.
  * - Sandi orang tua disimpan (di-hash) di spreadsheet milik aplikasi ini sendiri ("DB Pantau Belajar").
  * - Sandi awal semua siswa: SANDI_AWAL. Wajib diganti saat pertama masuk.
- * - 5 kali salah sandi → NISN dikunci 15 menit.
+ * - 5 kali salah sandi → akun siswa itu dikunci 15 menit.
  * - Guru dapat mengatur ulang sandi ke sandi awal dengan PIN Guru (sheet Pengaturan).
  *
  * Pasang: jalankan setupAwal() sekali dari editor, lalu isi PIN Guru di sheet Pengaturan.
@@ -22,7 +22,7 @@ var MENIT_KUNCI = 15;
 var JAM_SESI = 6;
 var BATAS_TUNTAS_BAWAAN = 70;
 
-var KOLOM_AKUN = ['NISN', 'Hash Sandi', 'Garam', 'Diubah Pada', 'Masuk Terakhir'];
+var KOLOM_AKUN = ['ID Siswa', 'Hash Sandi', 'Garam', 'Diubah Pada', 'Masuk Terakhir'];
 var KOLOM_PENGATURAN = ['Kunci', 'Nilai', 'Keterangan'];
 var KOLOM_LOG = ['Waktu', 'NISN', 'Aksi'];
 
@@ -97,6 +97,12 @@ function ringkasMapel_(mapel, tp, batas, panggilan, wali) {
   return { kode: mapel.kode, nama: mapel.nama, jumlah: jumlah, tp: daftar, pesan: pesan };
 }
 
+/** Nama kelas seperti di aplikasi rapor: nama rombel = angka kelas → "Kelas 4", selain itu nama rombel apa adanya. */
+function labelRombel_(r) {
+  var nama = teks_(r['Nama Rombel']), kelas = teks_(r.Kelas);
+  return !nama || nama === kelas ? 'Kelas ' + kelas : nama;
+}
+
 /** Varian mapel yang diikuti siswa: agama → [agamanya], seni → seni pilihannya, lainnya → ['']. */
 function varianSiswa_(jenis, agama, seni) {
   if (jenis === 'agama') return agama ? [agama] : [];
@@ -109,17 +115,17 @@ function varianSiswa_(jenis, agama, seni) {
  * t = { pengaturan, rombel, siswa, anggota, mapelAktif, tp, nilai }
  * Hasil: { ok, pesan } atau { ok, siswa, semester, semesterAktif, mapel[] }.
  */
-function hitungKetuntasan_(t, nisn, semesterDiminta, batas) {
+function hitungKetuntasan_(t, idSiswa, semesterDiminta, batas) {
   var atur = {};
   t.pengaturan.forEach(function (r) { atur[teks_(r.Kunci)] = r.Nilai; });
   var ta = teks_(atur['Tahun Ajaran']);
   var semAktif = Number(atur.Semester) === 2 ? 2 : 1;
   var sem = Number(semesterDiminta) === 1 || Number(semesterDiminta) === 2 ? Number(semesterDiminta) : semAktif;
 
+  idSiswa = teks_(idSiswa);
   var s = null;
-  t.siswa.forEach(function (r) { if (!s && rapikanNisn_(r.NISN) === nisn) s = r; });
+  t.siswa.forEach(function (r) { if (!s && teks_(r['ID Siswa']) === idSiswa) s = r; });
   if (!s) return { ok: false, pesan: 'Data siswa tidak ditemukan.' };
-  var idSiswa = teks_(s['ID Siswa']);
   var anggota = t.anggota.filter(function (a) { return teks_(a['Tahun Ajaran']) === ta && teks_(a['ID Siswa']) === idSiswa; })[0];
   if (!anggota) return { ok: false, pesan: 'Ananda belum terdaftar di kelas mana pun tahun ajaran ' + ta + '. Silakan hubungi wali kelas.' };
   var rombel = t.rombel.filter(function (r) { return teks_(r['ID Rombel']) === teks_(anggota['ID Rombel']) && teks_(r['Tahun Ajaran']) === ta; })[0];
@@ -159,9 +165,42 @@ function hitungKetuntasan_(t, nisn, semesterDiminta, batas) {
 
   return {
     ok: true,
-    siswa: { nama: teks_(s['Nama Lengkap']), panggilan: panggilan, kelas: teks_(rombel['Nama Rombel']) || String(kelas), wali: wali },
+    siswa: { nama: teks_(s['Nama Lengkap']), panggilan: panggilan, kelas: labelRombel_(rombel), wali: wali },
     tahunAjaran: ta, semester: sem, semesterAktif: semAktif, mapel: hasil
   };
+}
+
+/**
+ * Daftar kelas tahun ajaran aktif beserta siswanya (urut nomor absen), untuk layar masuk.
+ * t = { pengaturan, rombel, siswa, anggota }
+ * Hasil: { kelas: [{ nama, siswa: [{ id, nama }] }], nisn: { idSiswa: nisn } }
+ * (nisn hanya dipakai di server untuk akun lama; tidak dikirim ke halaman.)
+ */
+function daftarKelas_(t) {
+  var atur = {};
+  t.pengaturan.forEach(function (r) { atur[teks_(r.Kunci)] = r.Nilai; });
+  var ta = teks_(atur['Tahun Ajaran']);
+  var siswa = {};
+  t.siswa.forEach(function (r) { siswa[teks_(r['ID Siswa'])] = r; });
+  var nisn = {};
+  var kelas = t.rombel.filter(function (r) { return teks_(r['Tahun Ajaran']) === ta; })
+    .sort(function (a, b) {
+      return Number(a.Kelas) - Number(b.Kelas) || (teks_(a['Nama Rombel']) < teks_(b['Nama Rombel']) ? -1 : 1);
+    })
+    .map(function (r) {
+      var id = teks_(r['ID Rombel']);
+      var isi = t.anggota
+        .filter(function (a) { return teks_(a['Tahun Ajaran']) === ta && teks_(a['ID Rombel']) === id && siswa[teks_(a['ID Siswa'])]; })
+        .sort(function (a, b) { return Number(a['No Urut']) - Number(b['No Urut']); })
+        .map(function (a) {
+          var s = siswa[teks_(a['ID Siswa'])];
+          nisn[teks_(s['ID Siswa'])] = rapikanNisn_(s.NISN);
+          return { id: teks_(s['ID Siswa']), nama: teks_(s['Nama Lengkap']) };
+        });
+      return { nama: labelRombel_(r), siswa: isi };
+    })
+    .filter(function (k) { return k.siswa.length; });
+  return { kelas: kelas, nisn: nisn };
 }
 
 /* =====================================================================
@@ -186,11 +225,12 @@ function doPost(e) {
 
 function layani_(req) {
   switch (req.aksi) {
-    case 'masuk': return masuk_(rapikanNisn_(req.nisn), String(req.sandi || ''));
+    case 'daftarKelas': return { ok: true, kelas: daftar_().kelas };
+    case 'masuk': return masuk_(teks_(req.siswa) || idDariNisn_(req.nisn), String(req.sandi || ''));
     case 'gantiSandi': return gantiSandi_(req.sesi, req.lama, req.baru, req.ulangi);
     case 'ketuntasan': return ketuntasan_(req.sesi, req.semester);
     case 'keluar': CacheService.getScriptCache().remove('sesi:' + teks_(req.sesi)); return { ok: true };
-    case 'guruReset': return guruReset_(String(req.pin || ''), rapikanNisn_(req.nisn));
+    case 'guruReset': return guruReset_(String(req.pin || ''), teks_(req.siswa));
     default: return { ok: false, pesan: 'Permintaan tidak dikenal.' };
   }
 }
@@ -229,8 +269,41 @@ function batasTuntas_() {
   return b === null || b < 0 || b > 100 ? BATAS_TUNTAS_BAWAAN : b;
 }
 
-function catat_(nisn, aksi) {
-  try { dbPantau_().getSheetByName('Log').appendRow([new Date(), nisn, aksi]); } catch (e) { /* log tidak boleh menggagalkan */ }
+function catat_(idSiswa, aksi) {
+  try { dbPantau_().getSheetByName('Log').appendRow([new Date(), idSiswa, aksi]); } catch (e) { /* log tidak boleh menggagalkan */ }
+}
+
+/** Daftar kelas & siswa dari rapor, diingat 10 menit. */
+function daftar_() {
+  var cache = CacheService.getScriptCache(), c = cache.get('daftar');
+  if (c) return JSON.parse(c);
+  var ss = SpreadsheetApp.openById(RAPOR_SS_ID);
+  var d = daftarKelas_({ pengaturan: bacaTabel_(ss, 'Pengaturan'), rombel: bacaTabel_(ss, 'Rombel'),
+    siswa: bacaTabel_(ss, 'Siswa'), anggota: bacaTabel_(ss, 'Anggota Rombel') });
+  try { cache.put('daftar', JSON.stringify(d), 600); } catch (e) { /* terlalu besar untuk cache: baca ulang tiap kali */ }
+  return d;
+}
+
+/** Siswa terdaftar di tahun ajaran aktif? Hasil: { id, nama, nisn } atau null. */
+function cariSiswa_(id) {
+  if (!id) return null;
+  var d = daftar_();
+  for (var i = 0; i < d.kelas.length; i++) {
+    for (var j = 0; j < d.kelas[i].siswa.length; j++) {
+      var s = d.kelas[i].siswa[j];
+      if (s.id === id) return { id: id, nama: s.nama, nisn: d.nisn[id] || '' };
+    }
+  }
+  return null;
+}
+
+/** Halaman versi lama (masuk dengan NISN) tetap bisa dipakai selama peralihan. */
+function idDariNisn_(nisn) {
+  nisn = rapikanNisn_(nisn);
+  if (!nisn) return '';
+  var d = daftar_();
+  for (var id in d.nisn) if (d.nisn[id] === nisn) return id;
+  return '';
 }
 
 /* ---------- akun orang tua ---------- */
@@ -240,54 +313,53 @@ function hashSandi_(sandi, garam) {
   return b.map(function (x) { return ((x + 256) % 256).toString(16).replace(/^(.)$/, '0$1'); }).join('');
 }
 
-function cariAkun_(sh, nisn) {
+/**
+ * Akun disimpan dengan kunci ID Siswa (rapor). Akun lama (versi 1) berkunci NISN tetap dikenali,
+ * dan kuncinya diganti ke ID Siswa saat sandi berikutnya disimpan.
+ */
+function cariAkun_(sh, siswa) {
   var v = sh.getDataRange().getValues();
-  for (var i = 1; i < v.length; i++) if (rapikanNisn_(v[i][0]) === nisn) return { baris: i + 1, hash: teks_(v[i][1]), garam: teks_(v[i][2]) };
+  for (var i = 1; i < v.length; i++) {
+    var k = teks_(v[i][0]);
+    if (k === siswa.id || (siswa.nisn && rapikanNisn_(k) === siswa.nisn && /^\d{10}$/.test(k)))
+      return { baris: i + 1, hash: teks_(v[i][1]), garam: teks_(v[i][2]) };
+  }
   return null;
 }
 
-function nisnTerdaftar_(nisn) {
-  var cache = CacheService.getScriptCache(), k = 'ada:' + nisn, c = cache.get(k);
-  if (c) return c === '1';
-  var ada = bacaTabel_(SpreadsheetApp.openById(RAPOR_SS_ID), 'Siswa').some(function (r) { return rapikanNisn_(r.NISN) === nisn; });
-  cache.put(k, ada ? '1' : '0', 600);
-  return ada;
-}
-
-function masuk_(nisn, sandi) {
-  var salahUmum = { ok: false, pesan: 'NISN atau sandi salah.' };
-  if (!/^\d{10}$/.test(nisn)) return { ok: false, pesan: 'NISN harus 10 angka.' };
+function masuk_(id, sandi) {
   var cache = CacheService.getScriptCache();
-  if (cache.get('kunci:' + nisn)) return { ok: false, pesan: 'Terlalu banyak percobaan salah. Coba lagi ' + MENIT_KUNCI + ' menit lagi.' };
+  var siswa = cariSiswa_(id);
+  if (!siswa) return { ok: false, pesan: 'Nama siswa tidak ditemukan. Pilih ulang kelas dan nama.' };
+  if (cache.get('kunci:' + id)) return { ok: false, pesan: 'Terlalu banyak percobaan salah. Coba lagi ' + MENIT_KUNCI + ' menit lagi.' };
 
-  var benar = false, wajibGanti = false;
-  if (nisnTerdaftar_(nisn)) {
-    var akun = cariAkun_(dbPantau_().getSheetByName('Akun Ortu'), nisn);
-    if (akun && akun.hash) benar = hashSandi_(sandi, akun.garam) === akun.hash;
-    else { benar = sandi === SANDI_AWAL; wajibGanti = true; }
-  }
+  var benar, wajibGanti = false;
+  var akun = cariAkun_(dbPantau_().getSheetByName('Akun Ortu'), siswa);
+  if (akun && akun.hash) benar = hashSandi_(sandi, akun.garam) === akun.hash;
+  else { benar = sandi === SANDI_AWAL; wajibGanti = true; }
   if (!benar) {
-    var gagal = Number(cache.get('gagal:' + nisn) || 0) + 1;
+    var gagal = Number(cache.get('gagal:' + id) || 0) + 1;
     if (gagal >= MAKS_GAGAL) {
-      cache.put('kunci:' + nisn, '1', MENIT_KUNCI * 60);
-      cache.remove('gagal:' + nisn);
-      catat_(nisn, 'dikunci ' + MENIT_KUNCI + ' menit');
+      cache.put('kunci:' + id, '1', MENIT_KUNCI * 60);
+      cache.remove('gagal:' + id);
+      catat_(id, 'dikunci ' + MENIT_KUNCI + ' menit');
       return { ok: false, pesan: 'Sudah ' + MAKS_GAGAL + ' kali salah. Coba lagi ' + MENIT_KUNCI + ' menit lagi.' };
     }
-    cache.put('gagal:' + nisn, String(gagal), MENIT_KUNCI * 60);
-    return salahUmum;
+    cache.put('gagal:' + id, String(gagal), MENIT_KUNCI * 60);
+    return { ok: false, pesan: 'Sandi salah. Sisa percobaan: ' + (MAKS_GAGAL - gagal) + ' kali.' };
   }
-  cache.remove('gagal:' + nisn);
+  cache.remove('gagal:' + id);
   var sesi = Utilities.getUuid();
-  cache.put('sesi:' + sesi, JSON.stringify({ nisn: nisn, wajibGanti: wajibGanti }), JAM_SESI * 3600);
-  catat_(nisn, 'masuk');
+  cache.put('sesi:' + sesi, JSON.stringify({ id: id, wajibGanti: wajibGanti }), JAM_SESI * 3600);
+  catat_(id, 'masuk');
   return { ok: true, sesi: sesi, wajibGanti: wajibGanti };
 }
 
 function bacaSesi_(sesi) {
   var c = CacheService.getScriptCache().get('sesi:' + teks_(sesi));
   if (!c) return null;
-  return JSON.parse(c);
+  var s = JSON.parse(c);
+  return s.id ? s : null; // sesi versi lama (berkunci NISN) dianggap habis
 }
 
 function gantiSandi_(sesi, lama, baru, ulangi) {
@@ -295,23 +367,25 @@ function gantiSandi_(sesi, lama, baru, ulangi) {
   if (!s) return { ok: false, sesiHabis: true, pesan: 'Sesi berakhir. Silakan masuk lagi.' };
   var salah = cekSandiBaru_(baru, ulangi);
   if (salah) return { ok: false, pesan: salah };
+  var siswa = cariSiswa_(s.id);
+  if (!siswa) return { ok: false, sesiHabis: true, pesan: 'Data siswa tidak ditemukan. Silakan masuk lagi.' };
   var kunci = LockService.getScriptLock();
   kunci.waitLock(20000);
   try {
     var sh = dbPantau_().getSheetByName('Akun Ortu');
-    var akun = cariAkun_(sh, s.nisn);
+    var akun = cariAkun_(sh, siswa);
     if (!s.wajibGanti) {
       var cocok = akun && akun.hash ? hashSandi_(String(lama || ''), akun.garam) === akun.hash : String(lama || '') === SANDI_AWAL;
       if (!cocok) return { ok: false, pesan: 'Sandi lama salah.' };
     }
     var garam = Utilities.getUuid();
-    var baris = [s.nisn, hashSandi_(String(baru), garam), garam, new Date(), new Date()];
+    var baris = [s.id, hashSandi_(String(baru), garam), garam, new Date(), new Date()];
     if (akun) sh.getRange(akun.baris, 1, 1, baris.length).setValues([baris]);
     else sh.appendRow(baris);
   } finally { kunci.releaseLock(); }
   s.wajibGanti = false;
   CacheService.getScriptCache().put('sesi:' + teks_(sesi), JSON.stringify(s), JAM_SESI * 3600);
-  catat_(s.nisn, 'ganti sandi');
+  catat_(s.id, 'ganti sandi');
   return { ok: true, pesan: 'Sandi baru tersimpan. Ingat baik-baik sandi ini.' };
 }
 
@@ -325,12 +399,12 @@ function ketuntasan_(sesi, semester) {
     anggota: bacaTabel_(ss, 'Anggota Rombel'), mapelAktif: bacaTabel_(ss, 'Mapel Aktif'),
     tp: bacaTabel_(ss, 'Tujuan Pembelajaran'), nilai: bacaTabel_(ss, 'Nilai')
   };
-  return hitungKetuntasan_(t, s.nisn, semester, batasTuntas_());
+  return hitungKetuntasan_(t, s.id, semester, batasTuntas_());
 }
 
 /* ---------- guru ---------- */
 
-function guruReset_(pin, nisn) {
+function guruReset_(pin, id) {
   var cache = CacheService.getScriptCache();
   if (cache.get('kunci:guru')) return { ok: false, pesan: 'Terlalu banyak PIN salah. Coba lagi ' + MENIT_KUNCI + ' menit lagi.' };
   var pinBenar = teks_(pengaturan_()['PIN Guru']);
@@ -342,19 +416,19 @@ function guruReset_(pin, nisn) {
     return { ok: false, pesan: 'PIN Guru salah.' };
   }
   cache.remove('gagal:guru');
-  if (!/^\d{10}$/.test(nisn)) return { ok: false, pesan: 'NISN harus 10 angka.' };
-  if (!nisnTerdaftar_(nisn)) return { ok: false, pesan: 'NISN tidak ditemukan di data rapor.' };
+  var siswa = cariSiswa_(id);
+  if (!siswa) return { ok: false, pesan: 'Pilih kelas dan nama siswa.' };
   var kunci = LockService.getScriptLock();
   kunci.waitLock(20000);
   try {
     var sh = dbPantau_().getSheetByName('Akun Ortu');
-    var akun = cariAkun_(sh, nisn);
+    var akun = cariAkun_(sh, siswa);
     if (akun) sh.getRange(akun.baris, 2, 1, 3).setValues([['', '', new Date()]]);
   } finally { kunci.releaseLock(); }
-  cache.remove('kunci:' + nisn);
-  cache.remove('gagal:' + nisn);
-  catat_(nisn, 'sandi diatur ulang oleh guru');
-  return { ok: true, pesan: 'Sandi NISN ' + nisn + ' kembali ke sandi awal "' + SANDI_AWAL + '". Orang tua wajib membuat sandi baru saat masuk.' };
+  cache.remove('kunci:' + id);
+  cache.remove('gagal:' + id);
+  catat_(id, 'sandi diatur ulang oleh guru');
+  return { ok: true, pesan: 'Sandi ' + siswa.nama + ' kembali ke sandi awal "' + SANDI_AWAL + '". Orang tua wajib membuat sandi baru saat masuk.' };
 }
 
 /* ---------- pemasangan ---------- */
@@ -383,5 +457,5 @@ function setupAwal() {
 
 if (typeof module !== 'undefined') {
   module.exports = { rapikanNisn_: rapikanNisn_, angka_: angka_, cekSandiBaru_: cekSandiBaru_, statusTp_: statusTp_,
-    ringkasMapel_: ringkasMapel_, hitungKetuntasan_: hitungKetuntasan_, SANDI_AWAL: SANDI_AWAL };
+    ringkasMapel_: ringkasMapel_, hitungKetuntasan_: hitungKetuntasan_, daftarKelas_: daftarKelas_, SANDI_AWAL: SANDI_AWAL };
 }

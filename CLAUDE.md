@@ -29,7 +29,7 @@ Ikuti urutan ini setiap kali mengubah aplikasi Apps Script:
 
 1. **Catat versi yang sedang jalan.** Sebelum mengubah apa pun, jalankan `clasp list-deployments` dan laporkan nomor versi deployment resmi (mis. Presensi `@64`) ke Kepala Sekolah. Itu titik kembali.
 2. **Perubahan kecil, satu per satu.** Satu perbaikan per pemasangan; jangan menggabungkan banyak perubahan sekaligus. Jangan menulis ulang atau merapikan bagian kode yang tidak diminta.
-3. **Uji di alamat uji coba dulu.** Setelah `clasp push` (dengan izin), deployment resmi belum berubah. Berikan Kepala Sekolah alamat uji coba `https://script.google.com/macros/s/<ID deployment @HEAD>/dev` (ID `@HEAD` terlihat di `clasp list-deployments`; hanya bisa dibuka akun pemilik/editor), lalu tunggu konfirmasi bahwa sudah dicoba dan cocok.
+3. **Uji di alamat uji coba dulu.** (Untuk aplikasi yang dipanggil dari halaman website, mis. Pantau, alamat `/dev` tidak bisa dipakai karena butuh login Google; gantinya buat server baru tetap melayani halaman lama, uji dengan tes + data contoh, pasang, lalu tayangkan halaman.) Setelah `clasp push` (dengan izin), deployment resmi belum berubah. Berikan Kepala Sekolah alamat uji coba `https://script.google.com/macros/s/<ID deployment @HEAD>/dev` (ID `@HEAD` terlihat di `clasp list-deployments`; hanya bisa dibuka akun pemilik/editor), lalu tunggu konfirmasi bahwa sudah dicoba dan cocok.
 4. **Cadangkan data bila susunan spreadsheet berubah.** Jika perubahan menambah/menghapus/memindah kolom atau sheet, minta Kepala Sekolah membuat salinan spreadsheet (File → Buat salinan) sebelum dipasang.
 5. **Pasang di luar jam sibuk.** Pasang versi baru siang/sore setelah sekolah, bukan pagi saat presensi. Caranya: `clasp create-version "<keterangan>"`, lalu `clasp update-deployment <Deployment ID> -V <nomor versi baru> -d "<keterangan>"`.
 6. **Cek setelah dipasang**, lalu laporkan nomor versi lama dan baru.
@@ -44,12 +44,13 @@ Untuk website (repo ini): kerjakan di cabang kerja, bukan langsung di cabang uta
 
 ## Pantau Belajar Anak (`pantau/`, khusus SD N Bugangin)
 
-- Orang tua masuk dengan NISN anak, melihat ketuntasan TP per mapel (Tuntas / Belum tuntas / Belum dinilai), tanpa angka nilai. Belum tuntas → saran meminta jadwal ulangan perbaikan ke guru kelas; semua tuntas → kalimat apresiasi.
+- Orang tua masuk dengan memilih kelas dan nama lengkap anak (daftar dari rapor tahun ajaran aktif) lalu sandi, melihat ketuntasan TP per mapel (Tuntas / Belum tuntas / Belum dinilai), tanpa angka nilai. Belum tuntas → saran meminta jadwal ulangan perbaikan ke guru kelas; semua tuntas → kalimat apresiasi.
 - Aplikasi Apps Script tersendiri milik akun Kepala Sekolah; kode di `pantau/apps-script/Kode.gs`, tes `node --test pantau/tes/*.test.js`. Spreadsheet rapor sekolah **hanya dibaca**; server bolonulis tidak disentuh.
-- Sandi awal semua siswa `muridsuper`, wajib diganti saat pertama masuk (min. 4 karakter); 5 kali salah → dikunci 15 menit; guru mengatur ulang sandi dengan PIN Guru. Batas Tuntas (bawaan 70) dan PIN Guru diatur di sheet Pengaturan spreadsheet "DB Pantau Belajar SD N Bugangin" (dibuat `setupAwal()`).
+- Akun berkunci ID Siswa rapor (akun lama berkunci NISN tetap dikenali dan dipindah saat ganti sandi; server masih menerima masuk dengan NISN untuk halaman lama). Sandi awal semua siswa `muridsuper`, wajib diganti saat pertama masuk (min. 4 karakter); 5 kali salah → dikunci 15 menit; guru mengatur ulang sandi dengan PIN Guru. Batas Tuntas (bawaan 70) dan PIN Guru diatur di sheet Pengaturan spreadsheet "DB Pantau Belajar SD N Bugangin" (dibuat `setupAwal()`).
 - Membaca sheet rapor berdasarkan judul kolom (Pengaturan, Rombel, Siswa, Anggota Rombel, Mapel Aktif, Tujuan Pembelajaran, Nilai). **Setiap kali server bolonulis mengubah susunan sheet, cek dan uji ulang aplikasi ini.**
 
 ## Aturan data
 
 - Data bantuan (PIP, BAZNAS, yatim piatu) dan pelanggaran hanya untuk guru. Halaman publik tidak boleh menampilkan nama siswa; jumlah di bawah 3 disamarkan.
+  - Pengecualian (keputusan Kepala Sekolah): daftar pilihan kelas → nama lengkap siswa di layar masuk Pantau Belajar / Tumbuh Kembang. Data di balik nama itu tetap hanya terbuka dengan sandi orang tua.
 - Nomor WA orang tua dan data siswa adalah data pribadi anak (UU No. 27/2022): jangan disalin ke repo.

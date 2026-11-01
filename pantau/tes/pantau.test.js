@@ -69,7 +69,7 @@ test('status TP: kosong = belum dinilai, bukan belum tuntas', () => {
 });
 
 test('ketuntasan siswa: hitungan per mapel, varian agama & seni, tanpa angka nilai', () => {
-  const h = P.hitungKetuntasan_(tabel(), '0161234567', undefined, 70);
+  const h = P.hitungKetuntasan_(tabel(), 'S1', undefined, 70);
   assert.equal(h.ok, true);
   assert.equal(h.semester, 1);
   assert.deepEqual(h.siswa, { nama: 'ANAK CONTOH SATU', panggilan: 'Satu', kelas: '4A', wali: 'Bu Contoh, S.Pd.' });
@@ -97,30 +97,43 @@ test('ketuntasan siswa: hitungan per mapel, varian agama & seni, tanpa angka nil
 test('sebagian dinilai dan semua tuntas → pesan semangat', () => {
   const t = tabel();
   t.nilai = t.nilai.filter(n => !(n.Kode === 'TP2' && n['Kode Mapel'] === 'MTK'));
-  const mtk = P.hitungKetuntasan_(t, '0161234567', 1, 70).mapel.find(m => m.nama === 'Matematika');
+  const mtk = P.hitungKetuntasan_(t, 'S1', 1, 70).mapel.find(m => m.nama === 'Matematika');
   assert.equal(mtk.pesan.jenis, 'semangat');
 });
 
 test('agama siswa lain dan panggilan bawaan dari nama depan', () => {
-  const h = P.hitungKetuntasan_(tabel(), '0169999999', 1, 70);
+  const h = P.hitungKetuntasan_(tabel(), 'S2', 1, 70);
   assert.equal(h.siswa.panggilan, 'Anak');
   assert.deepEqual(h.mapel.find(m => m.nama === 'Pendidikan Agama').tp.map(t => t.tp), ['TP PAI Kristen']);
   assert.equal(h.mapel.filter(m => m.nama.startsWith('Seni')).length, 0); // Seni Tari tidak punya TP
 });
 
 test('semester 2 bisa dipilih; semester tidak sah kembali ke semester aktif', () => {
-  const h2 = P.hitungKetuntasan_(tabel(), '0161234567', 2, 70);
+  const h2 = P.hitungKetuntasan_(tabel(), 'S1', 2, 70);
   assert.equal(h2.semester, 2);
   assert.deepEqual(h2.mapel.map(m => m.nama), ['Matematika']);
-  assert.equal(P.hitungKetuntasan_(tabel({ semester: 2 }), '0161234567', 7, 70).semester, 2);
+  assert.equal(P.hitungKetuntasan_(tabel({ semester: 2 }), 'S1', 7, 70).semester, 2);
 });
 
 test('batas tuntas mengikuti pengaturan', () => {
-  const mtk = P.hitungKetuntasan_(tabel(), '0161234567', 1, 60).mapel.find(m => m.nama === 'Matematika');
+  const mtk = P.hitungKetuntasan_(tabel(), 'S1', 1, 60).mapel.find(m => m.nama === 'Matematika');
   assert.deepEqual(mtk.jumlah, { tuntas: 3, perbaikan: 0, belum: 1 });
 });
 
 test('siswa tidak ada atau belum masuk kelas', () => {
-  assert.equal(P.hitungKetuntasan_(tabel(), '0000000000', 1, 70).ok, false);
-  assert.match(P.hitungKetuntasan_(tabel(), '0160000003', 1, 70).pesan, /belum terdaftar/);
+  assert.equal(P.hitungKetuntasan_(tabel(), 'S9', 1, 70).ok, false);
+  assert.match(P.hitungKetuntasan_(tabel(), 'S3', 1, 70).pesan, /belum terdaftar/);
+});
+
+test('daftar kelas untuk layar masuk: urut kelas dan absen, tanpa NISN di daftar siswa', () => {
+  const t = tabel();
+  t.rombel.push({ 'ID Rombel': 'R1', 'Tahun Ajaran': TA, Kelas: 1, 'Nama Rombel': '1' });
+  t.rombel.push({ 'ID Rombel': 'RX', 'Tahun Ajaran': '2025/2026', Kelas: 3, 'Nama Rombel': '3' });
+  t.anggota.push({ 'Tahun Ajaran': TA, 'ID Rombel': 'R1', 'ID Siswa': 'S3', 'No Urut': 1 });
+  t.anggota[0]['No Urut'] = 2; t.anggota[1]['No Urut'] = 1;
+  const d = P.daftarKelas_(t);
+  assert.deepEqual(d.kelas.map(k => k.nama), ['Kelas 1', '4A']);
+  assert.deepEqual(d.kelas[1].siswa, [{ id: 'S2', nama: 'Anak Contoh Dua' }, { id: 'S1', nama: 'ANAK CONTOH SATU' }]);
+  assert.equal(d.nisn.S1, '0161234567');
+  assert.ok(!JSON.stringify(d.kelas).includes('016'), 'NISN tidak boleh ada di daftar untuk halaman');
 });
