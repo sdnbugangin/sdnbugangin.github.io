@@ -36,6 +36,12 @@ Ikuti urutan ini setiap kali mengubah aplikasi Apps Script:
 
 Untuk website (repo ini): kerjakan di cabang kerja, bukan langsung di cabang utama; perubahan baru tayang setelah Kepala Sekolah menyetujui penggabungan di GitHub. Halaman yang rusak dikembalikan dengan `git revert`, bukan menghapus riwayat.
 
+## Rapor (dikelola di bolonulis.github.io)
+
+- Aplikasi rapor ada di `https://bolonulis.github.io/app/` (repo terpisah, dipakai banyak SD). Website ini hanya menautkan ke sana (kartu di halaman depan dan pengalih `rapor/index.html`); jangan menyalin kode rapor ke repo ini, supaya setiap pembaruan di bolonulis langsung berlaku.
+- Data rapor SD N Bugangin adalah master: spreadsheet `1NOW-sx-lwBiPAYpV3xjtm8uDomlYTyMFhR0lyThKH8U` milik akun Kepala Sekolah, akses terbatas (pemilik + bolonulis@gmail.com). Jangan pernah mengubahnya menjadi "siapa saja yang memiliki link".
+- Rencana: halaman pantauan ketuntasan untuk orang tua (nama siswa, mapel, TP, tuntas/belum) dari nilai sumatif. Orang tua hanya boleh melihat anaknya sendiri (kode akses per siswa), tanpa angka nilai.
+
 ## Aturan data
 
 - Data bantuan (PIP, BAZNAS, yatim piatu) dan pelanggaran hanya untuk guru. Halaman publik tidak boleh menampilkan nama siswa; jumlah di bawah 3 disamarkan.
