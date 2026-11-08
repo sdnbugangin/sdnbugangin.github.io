@@ -145,3 +145,73 @@ test('tanpa kata sandi tidak bisa membaca atau menyimpan', () => {
   const ctxApi = req => g.api({ ...req, sandi: 'salah' });
   assert.equal(ctxApi({ aksi: 'tumbuhKelas', kelas: '4' }).sandiSalah, true);
 });
+
+// Titik dari tabel resmi WHO 2007 (kolom -3 SD, -2 SD, median, +2 SD, +3 SD) untuk beberapa umur.
+const TITIK_WHO = [
+  ["imtL", 61, 12.118, 13.031, 15.264, 18.259, 20.166],
+  ["imtL", 90, 12.319, 13.221, 15.602, 19.328, 22.147],
+  ["imtL", 120, 12.775, 13.735, 16.443, 21.4, 26.073],
+  ["imtL", 150, 13.588, 14.684, 17.87, 24.165, 30.854],
+  ["imtL", 180, 14.708, 16.011, 19.774, 26.969, 34.081],
+  ["imtL", 228, 15.855, 17.554, 22.188, 29.716, 35.516],
+  ["imtP", 61, 11.77, 12.748, 15.244, 18.858, 21.34],
+  ["imtP", 90, 11.803, 12.795, 15.524, 20.149, 23.994],
+  ["imtP", 120, 12.378, 13.47, 16.613, 22.57, 28.378],
+  ["imtP", 150, 13.379, 14.663, 18.399, 25.596, 32.708],
+  ["imtP", 180, 14.362, 15.871, 20.212, 28.224, 35.538],
+  ["imtP", 228, 14.724, 16.497, 21.427, 29.67, 36.179],
+  ["tbL", 61, 96.49, 101.082, 110.265, 119.448, 124.039],
+  ["tbL", 90, 108.135, 113.602, 124.536, 135.47, 140.938],
+  ["tbL", 120, 118.658, 125.032, 137.78, 150.527, 156.901],
+  ["tbL", 150, 130.66, 137.921, 152.442, 166.964, 174.225],
+  ["tbL", 180, 145.545, 153.35, 168.958, 184.566, 192.371],
+  ["tbL", 228, 154.648, 161.947, 176.543, 191.14, 198.438],
+  ["tbP", 61, 95.282, 100.055, 109.602, 119.148, 123.921],
+  ["tbP", 90, 106.762, 112.396, 123.665, 134.933, 140.567],
+  ["tbP", 120, 119.446, 125.843, 138.636, 151.43, 157.826],
+  ["tbP", 150, 133.292, 140.196, 154.004, 167.812, 174.716],
+  ["tbP", 180, 141.032, 147.911, 161.669, 175.427, 182.306],
+  ["tbP", 228, 143.532, 150.073, 163.155, 176.237, 182.777]
+];
+
+test('skor-z sesuai tabel WHO 2007 (IMT/U dan TB/U, laki-laki dan perempuan)', () => {
+  for (const [kunci, bulan, sd3n, sd2n, sd0, sd2, sd3] of TITIK_WHO) {
+    const [l, m, s] = K.lms_(kunci, bulan), batasi = kunci.startsWith('imt');
+    [[sd3n, -3], [sd2n, -2], [sd0, 0], [sd2, 2], [sd3, 3]].forEach(([x, z]) =>
+      assert.ok(Math.abs(K.skorZ_(x, l, m, s, batasi) - z) < 0.01, `${kunci} bulan ${bulan}: ${x} harus z=${z}`));
+  }
+});
+
+test('umur bulan penuh dan kategori status gizi', () => {
+  assert.equal(K.umurBulan_('2016-11-04', '2026-11-03'), 119);
+  assert.equal(K.umurBulan_('2016-11-03', '2026-11-03'), 120);
+  // laki-laki 120 bulan: median IMT 16,4 → gizi baik; tinggi median 137,8 cm
+  let st = K.statusGizi_({ jk: 'L', lahir: '2016-11-03' }, '2026-11-03', 31.1, 137.8);
+  assert.equal(st.umurBulan, 120);
+  assert.equal(st.gizi, 'Gizi baik');
+  assert.equal(st.tinggi, 'Normal');
+  // anak yang sama, berat jauh lebih besar → obesitas; jauh lebih kecil → gizi kurang/buruk
+  assert.equal(K.statusGizi_({ jk: 'L', lahir: '2016-11-03' }, '2026-11-03', 50, 137.8).gizi, 'Obesitas');
+  assert.match(K.statusGizi_({ jk: 'L', lahir: '2016-11-03' }, '2026-11-03', 22, 137.8).gizi, /Gizi (kurang|buruk)/);
+  // tinggi di bawah -2 SD → pendek
+  assert.match(K.statusGizi_({ jk: 'P', lahir: '2016-11-03' }, '2026-11-03', 22, 120).tinggi, /pendek/i);
+  // data tidak lengkap / di luar umur 5–19 tahun
+  assert.equal(K.statusGizi_(undefined, '2026-11-03', 30, 130), null);
+  assert.equal(K.statusGizi_({ jk: 'P', lahir: '2022-01-01' }, '2026-11-03', 18, 105).diLuarUmur, true);
+});
+
+test('kelas yang dibuka menampilkan status gizi dan rekap sekolah', () => {
+  const g = buat();
+  g.aktif['Data Lahir Siswa'] = lembar('Data Lahir Siswa', [['ID Siswa', 'Nama Siswa', 'Jenis Kelamin', 'Tanggal Lahir'],
+    ['P1', 'Anak Dua', 'L', '2016-11-03'], ['P2', 'Anak Satu', 'P', '03/11/2016']]);
+  g.api({ aksi: 'simpanTumbuh', kelas: '4', bulan: '2026-11', tanggal: '2026-11-03', isian: { P1: { bb: '31,1', tb: '137,8' }, P2: { bb: '50', tb: '138' } } });
+  g.api({ aksi: 'simpanTumbuh', kelas: '5', bulan: '2026-11', tanggal: '2026-11-03', isian: { P4: { bb: '35', tb: '140' } } });
+  const r = g.api({ aksi: 'tumbuhKelas', kelas: '4', bulan: '2026-11' });
+  const p1 = r.siswa.find(s => s.id === 'P1'), p2 = r.siswa.find(s => s.id === 'P2');
+  assert.equal(p1.status.gizi, 'Gizi baik');
+  assert.equal(p2.status.gizi, 'Obesitas');
+  assert.equal(p2.adaLahir, true);
+  assert.deepEqual(r.rekap['4'].gizi, { 'Gizi baik': 1, Obesitas: 1 });
+  assert.equal(r.rekap['5'].diukur, 1);
+  assert.equal(r.rekap['5'].tanpaLahir, 1);
+});
