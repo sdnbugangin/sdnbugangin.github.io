@@ -54,7 +54,7 @@ function buat(sekarang = '2026-11-05T09:00:00+07:00') {
   vm.createContext(ctx);
   vm.runInContext(fs.readFileSync(path.join(__dirname, '../apps-script/Kode.gs'), 'utf8'), ctx);
   const api = req => JSON.parse(ctx.doPost({ postData: { contents: JSON.stringify({ sandi: 'rahasia', oleh: 'Bu Guru', ...req }) } }).t);
-  return { api, aktif };
+  return { api, aktif, presensi };
 }
 
 test('tahun ajaran dan daftar bulannya', () => {
@@ -214,4 +214,50 @@ test('kelas yang dibuka menampilkan status gizi dan rekap sekolah', () => {
   assert.deepEqual(r.rekap['4'].gizi, { 'Gizi baik': 1, Obesitas: 1 });
   assert.equal(r.rekap['5'].diukur, 1);
   assert.equal(r.rekap['5'].tanpaLahir, 1);
+});
+
+test('laporan orang tua bulan November: ukur November, kehadiran dan pelanggaran Oktober, tanpa catatan khusus', () => {
+  const g = buat();
+  g.aktif['Data Lahir Siswa'] = lembar('Data Lahir Siswa', [['ID Siswa', 'Nama Siswa', 'Jenis Kelamin', 'Tanggal Lahir'], ['P1', 'Anak Dua', 'L', '2016-11-03']]);
+  g.presensi['Log Presensi'] = lembar('Log Presensi', [['Timestamp', 'Tanggal', 'Hari', 'Kelas', 'Nama Siswa', 'Status', 'Sumber Input', 'Tanggal Key'],
+    ['x', '5 Oktober 2026', 'Senin', '4', 'Anak Dua', 'Hadir', 'Mandiri', '2026-10-05'],
+    ['x', '6 Oktober 2026', 'Selasa', '4', 'Anak Dua', 'Tanpa Keterangan', 'Otomatis', '2026-10-06'],
+    ['x', '6 Oktober 2026', 'Selasa', '4', 'Anak Dua', 'Sakit', 'Koreksi Guru', '2026-10-06'],
+    ['x', '7 Oktober 2026', 'Rabu', '4', 'Anak Dua', 'Izin', 'Surat', '2026-10-07'],
+    ['x', '2 November 2026', 'Senin', '4', 'Anak Dua', 'Tanpa Keterangan', 'Otomatis', '2026-11-02'],
+    ['x', '5 Oktober 2026', 'Senin', '5', 'Anak Dua', 'Tanpa Keterangan', 'Otomatis', '2026-10-05']]);
+  g.presensi['Log Pelanggaran'] = lembar('Log Pelanggaran', [['Timestamp', 'Tanggal', 'Kelas', 'Nama Siswa', 'Tingkat', 'Jenis Pelanggaran', 'Catatan Khusus', 'Dicatat Oleh'],
+    ['x', '28 Oktober 2026', '4', 'Anak Dua', 'Ringan', 'Gaduh saat pelajaran', 'RAHASIA GURU', 'Bu Guru'],
+    ['x', '5 November 2026', '4', 'Anak Dua', 'Sedang', 'Bulan berjalan', '', 'Bu Guru']]);
+  g.presensi['Master Guru Kelas'] = lembar('Master Guru Kelas', [['Kelas', 'Nama Guru Kelas', 'Nomor WA Guru', 'NIP'], ['4', 'Bu Empat, S.Pd.', '0812', ''], ['5', 'Pak Lima', '0813', '1990']]);
+  g.api({ aksi: 'simpanTumbuh', kelas: '4', bulan: '2026-11', tanggal: '2026-11-03', isian: { P1: { bb: '50', tb: '137,8' } } });
+  const r = g.api({ aksi: 'laporanKelas', kelas: '4', bulan: '2026-11' });
+  assert.equal(r.ok, true, r.pesan);
+  assert.equal(r.bulan, '2026-11');
+  assert.equal(r.bulanRekap, '2026-10');
+  assert.deepEqual(r.guru, { nama: 'Bu Empat, S.Pd.', nip: '' });
+  const p1 = r.siswa.find(s => s.id === 'P1'), p2 = r.siswa.find(s => s.id === 'P2');
+  assert.deepEqual(p1.kehadiran, { Hadir: 1, Sakit: 1, Izin: 1, 'Tanpa Keterangan': 0, hari: 3 });
+  assert.deepEqual(p1.pelanggaran, [{ tanggal: '2026-10-28', jenis: 'Gaduh saat pelajaran', tingkat: 'Ringan' }]);
+  assert.equal(p1.tanggalUkur, '2026-11-03');
+  assert.equal(p2.tanggalUkur, '');
+  assert.ok(!JSON.stringify(r).includes('RAHASIA GURU'), 'catatan khusus guru tidak boleh ikut');
+  assert.equal(p1.status.gizi, 'Obesitas');
+  assert.match(p1.saran[0], /Puskesmas/);
+  assert.equal(p1.jk, 'L');
+  assert.equal(p2.kehadiran, null);
+  assert.deepEqual(p2.saran, []);
+});
+
+test('bulan sebelumnya', () => {
+  assert.equal(K.bulanSebelum_('2026-11'), '2026-10');
+  assert.equal(K.bulanSebelum_('2027-01'), '2026-12');
+  assert.equal(K.bulanSebelum_('2026-07'), '2026-06');
+});
+
+test('tanggal dari log presensi dan pelanggaran', () => {
+  assert.equal(K.tanggalLog_('1 September 2026'), '2026-09-01');
+  assert.equal(K.tanggalLog_('2026-11-03'), '2026-11-03');
+  assert.equal(K.tanggalLog_('03/11/2026'), '2026-11-03');
+  assert.equal(K.tanggalLog_('bukan tanggal'), '');
 });

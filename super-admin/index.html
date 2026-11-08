@@ -105,6 +105,14 @@ header.ringkas{padding:16px 20px;border-radius:20px;margin-top:12px}header.ringk
 .kb-ringkas{font-size:13.5px;color:var(--muted);line-height:1.5;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 input[type=date],input[type=file]{width:100%;font:inherit;font-size:15px;padding:10px 12px;border:1px solid #d9cfb8;border-radius:12px;background:#fff}
 @media(max-width:640px){.wrap{padding:16px}header{padding:20px;gap:14px}header img{width:60px;height:60px}.grid2,.checks{grid-template-columns:1fr}.months{grid-template-columns:repeat(4,1fr)}.sheet-bg{padding:0}.sheet{border-radius:0;min-height:100%}.sheet-h{border-radius:0}.hide-sm{display:none}}
+#lp{position:fixed;inset:0;z-index:60;background:#e9edf2;overflow:auto}#lp.hidden{display:none}.lp-bar{position:sticky;top:0;z-index:2;display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 14px;background:var(--blue);color:#fff}.lp-bar b{flex:1 1 220px;font-size:15px}.lp-bar small{flex-basis:100%;color:#dbe7f7;font-size:12px}
+.lembar{box-sizing:border-box;background:#fff;color:#000;width:100%;max-width:210mm;margin:14px auto;padding:10mm 12mm;font-family:Arial,Helvetica,sans-serif;font-size:10.5pt;line-height:1.35;box-shadow:0 4px 18px rgba(0,0,0,.12)}
+.kop{display:grid;grid-template-columns:22mm 1fr 22mm;align-items:center;gap:8px;border-bottom:3px double #000;padding-bottom:6px}.kop img{width:100%;max-height:24mm;object-fit:contain}.kop div{text-align:center}.kop .k1{font-size:12.5pt;font-weight:700}.kop .k2{font-size:16pt;font-weight:800;letter-spacing:.5px}.kop .k3{font-size:9pt}
+.lembar h4{text-align:center;margin:10px 0 0;font-size:12pt;text-decoration:underline}.lembar .sub{text-align:center;margin:2px 0 8px;font-size:10pt}.lembar h5{margin:10px 0 4px;font-size:10.5pt}
+.lembar table{width:100%;border-collapse:collapse}.lp-id td{padding:1.5px 4px;border:0}.lp-id td:first-child{width:28%}.lp-t th,.lp-t td{border:1px solid #000;padding:3px 5px;text-align:center;font-size:10pt}.lp-t th{background:#eee;color:#000;font-weight:700;position:static}@media screen and (max-width:640px){.lembar{padding:5mm 4mm;font-size:9pt}.kop{grid-template-columns:13mm 1fr 13mm;gap:4px}.kop .k1{font-size:9pt}.kop .k2{font-size:12pt}.kop .k3{font-size:7pt}.lp-t th,.lp-t td{font-size:8pt;padding:2px 3px}}
+.lembar ul{margin:4px 0 0;padding-left:18px}.lembar li{margin:2px 0}.lp-cat{font-size:8.5pt;color:#333;font-style:italic;margin-top:3px}.lp-garis{border-bottom:1px dotted #000;height:18px}
+.lp-ttd{display:grid;grid-template-columns:1fr 1.1fr 1fr;gap:8px;margin-top:12px;text-align:center;break-inside:avoid;page-break-inside:avoid}.lp-ttd .spasi{height:16mm}.lp-ttd .nm{font-weight:700;text-decoration:underline}.lp-ttd>div{display:flex;flex-direction:column}.lp-ttd .spasi{flex:1 0 16mm}
+@media print{@page{size:A4;margin:10mm 12mm}body.cetak>*:not(#lp){display:none!important}body.cetak{background:#fff}#lp{position:static;overflow:visible;background:#fff}.lp-bar{display:none!important}.lembar{margin:0;padding:0;max-width:none;box-shadow:none;break-after:page;page-break-after:always}.lembar:last-child{break-after:auto;page-break-after:auto}.lp-t th{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
 @media print{.topline,.back,header,.bar,.tabs,.tools,.no-print,footer{display:none!important}body{background:#fff}.wrap{padding:0;max-width:none}.tbl{max-height:none;overflow:visible;border:0}th{position:static;background:#ddd;color:#000}#print-head{display:block!important}}
 .tb-atas{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}.tb-atas select,.tb-atas input{width:100%;font:inherit;font-size:16px;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff}.tb-wrap{overflow-x:auto;border-radius:14px;border:1px solid var(--line)}.tb-tabel td{vertical-align:middle}.tb-tabel input{width:92px;font:inherit;font-size:18px;padding:8px;border:2px solid var(--line);border-radius:10px;text-align:center}.tb-tabel input:focus{outline:none;border-color:var(--blue)}.tb-tabel input.salah{border-color:var(--bad);background:#fde4e1}.tb-tabel .lalu{display:block;font-size:12px;color:var(--muted);margin-top:3px;text-align:center}.tb-tabel tr.ubah td{background:#fffbe6}#tb-msg ul{margin:6px 0 0;padding-left:18px;text-align:left}.tb-tabel .st{font-size:12.5px;line-height:1.5;min-width:116px}.tb-tabel .st small{display:block;color:var(--muted)}.rk-wrap{margin-top:18px}.rk-wrap h3{margin:0 0 4px;font-size:16px;color:var(--blue)}.rk-tabel{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:8px}.rk-tabel th,.rk-tabel td{padding:8px 6px;border-bottom:1px solid #efe6d2;text-align:center}.rk-tabel th:first-child,.rk-tabel td:first-child{text-align:left}.rk-tabel th{font-size:12px}.tb-tabel .st-hp{display:none;margin-top:4px}@media(max-width:640px){.tb-tabel .st,.tb-tabel th.st{display:none}.tb-tabel .st-hp{display:block}.tb-tabel .st-hp small{display:block;font-size:11.5px;color:var(--muted)}.rk-tabel th,.rk-tabel td{padding:7px 4px;font-size:12.5px}}.rk-tabel tfoot td{font-weight:800}
 </style>
@@ -186,7 +194,8 @@ input[type=date],input[type=file]{width:100%;font:inherit;font-size:15px;padding
         <li>Ketuk <b>kelas</b> Anda. Bulan dan tanggal ukur sudah terisi hari ini; ubah bila perlu.</li>
         <li>Tulis <b>berat badan (kg)</b> dan <b>tinggi badan (cm)</b>. Boleh pakai koma, misalnya <i>25,5</i>. Tekan <b>Enter</b> untuk pindah ke bawah.</li>
         <li>Siswa yang tidak masuk saat pengukuran <b>biarkan kosong</b>.</li>
-        <li>Tekan <b>Simpan</b>. Angka bulan lalu tampil abu-abu sebagai pembanding.</li></ol>
+        <li>Tekan <b>Simpan</b>. Angka bulan lalu tampil abu-abu sebagai pembanding.</li>
+        <li>Setelah pengukuran awal bulan: tekan <b>&#128424; Cetak Laporan Orang Tua</b>. Keluar satu lembar A4 per siswa: tumbuh kembang bulan ini, serta kehadiran dan catatan perilaku <b>bulan sebelumnya</b>. Cetak, tanda tangani, lalu bagikan ke orang tua untuk ditandatangani.</li></ol>
         <p class="tip">Salah ketik? Ubah angkanya lalu tekan Simpan lagi. Mengosongkan berat dan tinggi akan menghapus data siswa itu di bulan tersebut.</p>
         <p class="tip"><b>Status gizi</b> dihitung otomatis setelah disimpan, dari umur, jenis kelamin, berat, dan tinggi, sesuai Permenkes No. 2 Tahun 2020 (IMT menurut umur) dan rujukan WHO 2007 (tinggi menurut umur). Ini <b>skrining awal</b>, bukan diagnosis: anak berstatus merah sebaiknya diukur ulang, lalu dikonsultasikan ke UKS/Puskesmas. Tanggal lahir dan jenis kelamin diambil dari sheet <i>Data Lahir Siswa</i>.</p></details>
       <label>Kelas</label><div class="pills" id="tb-kelas"></div>
@@ -195,6 +204,7 @@ input[type=date],input[type=file]{width:100%;font:inherit;font-size:15px;padding
         <div><label for="tb-tanggal">Tanggal ukur</label><input type="date" id="tb-tanggal"></div>
       </div>
       <div class="legend" id="tb-info"></div>
+      <button class="btn ghost hidden" id="tb-cetak" style="margin:10px 0;width:100%">&#128424; Cetak Laporan Orang Tua</button>
       <div class="tb-wrap hidden" id="tb-wrap"><table class="tb-tabel"><thead><tr><th>No</th><th>Nama</th><th>Berat (kg)</th><th>Tinggi (cm)</th><th class="st">Status gizi</th></tr></thead><tbody id="tb-body"></tbody></table></div>
       <div class="sheet-actions hidden" id="tb-aksi"><div class="msg" id="tb-msg"></div><button class="btn big" id="tb-simpan" style="width:100%">Simpan</button></div>
       <div class="rk-wrap hidden" id="tb-rekap"></div>
@@ -414,6 +424,7 @@ input[type=date],input[type=file]{width:100%;font:inherit;font-size:15px;padding
   </div>
 </div>
 
+<div id="lp" class="hidden"><div class="lp-bar"><b id="lp-judul"></b><button class="btn small" id="lp-print">&#128424; Cetak / Simpan PDF</button><button class="btn ghost small" id="lp-tutup">Tutup</button><small>Pilih kertas <b>A4</b>. Untuk PDF, pilih tujuan "Simpan sebagai PDF". Satu lembar untuk satu siswa.</small></div><div id="lp-isi"></div></div>
 <script>
 /* URL Aplikasi web Apps Script (berakhiran /exec). Lihat super-admin/apps-script/Kode.gs */
 const API_URL = 'https://script.google.com/macros/s/AKfycbyE3fM1cmCXeMsdoygOAP92MIKSngirrd3pOd2U1t4Nr63wAO3lOfEjUyCPBUA7PTor/exec';
@@ -1131,13 +1142,13 @@ function hariIni(){ const d = new Date(); return d.getFullYear() + '-' + String(
 function bukaTumbuh(){
   const kelas = [...new Set(DATA.siswa.map(s => s.kelas))].sort((a, b) => a.localeCompare(b, 'id', { numeric: true }));
   if (!kelas.includes(TB_KELAS)) TB_KELAS = '';
-  $('#tb-kelas').innerHTML = kelas.map(k => `<button class="pill${k === TB_KELAS ? ' on' : ''}" data-k="${esc(k)}">Kelas ${esc(k)}</button>`).join('');
+  $('#tb-kelas').innerHTML = kelas.map(k => `<button class="pill${k === TB_KELAS ? ' on' : ''}" data-k="${esc(k)}">${esc(namaKelas(k))}</button>`).join('');
   if (TB_KELAS && !TB) muatTumbuh(); else if (!TB_KELAS) $('#tb-info').textContent = 'Ketuk kelas Anda untuk mulai.';
 }
 async function muatTumbuh(bulan){
   if (TB_UBAH && !confirm('Ada angka yang belum disimpan. Tinggalkan tanpa menyimpan?')) return;
   TB_UBAH = false;
-  $('#tb-info').textContent = 'Memuat…'; $('#tb-wrap').classList.add('hidden'); $('#tb-aksi').classList.add('hidden'); $('#tb-rekap').classList.add('hidden'); $('#tb-msg').innerHTML = '';
+  $('#tb-info').textContent = 'Memuat…'; $('#tb-cetak').classList.add('hidden'); $('#tb-wrap').classList.add('hidden'); $('#tb-aksi').classList.add('hidden'); $('#tb-rekap').classList.add('hidden'); $('#tb-msg').innerHTML = '';
   const res = await api({ aksi: 'tumbuhKelas', kelas: TB_KELAS, bulan });
   if (!res.ok) { $('#tb-info').textContent = res.pesan || 'Gagal memuat.'; if (res.sandiSalah) keluar(res.pesan); return; }
   TB = res;
@@ -1145,7 +1156,9 @@ async function muatTumbuh(bulan){
   $('#tb-tanggal').value = res.tanggal || (hariIni().slice(0, 7) === res.bulan ? hariIni() : res.bulan + '-01');
   $('#tb-tanggal').min = res.bulan + '-01'; $('#tb-tanggal').max = res.bulan + '-31';
   const ada = res.siswa.filter(s => s.nilai).length;
-  $('#tb-info').textContent = `Kelas ${TB_KELAS} · ${labelBulan(res.bulan)} · sudah diisi ${ada} dari ${res.siswa.length} siswa`;
+  $('#tb-info').textContent = `${namaKelas(TB_KELAS)} · ${labelBulan(res.bulan)} · sudah diisi ${ada} dari ${res.siswa.length} siswa`;
+  $('#tb-cetak').innerHTML = `&#128424; Cetak Laporan Orang Tua &middot; ${esc(namaKelas(TB_KELAS))} &middot; ${labelBulan(res.bulan)}`;
+  $('#tb-cetak').classList.toggle('hidden', !res.siswa.length);
   if (!res.siswa.length) return;
   const angka = v => v == null ? '' : String(v).replace('.', ',');
   $('#tb-body').innerHTML = res.siswa.map((s, i) => `<tr data-id="${esc(s.id)}"><td>${i + 1}</td><td>${esc(s.nama)}${s.nilai ? `<div class="st-hp">${selStatus(s)}</div>` : ''}</td>
@@ -1155,6 +1168,57 @@ async function muatTumbuh(bulan){
   $('#tb-wrap').classList.remove('hidden'); $('#tb-aksi').classList.remove('hidden');
   tulisRekap(res);
 }
+const namaKelas = k => /^kelas\b/i.test(String(k)) ? String(k) : 'Kelas ' + k;
+const tglPanjang = t => { const [y, m, d] = String(t).split('-').map(Number); return d + ' ' + NAMA_BULAN[m - 1] + ' ' + y; };
+const koma = v => v == null || v === '' ? '–' : String(v).replace('.', ',');
+function umurTeks(lahir, ref){
+  if (!lahir) return '–';
+  const a = lahir.split('-').map(Number), b = ref.split('-').map(Number);
+  const bln = (b[0] - a[0]) * 12 + (b[1] - a[1]) - (b[2] < a[2] ? 1 : 0);
+  return `${Math.floor(bln / 12)} tahun ${bln % 12} bulan`;
+}
+function lembarLaporan(L, s, tglCetak){
+  const st = s.status, n = s.nilai, h = s.kehadiran, ukur = s.tanggalUkur || (TB && TB.tanggal) || L.bulan + '-01', blnRekap = labelBulan(L.bulanRekap);
+  const banding = (k, sat) => s.lalu && n ? ` <small>(${labelBulan(s.lalu.bulan).split(' ')[0]}: ${koma(s.lalu[k])} ${sat})</small>` : '';
+  const pertumbuhan = !n ? `<p>Ananda belum diukur pada bulan ${labelBulan(L.bulan)}.</p>` : `<table class="lp-t"><tr><th>Tanggal ukur</th><th>Berat badan</th><th>Tinggi badan</th><th>IMT</th><th>Status gizi (IMT/U)</th><th>Tinggi menurut umur</th></tr>
+    <tr><td>${s.tanggalUkur ? tglPanjang(s.tanggalUkur) : '–'}</td><td>${koma(n.bb)} kg${banding('bb', 'kg')}</td><td>${koma(n.tb)} cm${banding('tb', 'cm')}</td><td>${st && st.imt ? koma(st.imt) : '–'}</td><td><b>${st && st.gizi ? esc(st.gizi) : '–'}</b></td><td><b>${st && st.tinggi ? esc(st.tinggi) : '–'}</b></td></tr></table>
+    ${s.saran.length ? '<h5 style="margin-top:6px">Saran untuk Bapak/Ibu</h5><ul>' + s.saran.map(x => '<li>' + esc(x) + '</li>').join('') + '</ul>' : (st ? '' : '<p class="lp-cat">Status gizi belum dapat dihitung karena tanggal lahir/jenis kelamin belum tercatat.</p>')}
+    <div class="lp-cat">Hasil skrining sekolah berdasarkan Permenkes No. 2 Tahun 2020 tentang Standar Antropometri Anak; bukan diagnosis. Untuk pemeriksaan lebih lanjut silakan ke Puskesmas.</div>`;
+  const kehadiran = !h ? `<p>Belum ada catatan kehadiran pada bulan ${blnRekap}.</p>` : `<table class="lp-t"><tr><th>Hadir</th><th>Sakit</th><th>Izin</th><th>Tanpa Keterangan</th><th>Persentase kehadiran</th></tr>
+    <tr><td>${h.Hadir} hari</td><td>${h.Sakit} hari</td><td>${h.Izin} hari</td><td>${h['Tanpa Keterangan']} hari</td><td><b>${h.hari ? Math.round(h.Hadir / h.hari * 100) : 0}%</b> <small>dari ${h.hari} hari sekolah</small></td></tr></table>
+    ${h['Tanpa Keterangan'] ? '<p style="margin:4px 0 0">Mohon kabari guru kelas bila Ananda berhalangan hadir, agar tidak tercatat tanpa keterangan.</p>' : ''}`;
+  // catatan yang sama digabung satu baris: tanggal-tanggalnya dan jumlah kali
+  const grup = [];
+  s.pelanggaran.forEach(p => { let g = grup.find(x => x.jenis === p.jenis && x.tingkat === p.tingkat); if (!g) grup.push(g = { jenis: p.jenis, tingkat: p.tingkat, tgl: [] }); g.tgl.push(Number(p.tanggal.slice(8))); });
+  const bln = NAMA_BULAN[Number(L.bulanRekap.slice(5)) - 1];
+  const perilaku = s.pelanggaran.length ? `<table class="lp-t"><tr><th style="width:26%">Tanggal (${bln})</th><th>Catatan</th><th style="width:9%">Jumlah</th><th style="width:12%">Tingkat</th></tr>${grup.map(g => `<tr><td>${g.tgl.join(', ')}</td><td style="text-align:left">${esc(g.jenis)}</td><td>${g.tgl.length}&times;</td><td>${esc(g.tingkat)}</td></tr>`).join('')}</table>
+    <p style="margin:4px 0 0">Mohon Bapak/Ibu membantu membimbing Ananda di rumah. Terima kasih atas kerja samanya.</p>` : `<p>Tidak ada catatan pelanggaran pada bulan ${blnRekap}. Terima kasih atas dukungan Bapak/Ibu dalam membimbing Ananda.</p>`;
+  return `<section class="lembar">
+    <div class="kop"><img src="kop/kendal.png" alt=""><div><div class="k1">PEMERINTAH KABUPATEN KENDAL</div><div class="k2">SD N BUGANGIN</div><div class="k3">Jl. Soekarno-Hatta No. 395A, Bugangin, Kendal 51314</div><div class="k3">Laman: sdnbugangin.github.io, Pos-el: sdn.bugangin@gmail.com</div></div><img src="kop/sekolah.png" alt=""></div>
+    <h4>LAPORAN PERKEMBANGAN BULANAN SISWA</h4><div class="sub">Laporan Bulan ${labelBulan(L.bulan)} &middot; Tahun Ajaran ${esc(L.tahunAjaran)}</div>
+    <table class="lp-id"><tr><td>Nama siswa</td><td>: <b>${esc(s.nama)}</b></td></tr><tr><td>Kelas</td><td>: ${esc(namaKelas(L.kelas))}</td></tr>
+      <tr><td>Jenis kelamin</td><td>: ${s.jk === 'L' ? 'Laki-laki' : s.jk === 'P' ? 'Perempuan' : '–'}</td></tr><tr><td>Umur</td><td>: ${umurTeks(s.lahir, ukur)}</td></tr></table>
+    <h5>A. Pertumbuhan dan Gizi <span style="font-weight:400">(pengukuran bulan ${labelBulan(L.bulan)})</span></h5>${pertumbuhan}
+    <h5>B. Kehadiran Bulan ${blnRekap}</h5>${kehadiran}
+    <h5>C. Catatan Perilaku Bulan ${blnRekap}</h5>${perilaku}
+    <h5>D. Catatan Guru</h5><div class="lp-garis"></div><div class="lp-garis"></div>
+    <div class="lp-ttd"><div><span><br>Orang Tua/Wali Murid,</span><div class="spasi"></div><div class="nm">(..................................)</div><div>&nbsp;</div></div>
+      <div><span>Mengetahui,<br>Kepala Sekolah,</span><div class="spasi"></div><div class="nm">${esc(L.kepsek.nama || '')}</div><div>${L.kepsek.nip ? 'NIP ' + esc(L.kepsek.nip) : '&nbsp;'}</div></div>
+      <div><span>Kendal, ${tglPanjang(tglCetak)}<br>Guru ${esc(namaKelas(L.kelas))},</span><div class="spasi"></div><div class="nm">${L.guru.nama ? esc(L.guru.nama) : '(..................................)'}</div><div>${L.guru.nip ? 'NIP ' + esc(L.guru.nip) : '&nbsp;'}</div></div></div>
+  </section>`;
+}
+$('#tb-cetak').onclick = async () => {
+  if (TB_UBAH && !confirm('Ada angka yang belum disimpan. Laporan memakai data yang sudah tersimpan saja. Lanjutkan?')) return;
+  const b = $('#tb-cetak'), asal = b.innerHTML; b.disabled = true; b.textContent = 'Menyiapkan laporan…';
+  const L = await api({ aksi: 'laporanKelas', kelas: TB_KELAS, bulan: TB.bulan });
+  b.disabled = false; b.innerHTML = asal;
+  if (!L.ok) { alert(L.pesan || 'Laporan gagal disiapkan.'); if (L.sandiSalah) keluar(L.pesan); return; }
+  $('#lp-judul').textContent = `Laporan Orang Tua · ${namaKelas(L.kelas)} · ${labelBulan(L.bulan)} (kehadiran & perilaku ${labelBulan(L.bulanRekap)}) · ${L.siswa.length} siswa`;
+  $('#lp-isi').innerHTML = L.siswa.map(s => lembarLaporan(L, s, hariIni())).join('');
+  document.body.classList.add('cetak'); $('#lp').classList.remove('hidden'); $('#lp').scrollTop = 0;
+};
+$('#lp-print').onclick = () => window.print();
+$('#lp-tutup').onclick = () => { $('#lp').classList.add('hidden'); document.body.classList.remove('cetak'); $('#lp-isi').innerHTML = ''; };
 const WARNA_GIZI = { 'Gizi baik': 'ok', 'Gizi lebih': 'warn', 'Gizi kurang': 'warn', 'Obesitas': 'bad', 'Gizi buruk': 'bad' };
 function selStatus(s){
   if (!s.nilai) return '<span style="color:var(--muted)">&mdash;</span>';
@@ -1175,7 +1239,7 @@ function tulisRekap(res){
   const baris = (nama, r) => `<td>${nama}</td><td>${r.diukur}</td>${kol.map(ks => `<td>${jml(r, ks) || '&middot;'}</td>`).join('')}<td>${pendek(r) || '&middot;'}</td>`;
   el.innerHTML = `<h3>Rekap sekolah &middot; ${labelBulan(res.bulan)}</h3><div class="legend" style="margin:0">Jumlah anak per status gizi (IMT/U). "Kurang" = gizi kurang + gizi buruk. Kolom terakhir: tinggi di bawah standar umur (pendek + sangat pendek).${total.tanpaLahir ? ` ${total.tanpaLahir} anak belum dihitung karena tanggal lahirnya belum ada.` : ''}</div>
     <div class="tb-wrap"><table class="rk-tabel"><thead><tr><th>Kelas</th><th>Diukur</th>${judul.map(j => `<th>${j}</th>`).join('')}<th>Pendek</th></tr></thead>
-    <tbody>${kelas.map(k => `<tr>${baris('Kelas ' + esc(k), res.rekap[k])}</tr>`).join('')}</tbody><tfoot><tr>${baris('Jumlah', total)}</tr></tfoot></table></div>`;
+    <tbody>${kelas.map(k => `<tr>${baris(esc(namaKelas(k)), res.rekap[k])}</tr>`).join('')}</tbody><tfoot><tr>${baris('Jumlah', total)}</tr></tfoot></table></div>`;
   el.classList.remove('hidden');
 }
 $('#tb-kelas').addEventListener('click', e => { const b = e.target.closest('[data-k]'); if (!b) return; TB_KELAS = b.dataset.k; ls.set('tb-kelas', TB_KELAS); document.querySelectorAll('#tb-kelas .pill').forEach(x => x.classList.toggle('on', x === b)); muatTumbuh(); });
