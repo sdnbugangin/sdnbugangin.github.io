@@ -195,7 +195,7 @@ input[type=date],input[type=file]{width:100%;font:inherit;font-size:15px;padding
         <li>Tulis <b>berat badan (kg)</b> dan <b>tinggi badan (cm)</b>. Boleh pakai koma, misalnya <i>25,5</i>. Tekan <b>Enter</b> untuk pindah ke bawah.</li>
         <li>Siswa yang tidak masuk saat pengukuran <b>biarkan kosong</b>.</li>
         <li>Tekan <b>Simpan</b>. Angka bulan lalu tampil abu-abu sebagai pembanding.</li>
-        <li>Akhir bulan: tekan <b>&#128424; Cetak Laporan Orang Tua</b>. Keluar satu lembar A4 per siswa (tumbuh kembang, kehadiran, catatan perilaku). Cetak, tanda tangani, lalu bagikan ke orang tua untuk ditandatangani.</li></ol>
+        <li>Setelah pengukuran awal bulan: tekan <b>&#128424; Cetak Laporan Orang Tua</b>. Keluar satu lembar A4 per siswa: tumbuh kembang bulan ini, serta kehadiran dan catatan perilaku <b>bulan sebelumnya</b>. Cetak, tanda tangani, lalu bagikan ke orang tua untuk ditandatangani.</li></ol>
         <p class="tip">Salah ketik? Ubah angkanya lalu tekan Simpan lagi. Mengosongkan berat dan tinggi akan menghapus data siswa itu di bulan tersebut.</p>
         <p class="tip"><b>Status gizi</b> dihitung otomatis setelah disimpan, dari umur, jenis kelamin, berat, dan tinggi, sesuai Permenkes No. 2 Tahun 2020 (IMT menurut umur) dan rujukan WHO 2007 (tinggi menurut umur). Ini <b>skrining awal</b>, bukan diagnosis: anak berstatus merah sebaiknya diukur ulang, lalu dikonsultasikan ke UKS/Puskesmas. Tanggal lahir dan jenis kelamin diambil dari sheet <i>Data Lahir Siswa</i>.</p></details>
       <label>Kelas</label><div class="pills" id="tb-kelas"></div>
@@ -1178,29 +1178,29 @@ function umurTeks(lahir, ref){
   return `${Math.floor(bln / 12)} tahun ${bln % 12} bulan`;
 }
 function lembarLaporan(L, s, tglCetak){
-  const st = s.status, n = s.nilai, h = s.kehadiran, ukur = TB && TB.tanggal ? TB.tanggal : L.bulan + '-01';
+  const st = s.status, n = s.nilai, h = s.kehadiran, ukur = s.tanggalUkur || (TB && TB.tanggal) || L.bulan + '-01', blnRekap = labelBulan(L.bulanRekap);
   const banding = (k, sat) => s.lalu && n ? ` <small>(${labelBulan(s.lalu.bulan).split(' ')[0]}: ${koma(s.lalu[k])} ${sat})</small>` : '';
-  const pertumbuhan = !n ? '<p>Ananda belum diukur pada bulan ini.</p>' : `<table class="lp-t"><tr><th>Berat badan</th><th>Tinggi badan</th><th>IMT</th><th>Status gizi (IMT/U)</th><th>Tinggi menurut umur</th></tr>
-    <tr><td>${koma(n.bb)} kg${banding('bb', 'kg')}</td><td>${koma(n.tb)} cm${banding('tb', 'cm')}</td><td>${st && st.imt ? koma(st.imt) : '–'}</td><td><b>${st && st.gizi ? esc(st.gizi) : '–'}</b></td><td><b>${st && st.tinggi ? esc(st.tinggi) : '–'}</b></td></tr></table>
+  const pertumbuhan = !n ? `<p>Ananda belum diukur pada bulan ${labelBulan(L.bulan)}.</p>` : `<table class="lp-t"><tr><th>Tanggal ukur</th><th>Berat badan</th><th>Tinggi badan</th><th>IMT</th><th>Status gizi (IMT/U)</th><th>Tinggi menurut umur</th></tr>
+    <tr><td>${s.tanggalUkur ? tglPanjang(s.tanggalUkur) : '–'}</td><td>${koma(n.bb)} kg${banding('bb', 'kg')}</td><td>${koma(n.tb)} cm${banding('tb', 'cm')}</td><td>${st && st.imt ? koma(st.imt) : '–'}</td><td><b>${st && st.gizi ? esc(st.gizi) : '–'}</b></td><td><b>${st && st.tinggi ? esc(st.tinggi) : '–'}</b></td></tr></table>
     ${s.saran.length ? '<h5 style="margin-top:6px">Saran untuk Bapak/Ibu</h5><ul>' + s.saran.map(x => '<li>' + esc(x) + '</li>').join('') + '</ul>' : (st ? '' : '<p class="lp-cat">Status gizi belum dapat dihitung karena tanggal lahir/jenis kelamin belum tercatat.</p>')}
     <div class="lp-cat">Hasil skrining sekolah berdasarkan Permenkes No. 2 Tahun 2020 tentang Standar Antropometri Anak; bukan diagnosis. Untuk pemeriksaan lebih lanjut silakan ke Puskesmas.</div>`;
-  const kehadiran = !h ? '<p>Belum ada catatan kehadiran bulan ini.</p>' : `<table class="lp-t"><tr><th>Hadir</th><th>Sakit</th><th>Izin</th><th>Tanpa Keterangan</th><th>Persentase kehadiran</th></tr>
+  const kehadiran = !h ? `<p>Belum ada catatan kehadiran pada bulan ${blnRekap}.</p>` : `<table class="lp-t"><tr><th>Hadir</th><th>Sakit</th><th>Izin</th><th>Tanpa Keterangan</th><th>Persentase kehadiran</th></tr>
     <tr><td>${h.Hadir} hari</td><td>${h.Sakit} hari</td><td>${h.Izin} hari</td><td>${h['Tanpa Keterangan']} hari</td><td><b>${h.hari ? Math.round(h.Hadir / h.hari * 100) : 0}%</b> <small>dari ${h.hari} hari sekolah</small></td></tr></table>
     ${h['Tanpa Keterangan'] ? '<p style="margin:4px 0 0">Mohon kabari guru kelas bila Ananda berhalangan hadir, agar tidak tercatat tanpa keterangan.</p>' : ''}`;
   // catatan yang sama digabung satu baris: tanggal-tanggalnya dan jumlah kali
   const grup = [];
   s.pelanggaran.forEach(p => { let g = grup.find(x => x.jenis === p.jenis && x.tingkat === p.tingkat); if (!g) grup.push(g = { jenis: p.jenis, tingkat: p.tingkat, tgl: [] }); g.tgl.push(Number(p.tanggal.slice(8))); });
-  const bln = NAMA_BULAN[Number(L.bulan.slice(5)) - 1];
+  const bln = NAMA_BULAN[Number(L.bulanRekap.slice(5)) - 1];
   const perilaku = s.pelanggaran.length ? `<table class="lp-t"><tr><th style="width:26%">Tanggal (${bln})</th><th>Catatan</th><th style="width:9%">Jumlah</th><th style="width:12%">Tingkat</th></tr>${grup.map(g => `<tr><td>${g.tgl.join(', ')}</td><td style="text-align:left">${esc(g.jenis)}</td><td>${g.tgl.length}&times;</td><td>${esc(g.tingkat)}</td></tr>`).join('')}</table>
-    <p style="margin:4px 0 0">Mohon Bapak/Ibu membantu membimbing Ananda di rumah. Terima kasih atas kerja samanya.</p>` : '<p>Tidak ada catatan pelanggaran pada bulan ini. Terima kasih atas dukungan Bapak/Ibu dalam membimbing Ananda.</p>';
+    <p style="margin:4px 0 0">Mohon Bapak/Ibu membantu membimbing Ananda di rumah. Terima kasih atas kerja samanya.</p>` : `<p>Tidak ada catatan pelanggaran pada bulan ${blnRekap}. Terima kasih atas dukungan Bapak/Ibu dalam membimbing Ananda.</p>`;
   return `<section class="lembar">
     <div class="kop"><img src="kop/kendal.png" alt=""><div><div class="k1">PEMERINTAH KABUPATEN KENDAL</div><div class="k2">SD N BUGANGIN</div><div class="k3">Jl. Soekarno-Hatta No. 395A, Bugangin, Kendal 51314</div><div class="k3">Laman: sdnbugangin.github.io, Pos-el: sdn.bugangin@gmail.com</div></div><img src="kop/sekolah.png" alt=""></div>
-    <h4>LAPORAN PERKEMBANGAN BULANAN SISWA</h4><div class="sub">Bulan ${labelBulan(L.bulan)} &middot; Tahun Ajaran ${esc(L.tahunAjaran)}</div>
+    <h4>LAPORAN PERKEMBANGAN BULANAN SISWA</h4><div class="sub">Laporan Bulan ${labelBulan(L.bulan)} &middot; Tahun Ajaran ${esc(L.tahunAjaran)}</div>
     <table class="lp-id"><tr><td>Nama siswa</td><td>: <b>${esc(s.nama)}</b></td></tr><tr><td>Kelas</td><td>: ${esc(namaKelas(L.kelas))}</td></tr>
       <tr><td>Jenis kelamin</td><td>: ${s.jk === 'L' ? 'Laki-laki' : s.jk === 'P' ? 'Perempuan' : '–'}</td></tr><tr><td>Umur</td><td>: ${umurTeks(s.lahir, ukur)}</td></tr></table>
-    <h5>A. Pertumbuhan dan Gizi${n && TB && TB.tanggal ? ' <span style="font-weight:400">(diukur ' + tglPanjang(TB.tanggal) + ')</span>' : ''}</h5>${pertumbuhan}
-    <h5>B. Kehadiran</h5>${kehadiran}
-    <h5>C. Catatan Perilaku</h5>${perilaku}
+    <h5>A. Pertumbuhan dan Gizi <span style="font-weight:400">(pengukuran bulan ${labelBulan(L.bulan)})</span></h5>${pertumbuhan}
+    <h5>B. Kehadiran Bulan ${blnRekap}</h5>${kehadiran}
+    <h5>C. Catatan Perilaku Bulan ${blnRekap}</h5>${perilaku}
     <h5>D. Catatan Guru</h5><div class="lp-garis"></div><div class="lp-garis"></div>
     <div class="lp-ttd"><div><span><br>Orang Tua/Wali Murid,</span><div class="spasi"></div><div class="nm">(..................................)</div><div>&nbsp;</div></div>
       <div><span>Mengetahui,<br>Kepala Sekolah,</span><div class="spasi"></div><div class="nm">${esc(L.kepsek.nama || '')}</div><div>${L.kepsek.nip ? 'NIP ' + esc(L.kepsek.nip) : '&nbsp;'}</div></div>
@@ -1213,7 +1213,7 @@ $('#tb-cetak').onclick = async () => {
   const L = await api({ aksi: 'laporanKelas', kelas: TB_KELAS, bulan: TB.bulan });
   b.disabled = false; b.innerHTML = asal;
   if (!L.ok) { alert(L.pesan || 'Laporan gagal disiapkan.'); if (L.sandiSalah) keluar(L.pesan); return; }
-  $('#lp-judul').textContent = `Laporan Orang Tua · ${namaKelas(L.kelas)} · ${labelBulan(L.bulan)} · ${L.siswa.length} siswa`;
+  $('#lp-judul').textContent = `Laporan Orang Tua · ${namaKelas(L.kelas)} · ${labelBulan(L.bulan)} (kehadiran & perilaku ${labelBulan(L.bulanRekap)}) · ${L.siswa.length} siswa`;
   $('#lp-isi').innerHTML = L.siswa.map(s => lembarLaporan(L, s, hariIni())).join('');
   document.body.classList.add('cetak'); $('#lp').classList.remove('hidden'); $('#lp').scrollTop = 0;
 };

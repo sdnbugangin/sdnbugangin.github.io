@@ -777,7 +777,7 @@ function tumbuhKelas_(req) {
     terisi: terisi, tanggal: tanggal, rekap: rekapGizi_(semua, bulan, lahir),
     siswa: siswa.map(function (s) {
       var n = nilai[s.id] || null;
-      return { id: s.id, nama: s.nama, urut: s.urut, nilai: n, lalu: lalu[s.id] || null, adaLahir: !!lahir[s.id],
+      return { id: s.id, nama: s.nama, urut: s.urut, nilai: n, lalu: lalu[s.id] || null, adaLahir: !!lahir[s.id], tanggalUkur: n ? tglUkur[s.id] : '',
         status: n ? statusGizi_(lahir[s.id], tglUkur[s.id], n.bb, n.tb) : null };
     })
   };
@@ -886,21 +886,31 @@ function pelanggaranBulan_(ssPresensi, kelas, bulan) {
   return hasil;
 }
 
-/** Data laporan bulanan orang tua untuk semua siswa satu kelas (hanya membaca). */
+/** "2026-11" → "2026-10"; "2027-01" → "2026-12". */
+function bulanSebelum_(bulan) {
+  var t = Number(bulan.slice(0, 4)), b = Number(bulan.slice(5, 7)) - 1;
+  if (b === 0) { b = 12; t--; }
+  return t + '-' + (b < 10 ? '0' : '') + b;
+}
+
+/**
+ * Data laporan bulanan orang tua untuk semua siswa satu kelas (hanya membaca).
+ * Laporan bulan X dibagikan di awal bulan X: pengukuran bulan X, kehadiran dan pelanggaran bulan sebelumnya.
+ */
 function laporanKelas_(req) {
-  var dasar = tumbuhKelas_(req), kelas = String(req.kelas || '').trim(), bulan = dasar.bulan;
+  var dasar = tumbuhKelas_(req), kelas = String(req.kelas || '').trim(), bulan = dasar.bulan, bulanRekap = bulanSebelum_(bulan);
   var ssPresensi = SpreadsheetApp.openById(pengaturan_().presensiId);
-  var hadir = kehadiranBulan_(ssPresensi, kelas, bulan), langgar = pelanggaranBulan_(ssPresensi, kelas, bulan);
+  var hadir = kehadiranBulan_(ssPresensi, kelas, bulanRekap), langgar = pelanggaranBulan_(ssPresensi, kelas, bulanRekap);
   var guru = { nama: '', nip: '' };
   barisBerjudul_(ssPresensi.getSheetByName('Master Guru Kelas')).forEach(function (r) {
     if (String(r['Kelas']).trim() === kelas) guru = { nama: String(r['Nama Guru Kelas'] || '').trim(), nip: String(r['NIP'] || '').trim() };
   });
   var lahir = bacaLahir_(), sekolah = pengaturan_().sekolah;
   return {
-    ok: true, kelas: kelas, bulan: bulan, tahunAjaran: dasar.tahunAjaran, guru: guru,
+    ok: true, kelas: kelas, bulan: bulan, bulanRekap: bulanRekap, tahunAjaran: dasar.tahunAjaran, guru: guru,
     kepsek: { nama: sekolah.kepsek, nip: sekolah.nip },
     siswa: dasar.siswa.map(function (s) {
-      return { id: s.id, nama: s.nama, jk: lahir[s.id] ? lahir[s.id].jk : '', lahir: lahir[s.id] ? lahir[s.id].lahir : '',
+      return { id: s.id, nama: s.nama, jk: lahir[s.id] ? lahir[s.id].jk : '', lahir: lahir[s.id] ? lahir[s.id].lahir : '', tanggalUkur: s.tanggalUkur,
         nilai: s.nilai, lalu: s.lalu, status: s.status, saran: saranKesehatan_(s.status),
         kehadiran: hadir[s.nama] || null, pelanggaran: langgar[s.nama] || [] };
     })
@@ -909,5 +919,5 @@ function laporanKelas_(req) {
 
 if (typeof module !== 'undefined') {
   module.exports = { tahunAjaranDari_: tahunAjaranDari_, bulanTahunAjaran_: bulanTahunAjaran_, cekUkur_: cekUkur_, angkaUkur_: angkaUkur_,
-    statusGizi_: statusGizi_, skorZ_: skorZ_, umurBulan_: umurBulan_, lms_: lms_, tanggalLog_: tanggalLog_, saranKesehatan_: saranKesehatan_ };
+    statusGizi_: statusGizi_, skorZ_: skorZ_, umurBulan_: umurBulan_, lms_: lms_, tanggalLog_: tanggalLog_, saranKesehatan_: saranKesehatan_, bulanSebelum_: bulanSebelum_ };
 }
