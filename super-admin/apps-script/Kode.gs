@@ -145,6 +145,7 @@ function doPost(e) {
       case 'hapusPrestasi': return json_(denganKunci_(function () { return hapusPrestasi_(req.id, oleh); }));
       case 'tumbuhKelas': return json_(tumbuhKelas_(req));
       case 'simpanTumbuh': return json_(denganKunci_(function () { return simpanTumbuh_(req, oleh); }));
+      case 'laporanKelas': return json_(laporanKelas_(req));
       default: return json_({ ok: false, pesan: 'Aksi tidak dikenal.' });
     }
   } catch (err) {
@@ -643,6 +644,9 @@ function cekUkur_(isi, lalu) {
   return { bb: bb, tb: tb, salah: salah, peringatan: peringatan };
 }
 
+/** "Kelas 4" tetap; "4" → "Kelas 4". */
+function namaKelas_(k) { return /^kelas\b/i.test(String(k)) ? String(k) : 'Kelas ' + k; }
+
 function sheetTumbuh_() { return buatSheet_(SpreadsheetApp.getActive(), 'Tumbuh Kembang', KOLOM_TUMBUH); }
 
 /* ---------- Status gizi ---------- */
@@ -811,12 +815,99 @@ function simpanTumbuh_(req, oleh) {
     jumlah++;
   });
   hapus.sort(function (a, b) { return b - a; }).forEach(function (r) { sh.deleteRow(r); });
-  catat_(oleh, 'Tumbuh kembang', { id: '', nama: 'Kelas ' + kelas }, bulan + ': ' + jumlah + ' siswa' + (hapus.length ? ', ' + hapus.length + ' dikosongkan' : ''));
+  catat_(oleh, 'Tumbuh kembang', { id: '', nama: namaKelas_(kelas) }, bulan + ': ' + jumlah + ' siswa' + (hapus.length ? ', ' + hapus.length + ' dikosongkan' : ''));
   return { ok: true, jumlah: jumlah, peringatan: peringatan,
-    pesan: 'Tersimpan: ' + jumlah + ' dari ' + siswa.length + ' siswa kelas ' + kelas + '.' };
+    pesan: 'Tersimpan: ' + jumlah + ' dari ' + siswa.length + ' siswa ' + namaKelas_(kelas) + '.' };
+}
+
+/* ---------- Laporan bulanan untuk orang tua ---------- */
+var SARAN_GIZI = {
+  'Gizi baik': 'Pertumbuhan Ananda sesuai dengan umurnya. Pertahankan kebiasaan sarapan setiap pagi, makan sesuai pedoman Isi Piringku (separuh piring sayur dan buah), tidur cukup, dan aktif bergerak minimal 60 menit sehari.',
+  'Gizi lebih': 'Berat badan Ananda sedikit di atas anak seusianya. Kurangi minuman manis, gorengan, dan jajanan kemasan; perbanyak sayur, buah, dan air putih; ajak Ananda aktif bergerak minimal 60 menit sehari.',
+  'Obesitas': 'Berat badan Ananda jauh di atas anak seusianya. Batasi minuman manis dan jajanan, perbanyak sayur, buah, dan air putih, ajak Ananda bergerak aktif setiap hari, dan konsultasikan ke Puskesmas atau tenaga kesehatan untuk saran yang sesuai.',
+  'Gizi kurang': 'Berat badan Ananda di bawah anak seusianya. Pastikan Ananda sarapan dan makan teratur tiga kali sehari dengan lauk berprotein (telur, ikan, tempe, tahu, daging), dan konsultasikan ke Puskesmas.',
+  'Gizi buruk': 'Berat badan Ananda jauh di bawah anak seusianya. Mohon segera memeriksakan Ananda ke Puskesmas agar mendapat penanganan yang tepat.'
+};
+var SARAN_PENDEK = 'Tinggi badan Ananda di bawah anak seusianya. Cukupi protein hewani (telur, ikan, susu), tidur cukup, dan konsultasikan ke Puskesmas untuk pemeriksaan lebih lanjut.';
+
+/** Saran untuk orang tua dari status gizi dan tinggi; [] bila belum ada status. */
+function saranKesehatan_(st) {
+  if (!st || st.diLuarUmur) return [];
+  var saran = [SARAN_GIZI[st.gizi]];
+  if (st.tinggi === 'Pendek' || st.tinggi === 'Sangat pendek') saran.push(SARAN_PENDEK);
+  return saran;
+}
+
+/** Baris sheet sebagai objek berdasarkan judul kolom. */
+function barisBerjudul_(sh) {
+  if (!sh) return [];
+  var v = sh.getDataRange().getValues(), h = (v.shift() || []).map(function (x) { return String(x).trim(); });
+  return v.map(function (r) { var o = {}; h.forEach(function (k, i) { if (k) o[k] = r[i]; }); return o; });
+}
+
+var BULAN_ANGKA = { januari: 1, februari: 2, maret: 3, april: 4, mei: 5, juni: 6, juli: 7, agustus: 8, september: 9, oktober: 10, november: 11, desember: 12 };
+
+/** "1 September 2026" / Date / "2026-09-01" → "2026-09-01". */
+function tanggalLog_(v) {
+  var t = teksTanggal_(v);
+  if (t) return t;
+  var m = String(v || '').trim().match(/^(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})$/), b = m && BULAN_ANGKA[m[2].toLowerCase()];
+  return b ? m[3] + '-' + (b < 10 ? '0' : '') + b + '-' + (m[1].length < 2 ? '0' : '') + m[1] : '';
+}
+
+/** Rekap kehadiran satu kelas satu bulan dari Log Presensi: { nama: { Hadir, Sakit, Izin, 'Tanpa Keterangan', hari } }. */
+function kehadiranBulan_(ssPresensi, kelas, bulan) {
+  var catat = {};
+  barisBerjudul_(ssPresensi.getSheetByName('Log Presensi')).forEach(function (r) {
+    var tgl = tanggalLog_(r['Tanggal Key']) || tanggalLog_(r['Tanggal']);
+    if (String(r['Kelas']).trim() !== kelas || tgl.slice(0, 7) !== bulan) return;
+    var nama = String(r['Nama Siswa']).trim();
+    (catat[nama] = catat[nama] || {})[tgl] = String(r['Status']).trim(); // baris belakangan menimpa (koreksi guru)
+  });
+  var hasil = {};
+  Object.keys(catat).forEach(function (nama) {
+    var h = { 'Hadir': 0, 'Sakit': 0, 'Izin': 0, 'Tanpa Keterangan': 0, hari: 0 };
+    Object.keys(catat[nama]).forEach(function (t) { var st = catat[nama][t]; if (h[st] !== undefined) { h[st]++; h.hari++; } });
+    hasil[nama] = h;
+  });
+  return hasil;
+}
+
+/** Pelanggaran satu kelas satu bulan: { nama: [{ tanggal, jenis, tingkat }] } — tanpa catatan khusus guru. */
+function pelanggaranBulan_(ssPresensi, kelas, bulan) {
+  var hasil = {};
+  barisBerjudul_(ssPresensi.getSheetByName('Log Pelanggaran')).forEach(function (r) {
+    var tgl = tanggalLog_(r['Tanggal']) || tanggalLog_(r['Timestamp']);
+    if (String(r['Kelas']).trim() !== kelas || tgl.slice(0, 7) !== bulan) return;
+    var nama = String(r['Nama Siswa']).trim();
+    (hasil[nama] = hasil[nama] || []).push({ tanggal: tgl, jenis: String(r['Jenis Pelanggaran'] || '').trim(), tingkat: String(r['Tingkat'] || '').trim() });
+  });
+  Object.keys(hasil).forEach(function (n) { hasil[n].sort(function (a, b) { return a.tanggal < b.tanggal ? -1 : 1; }); });
+  return hasil;
+}
+
+/** Data laporan bulanan orang tua untuk semua siswa satu kelas (hanya membaca). */
+function laporanKelas_(req) {
+  var dasar = tumbuhKelas_(req), kelas = String(req.kelas || '').trim(), bulan = dasar.bulan;
+  var ssPresensi = SpreadsheetApp.openById(pengaturan_().presensiId);
+  var hadir = kehadiranBulan_(ssPresensi, kelas, bulan), langgar = pelanggaranBulan_(ssPresensi, kelas, bulan);
+  var guru = { nama: '', nip: '' };
+  barisBerjudul_(ssPresensi.getSheetByName('Master Guru Kelas')).forEach(function (r) {
+    if (String(r['Kelas']).trim() === kelas) guru = { nama: String(r['Nama Guru Kelas'] || '').trim(), nip: String(r['NIP'] || '').trim() };
+  });
+  var lahir = bacaLahir_(), sekolah = pengaturan_().sekolah;
+  return {
+    ok: true, kelas: kelas, bulan: bulan, tahunAjaran: dasar.tahunAjaran, guru: guru,
+    kepsek: { nama: sekolah.kepsek, nip: sekolah.nip },
+    siswa: dasar.siswa.map(function (s) {
+      return { id: s.id, nama: s.nama, jk: lahir[s.id] ? lahir[s.id].jk : '', lahir: lahir[s.id] ? lahir[s.id].lahir : '',
+        nilai: s.nilai, lalu: s.lalu, status: s.status, saran: saranKesehatan_(s.status),
+        kehadiran: hadir[s.nama] || null, pelanggaran: langgar[s.nama] || [] };
+    })
+  };
 }
 
 if (typeof module !== 'undefined') {
   module.exports = { tahunAjaranDari_: tahunAjaranDari_, bulanTahunAjaran_: bulanTahunAjaran_, cekUkur_: cekUkur_, angkaUkur_: angkaUkur_,
-    statusGizi_: statusGizi_, skorZ_: skorZ_, umurBulan_: umurBulan_, lms_: lms_ };
+    statusGizi_: statusGizi_, skorZ_: skorZ_, umurBulan_: umurBulan_, lms_: lms_, tanggalLog_: tanggalLog_, saranKesehatan_: saranKesehatan_ };
 }
