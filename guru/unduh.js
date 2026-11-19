@@ -89,6 +89,53 @@
       berkas: 'Promes ' + P.mapel + ' Kelas ' + P.kelas + ' Semester ' + smt
     };
   }
+  // Program Tahunan: ringkasan Promes semester 1 dan 2 per materi (TP rapor), alokasi JP, dan bulan pelaksanaan.
+  function isiProta(P) {
+    const BLN3 = BLN.map(b => b.slice(0, 3));
+    const kelompok = [], cari = {};
+    P.baris.forEach(b => {
+      const k = b.smt + '|' + (b.jenis === 'Cadangan' ? '~cadangan' : (b.materiNo || b.materi));
+      if (!cari[k]) { cari[k] = {smt: b.smt, cadangan: b.jenis === 'Cadangan', materiNo: b.materiNo, materi: b.materi, tp: [], jpB: 0, jpU: 0, n: 0, bulan: []}; kelompok.push(cari[k]); }
+      const g = cari[k]; g.n++;
+      if (b.jenis === 'Ulangan') g.jpU += +b.jp || 0; else g.jpB += +b.jp || 0;
+      if (b.jenis === 'Belajar' && b.tp) {
+        // Baris KP (langkah kegiatan dari ATP) diringkas menjadi satu baris agar Prota tetap ringkas
+        const kp = /\.KP$/i.test(b.noTP || ''), t = kp ? 'Kegiatan pembelajaran terpadu (' + (b.tp.match(/KP\d+/g) || []).length + ' langkah KP)' : (b.noTP ? b.noTP + ' ' : '') + b.tp;
+        if (g.tp.indexOf(t) < 0) g.tp.push(t);
+      }
+      const m = +String(b.tanggal).slice(5, 7); if (m && g.bulan.indexOf(m) < 0) g.bulan.push(m);
+    });
+    const urutBulan = m => (m + 5) % 12;   // Juli = awal tahun pelajaran
+    const baris = [], jumlah = {};
+    let no = 0;
+    ['1', '2'].forEach(smt => {
+      const isi = kelompok.filter(g => g.smt === smt);
+      if (!isi.length) return;
+      isi.forEach(g => {
+        g.bulan.sort((a, b) => urutBulan(a) - urutBulan(b));
+        const bln = g.bulan.length ? BLN3[g.bulan[0] - 1] + (g.bulan.length > 1 ? '–' + BLN3[g.bulan[g.bulan.length - 1] - 1] : '') : '';
+        const jp = g.jpB + g.jpU;
+        jumlah[smt] = (jumlah[smt] || 0) + jp;
+        baris.push([g.cadangan ? '' : String(++no), smt,
+          g.cadangan ? 'Cadangan / pengayaan / remedial' : (g.materiNo ? g.materiNo + '. ' : '') + g.materi,
+          g.cadangan ? 'Pengayaan, remedial, atau penyesuaian kalender' : g.tp.join('\n'),
+          String(g.n), g.cadangan ? String(g.jpB) : g.jpB + (g.jpU ? ' + ' + g.jpU + ' (ulangan)' : ''), String(jp), bln]);
+      });
+      baris.push(['', '', 'Jumlah Semester ' + smt, '', String(isi.reduce((a, g) => a + g.n, 0)), '', String(jumlah[smt]), '']);
+    });
+    const total = Object.keys(jumlah).reduce((a, k) => a + jumlah[k], 0);
+    baris.push(['', '', 'JUMLAH SATU TAHUN', '', String(P.baris.length), '', String(total), '']);
+    return {
+      judul: 'PROGRAM TAHUNAN (PROTA)',
+      info: [['Satuan Pendidikan', 'SD Negeri Bugangin'], ['Mata Pelajaran', P.mapel], ['Kelas', P.kelas],
+        ['Tahun Pelajaran', tahunPelajaran(P.baris)], ['Alokasi Waktu', total + ' JP (' + Object.keys(jumlah).map(k => 'semester ' + k + ': ' + jumlah[k] + ' JP').join(', ') + ')']],
+      kolom: [{judul: 'No', lebar: 4}, {judul: 'Smt', lebar: 4}, {judul: 'Materi (TP Rapor)', lebar: 24}, {judul: 'Tujuan Pembelajaran', lebar: 38},
+        {judul: 'Pertemuan', lebar: 7}, {judul: 'JP Belajar + Ulangan', lebar: 10}, {judul: 'Jumlah JP', lebar: 6}, {judul: 'Bulan', lebar: 8}],
+      baris,
+      ttd: {tanggal: hariIni(), kepala: P.kepala || {}, guru: P.guru || {}, labelGuru: /PAI/.test(P.mapel) ? 'Guru PAI dan Budi Pekerti' : 'Guru Kelas ' + P.kelas},
+      berkas: 'Prota ' + P.mapel + ' Kelas ' + P.kelas
+    };
+  }
   function isiJurnal(J) {
     const baris = J.baris.map((b, i) => [String(i + 1), b.hari + ', ' + tglPendek(b.tanggal), b.jamKe || '', (J.kelas ? '' : 'Kelas ' + b.kelas + ' · ') + b.kegiatan,
       [b.materi, b.tp].filter(String).join(' — '), b.uraian || '', b.pelaksanaan || '', String(b.tidakHadir || '0'),
@@ -206,5 +253,5 @@
     finally { tombol.disabled = false; tombol.textContent = lama; }
   }
 
-  window.UnduhGuru = {isiPromes, isiJurnal, keWord, keExcel, jalankan, muat, simpan, kopWord, tglPanjang, tglPendek, hariIni};
+  window.UnduhGuru = {isiPromes, isiProta, isiJurnal, keWord, keExcel, jalankan, muat, simpan, kopWord, tglPanjang, tglPendek, hariIni};
 })();
