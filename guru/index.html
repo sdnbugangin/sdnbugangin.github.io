@@ -105,7 +105,7 @@ footer{text-align:center;color:var(--muted);font-size:14px;padding:22px 10px 8px
       <div class="hari" id="h-judul"></div>
       <div id="h-semua" class="hidden"><button type="button" class="btn" id="btn-semua-sesuai">✓ Semua jurnal hari ini sesuai</button>
         <p class="kecil">Jurnal sudah terisi otomatis dengan kalimat baku dari Promes. Periksa ringkasannya di setiap kartu. Bila ada yang berbeda
-          (mis. ada murid tidak hadir, kegiatan tidak terlaksana), tekan ✏️ Ubah pada kartu itu dulu.</p></div>
+          (mis. kegiatan tidak terlaksana), tekan ✏️ Ubah pada kartu itu dulu. Jumlah murid tidak hadir diambil dari Presensi Digital.</p></div>
       <div class="msg" id="m-hari"></div>
       <div id="h-daftar"></div>
     </section>
@@ -284,7 +284,9 @@ async function muatHari(){
     const tombolRPP = p && p.jenis === 'Belajar' ? '<button class="dua" data-rpp="' + i + '">' + (p.rpp ? '📄 RPP ✓' : '📄 Buat RPP') + '</button>'
       : p && p.jenis === 'Ulangan' ? '<button class="dua" data-rpp="' + i + '">' + (p.rpp ? '📝 Soal ulangan ✓' : '📝 Buat soal ulangan') + '</button>' : '';
     const bolehSah = HARI.tanggal <= isoHariIni() && !b.tidakEfektif;
-    if (!j && b.draf) isi += '<div class="draf"><b>Draf jurnal:</b> ' + esc(b.draf.uraian) + '<br><span class="kecil">Pelaksanaan: Terlaksana · Tidak hadir: 0 murid</span></div>';
+    if (!j && b.draf) isi += '<div class="draf"><b>Draf jurnal:</b> ' + esc(b.draf.uraian) + '<br><span class="kecil">Pelaksanaan: Terlaksana · ' +
+      (b.draf.presensi === 'ada' ? 'Tidak hadir: ' + esc(b.draf.tidakHadir) + ' murid' + (b.draf.catatan ? ' (' + esc(b.draf.catatan.replace(/ \(sesuai Presensi Digital\)$/, '')) + ')' : '') + ' · dari Presensi Digital'
+        : HARI.tanggal <= isoHariIni() ? '⚠️ Presensi kelas ini belum diisi. <a href="../presensi/" target="_blank">Buka Presensi Digital</a>' : 'Kehadiran diambil dari Presensi Digital') + '</span></div>';
     isi += '<div class="aksi">' + tombolRPP + (j
       ? '<span class="lencana ok">✅ Jurnal: ' + esc(j.pelaksanaan) + '</span><span class="kecil">oleh ' + esc(j.diajarOleh) + (j.pengganti ? ' (pengganti)' : '') + '</span><button class="dua" data-i="' + i + '">✏️ Ubah</button>'
       : bolehSah ? '<button class="ok" data-sesuai="' + i + '">✓ Sesuai</button><button class="dua" data-i="' + i + '">✏️ Ubah</button>'
@@ -301,7 +303,7 @@ async function sahkan(kunci, tombol){
 }
 $('#btn-semua-sesuai').addEventListener('click', e => {
   const n = BLOK.filter(b => !b.jurnal && b.draf && !b.tidakEfektif).length;
-  if (confirm('Sahkan ' + n + ' jurnal hari ini sesuai draf (terlaksana, tidak ada murid tidak hadir)?')) sahkan('', e.target);
+  if (confirm('Sahkan ' + n + ' jurnal hari ini sesuai draf (terlaksana, kehadiran sesuai Presensi Digital)?')) sahkan('', e.target);
 });
 $('#h-tgl').addEventListener('change', muatHari);
 $('#h-kelas').addEventListener('change', muatHari);
