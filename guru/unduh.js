@@ -54,20 +54,21 @@
     };
   }
   function isiJurnal(J) {
-    const baris = J.baris.map((b, i) => [String(i + 1), b.hari + ', ' + tglPendek(b.tanggal), b.jamKe || '', b.kegiatan,
+    const baris = J.baris.map((b, i) => [String(i + 1), b.hari + ', ' + tglPendek(b.tanggal), b.jamKe || '', (J.kelas ? '' : 'Kelas ' + b.kelas + ' · ') + b.kegiatan,
       [b.materi, b.tp].filter(String).join(' — '), b.uraian || '', b.pelaksanaan || '', String(b.tidakHadir || '0'),
       (b.diajarOleh || '') + (b.pengganti ? ' (pengganti)' : ''), b.catatan || '']);
-    const guruUtama = (J.baris.find(b => !b.pengganti) || J.baris[0] || {}).guru || '';
+    const guruUtama = J.pai ? J.guruSaya : (J.baris.find(b => !b.pengganti) || J.baris[0] || {}).guru || '';
     return {
       judul: 'JURNAL MENGAJAR HARIAN',
-      info: [['Satuan Pendidikan', 'SD Negeri Bugangin'], ['Kelas', J.kelas], ['Periode', tglPanjang(J.dari) + ' s.d. ' + tglPanjang(J.sampai)],
-        ['Tahun Pelajaran', tahunPelajaran(J.baris)], ['Jumlah Catatan', J.baris.length + ' kegiatan']],
+      info: [['Satuan Pendidikan', 'SD Negeri Bugangin']].concat(J.pai ? [['Mata Pelajaran', 'PAI dan Budi Pekerti']] : []).concat([['Kelas', J.kelas || 'I–VI']]).concat([ ['Periode', tglPanjang(J.dari) + ' s.d. ' + tglPanjang(J.sampai)],
+        ['Tahun Pelajaran', tahunPelajaran(J.baris)], ['Jumlah Catatan', J.baris.length + ' kegiatan']]),
       kolom: [{judul: 'No', lebar: 4}, {judul: 'Hari, Tanggal', lebar: 12}, {judul: 'Jam', lebar: 5}, {judul: 'Mapel / Kegiatan', lebar: 12},
         {judul: 'Materi / TP', lebar: 24}, {judul: 'Uraian Kegiatan', lebar: 24}, {judul: 'Pelaksanaan', lebar: 9},
         {judul: 'Tidak Hadir', lebar: 6}, {judul: 'Guru', lebar: 13}, {judul: 'Catatan', lebar: 12}],
       baris,
-      ttd: {tanggal: J.sampai || hariIni(), kepala: J.kepala || {}, guru: {nama: guruUtama, nip: (J.nip || {})[guruUtama] || ''}, labelGuru: 'Guru Kelas ' + J.kelas},
-      berkas: 'Jurnal Kelas ' + J.kelas + ' ' + tglPendek(J.dari).replace(/\//g, '-') + ' sd ' + tglPendek(J.sampai).replace(/\//g, '-')
+      ttd: {tanggal: J.sampai || hariIni(), kepala: J.kepala || {}, guru: {nama: guruUtama, nip: (J.nip || {})[guruUtama] || ''},
+        labelGuru: J.pai ? 'Guru PAI dan Budi Pekerti' : 'Guru Kelas ' + J.kelas},
+      berkas: 'Jurnal ' + (J.pai ? 'PAI ' : '') + 'Kelas ' + (J.kelas || 'I-VI') + ' ' + tglPendek(J.dari).replace(/\//g, '-') + ' sd ' + tglPendek(J.sampai).replace(/\//g, '-')
     };
   }
 

@@ -218,6 +218,9 @@ function mulai(){
   $('#p-kelas').innerHTML = opsiKelas; $('#r-kelas').innerHTML = opsiKelas;
   const kSaya = GURU.kelas && GURU.kelas.length === 1 ? GURU.kelas[0] : 'I';
   $('#p-kelas').value = kSaya; $('#r-kelas').value = kSaya;
+  // Guru mapel (PAI): pilihannya kelas I–VI, mapel terkunci PAI; jurnal hanya kegiatan PAI.
+  if (modePAI()) { $('#r-kelas').innerHTML = '<option value="">Semua kelas (I–VI)</option>' + opsiKelas; $('#r-kelas').value = '';
+    $('label[for=p-mapel]').textContent = 'Mata pelajaran (khusus Anda)'; }
   const hi = isoHariIni(); $('#h-tgl').value = hi;
   const senin = geser(hi, -((new Date(hi + 'T12:00:00').getDay() + 6) % 7));
   $('#r-dari').value = senin; $('#r-sampai').value = geser(senin, 5);
@@ -251,6 +254,7 @@ async function muatHari(){
   const r = await api({ aksi: 'hariIni', sesi: SESI, tanggal: iso, kelas: $('#h-kelas').value });
   if (!r.ok) return pesan('#m-hari', r.pesan);
   pesan('#m-hari', ''); HARI = r; BLOK = r.blok;
+  if (!r.kelasLain && modePAI()) BLOK.sort((a, b) => a.mulai.localeCompare(b.mulai));   // guru PAI: urut jam, lintas kelas
   $('#h-judul').innerHTML = esc(r.hari + ' ' + r.pasaran + ', ' + tglPanjang(r.tanggal)) + (r.kelasLain ? ' <span class="kecil">· Kelas ' + esc(r.kelasLain) + '</span>' : '');
   if (r.libur) return pesan('#m-hari', '🏖️ ' + r.libur + '. Tidak ada pembelajaran.', true);
   if (!BLOK.length) return pesan('#m-hari', r.hari === 'Minggu' ? 'Hari Minggu, tidak ada jadwal.' : 'Tidak ada jadwal Anda pada hari ini.', true);
@@ -312,11 +316,16 @@ $('#f-jurnal').addEventListener('submit', async e => {
 
 /* ---------- Promes ---------- */
 let SMT = '1';
+function modePAI(){ return !!(GURU && GURU.peran === 'Guru Mapel' && /PAI/.test(GURU.mapel || '')); }
 async function muatPromes(gantiKelas){
   $('#p-daftar').innerHTML = ''; pesan('#m-promes', 'Memuat Promes…', true);
   const r = await api({ aksi: 'promes', sesi: SESI, kelas: $('#p-kelas').value, mapel: gantiKelas ? '' : $('#p-mapel').value, semester: SMT });
   if (!r.ok) return pesan('#m-promes', r.pesan);
   pesan('#m-promes', ''); PROMES = r;
+  if (modePAI()) {
+    r.daftarMapel = r.daftarMapel.filter(m => /PAI/.test(m));
+    if (!/PAI/.test(r.mapel) && r.daftarMapel.length) { $('#p-mapel').innerHTML = '<option>' + esc(r.daftarMapel[0]) + '</option>'; return muatPromes(); }
+  }
   $('#p-mapel').innerHTML = r.daftarMapel.map(m => '<option' + (m === r.mapel ? ' selected' : '') + '>' + esc(m) + '</option>').join('');
   if (!r.mapel && r.daftarMapel.length) { $('#p-mapel').value = r.daftarMapel[0]; return muatPromes(); }
   if (!r.baris.length) return pesan('#m-promes', 'Belum ada Promes untuk pilihan ini.', true);
@@ -342,9 +351,10 @@ async function muatRekap(){
   $('#r-daftar').innerHTML = ''; pesan('#m-rekap', 'Memuat jurnal…', true);
   const r = await api({ aksi: 'jurnalLihat', sesi: SESI, kelas: $('#r-kelas').value, dari: $('#r-dari').value, sampai: $('#r-sampai').value });
   if (!r.ok) return pesan('#m-rekap', r.pesan);
-  pesan('#m-rekap', ''); REKAP = r.baris; REKAP_META = {kelas: $('#r-kelas').value, dari: $('#r-dari').value, sampai: $('#r-sampai').value, kepala: r.kepala, nip: r.nip};
+  pesan('#m-rekap', ''); REKAP = modePAI() ? r.baris.filter(b => /PAI/.test(b.kegiatan)) : r.baris;
+  REKAP_META = {kelas: $('#r-kelas').value, dari: $('#r-dari').value, sampai: $('#r-sampai').value, kepala: r.kepala, nip: r.nip, pai: modePAI(), guruSaya: GURU.nama};
   if (!REKAP.length) return pesan('#m-rekap', 'Belum ada jurnal pada rentang tanggal ini.', true);
-  const kop = '<div class="cetak-saja"><h3 style="margin:0">JURNAL MENGAJAR HARIAN · KELAS ' + esc($('#r-kelas').value) + ' · SD NEGERI BUGANGIN</h3><p style="margin:2px 0 8px">' +
+  const kop = '<div class="cetak-saja"><h3 style="margin:0">JURNAL MENGAJAR HARIAN · ' + (modePAI() ? 'PAI DAN BUDI PEKERTI · ' : '') + 'KELAS ' + esc($('#r-kelas').value || 'I–VI') + ' · SD NEGERI BUGANGIN</h3><p style="margin:2px 0 8px">' +
     esc(tglPanjang($('#r-dari').value) + ' – ' + tglPanjang($('#r-sampai').value)) + '</p></div>';
   const rows = REKAP.map((b, i) => '<tr><td>' + (i + 1) + '</td><td>' + esc(b.hari) + '<br>' + esc(tglPendek(b.tanggal)) + '</td><td>' + esc(b.jamKe) + '</td><td>' + esc(b.kegiatan) + '</td><td>' +
     (b.materi ? esc(b.materi) + '<br>' : '') + '<i>' + esc(b.tp) + '</i></td><td>' + esc(b.uraian) + '</td><td>' + esc(b.pelaksanaan) + '</td><td>' + esc(b.tidakHadir) + '</td><td>' + esc(b.diajarOleh) +
