@@ -61,6 +61,7 @@ table{width:100%;border-collapse:collapse;font-size:15px;margin-top:12px}th,td{b
 .koku .daftar{margin-top:8px}.koku .baris{display:flex;align-items:center;gap:6px;padding:5px 0;border-top:1px solid #dcebd4}
 .koku .baris span{flex:1}.koku .baris button{padding:6px 9px;border-radius:8px;border:1px solid #9bd5ae;background:#fff;font-weight:800;font-size:13px}
 .koku .baris button.on{background:var(--green);color:#fff;border-color:var(--green)}
+.koku input.anek{width:100%;margin:2px 0 6px;padding:7px 9px;border:1px solid #9bd5ae;border-radius:8px;font-size:14px}
 .kr-kartu{border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-top:12px;background:#fff}
 .kr-kartu h3{margin:0 0 6px;font-size:17px;color:var(--blue)}
 .kr-hitung{display:flex;gap:10px;align-items:center;padding:12px 14px;border-radius:14px;margin-top:12px;font-weight:700}
@@ -183,12 +184,24 @@ footer{text-align:center;color:var(--muted);font-size:14px;padding:22px 10px 8px
         <div id="kr-isi"></div>
       </div>
       <div id="kk-menu">
-        <button type="button" class="kk-item" disabled><b>1. Program Kokurikuler Sekolah</b><span>F1 SK Tim · F2 Analisis · F3 Dimensi–Tema–Bentuk · F4 Program Tahunan — segera hadir</span></button>
-        <button type="button" class="kk-item" disabled><b>2. Perencanaan Kegiatan</b><span>F5 bagian A–H setiap kegiatan rutin — segera hadir</span></button>
-        <button type="button" class="kk-item" disabled><b>3. Jadwal Pelaksanaan</b><span>F6 dari jadwal sekolah — segera hadir</span></button>
-        <button type="button" class="kk-item" disabled><b>4. Instrumen Kelas</b><span>F7 surat orang tua · F9 jurnal 7 KAIH · F10 penilaian diri — segera hadir</span></button>
+        <button type="button" class="kk-item" data-dok="program"><b>1. Program Kokurikuler Sekolah</b><span>F1 SK Tim · F2 Analisis · F3 Dimensi–Tema–Bentuk · F4 Program Tahunan — ⬇️ unduh PDF</span></button>
+        <button type="button" class="kk-item" data-dok="perencanaan"><b>2. Perencanaan Kegiatan</b><span>F5 bagian A–H setiap kegiatan rutin — ⬇️ unduh PDF</span></button>
+        <button type="button" class="kk-item" data-dok="jadwal"><b>3. Jadwal Pelaksanaan</b><span>F6 jadwal kokurikuler setiap kelas — ⬇️ unduh PDF</span></button>
+        <button type="button" class="kk-item" data-kk="instrumen" data-mode="kelas"><b>4. Instrumen Kelas</b><span>F7 surat orang tua · F8 catatan anekdot · F9 jurnal 7 KAIH · F10 penilaian diri · kartu mengaji (Word, nama murid terisi)</span></button>
         <button type="button" class="kk-item" data-kk="asesmen"><b>5. Asesmen dan Rapor</b><span>Pengamatan harian → rekap rata-rata → kirim ke Daftar Nilai Digital</span></button>
-        <button type="button" class="kk-item" disabled><b>6. Evaluasi</b><span>F12 evaluasi akhir tahun — segera hadir</span></button>
+        <button type="button" class="kk-item" data-kk="instrumen" data-mode="evaluasi"><b>6. Evaluasi</b><span>F12 evaluasi setiap kegiatan (Word, persentase capaian terisi otomatis)</span></button>
+        <div class="msg" id="m-kkdok"></div>
+      </div>
+      <div id="kk-instrumen" class="hidden">
+        <button type="button" class="link kk-balik">← Menu Kokurikuler</button><h2 id="ki-judul">Instrumen Kelas</h2>
+        <p class="sub" id="ki-sub"></p>
+        <div class="dua-kolom"><div><label for="ki-kelas">Kelas</label><select id="ki-kelas"></select></div><div></div></div>
+        <div id="ki-f9" class="dua-kolom"><div><label for="ki-kebiasaan">Kebiasaan untuk F9</label><select id="ki-kebiasaan">
+          <option>Beribadah (mengaji dan salat)</option><option>Bangun pagi</option><option>Berolahraga</option><option>Makan sehat dan bergizi</option>
+          <option>Gemar belajar (membaca)</option><option>Bermasyarakat</option><option>Tidur cepat</option></select></div>
+          <div><label for="ki-minggu">Minggu ke-</label><input id="ki-minggu" type="number" min="1" max="20" placeholder="boleh kosong"></div></div>
+        <div class="msg" id="m-ki"></div>
+        <div id="ki-tombol"></div>
       </div>
       <div id="kk-asesmen" class="hidden">
         <button type="button" class="link" id="kk-kembali">← Menu Kokurikuler</button><h2>Asesmen dan Rapor Kokurikuler</h2>
@@ -224,6 +237,7 @@ footer{text-align:center;color:var(--muted);font-size:14px;padding:22px 10px 8px
   <footer>SD Negeri Bugangin · Kendal</footer>
 </div>
 <script src="unduh.js"></script>
+<script src="instrumen.js"></script>
 <script>
 const API_URL = 'https://script.google.com/macros/s/AKfycbz-_YG6rgtxaABRbPSCtiFFWTDmzMU-094w13L6y-jdNjYPOBX_O2TcRDeZIWv_DsfeCw/exec';
 const $ = s => document.querySelector(s);
@@ -278,9 +292,9 @@ function mulai(){
   $('#u-peran').textContent = GURU.peran + (GURU.peran === 'Guru Kelas' ? ' ' + GURU.kelas.join(', ') : GURU.peran === 'Guru Mapel' ? ' · ' + GURU.mapel : '');
   const opsiKelas = ROMAWI.map(k => '<option value="' + k + '">Kelas ' + k + '</option>').join('');
   $('#h-kelas').innerHTML = '<option value="">Jadwal saya</option>' + opsiKelas;
-  $('#p-kelas').innerHTML = opsiKelas; $('#r-kelas').innerHTML = opsiKelas; $('#kk-kelas').innerHTML = opsiKelas; $('#kr-kelas').innerHTML = opsiKelas;
+  $('#p-kelas').innerHTML = opsiKelas; $('#r-kelas').innerHTML = opsiKelas; $('#kk-kelas').innerHTML = opsiKelas; $('#kr-kelas').innerHTML = opsiKelas; $('#ki-kelas').innerHTML = opsiKelas;
   const kSaya = GURU.kelas && GURU.kelas.length === 1 ? GURU.kelas[0] : 'I';
-  $('#p-kelas').value = kSaya; $('#r-kelas').value = kSaya; $('#kk-kelas').value = kSaya; $('#kr-kelas').value = kSaya;
+  $('#p-kelas').value = kSaya; $('#r-kelas').value = kSaya; $('#kk-kelas').value = kSaya; $('#kr-kelas').value = kSaya; $('#ki-kelas').value = kSaya;
   $('#kk-smt').value = (isoHariIni().slice(5, 7) >= '07') ? '1' : '2';
   // Guru mapel (PAI): pilihannya kelas I–VI, mapel terkunci PAI; jurnal hanya kegiatan PAI.
   if (modePAI()) { $('#r-kelas').innerHTML = '<option value="">Semua kelas (I–VI)</option>' + opsiKelas; $('#r-kelas').value = '';
@@ -299,15 +313,15 @@ function buka(l){
   if (l === 'hari') muatHari();
   if (l === 'promes') muatPromes();
   if (l === 'jurnal') muatRekap();
-  if (l === 'koku') { $('#kk-menu').classList.remove('hidden'); $('#kk-ringkas').classList.remove('hidden'); $('#kk-asesmen').classList.add('hidden'); muatRingkasKoku(); }
+  if (l === 'koku') { kembaliMenuKoku(); muatRingkasKoku(); }
 }
 /* ---------- Menu Kokurikuler ---------- */
 let KOKU = null;
 /* Papan ringkasan kokurikuler: pengingat untuk guru */
 const DOK_KOKU = [['F1–F4', 'Program Kokurikuler Sekolah', 'draf'], ['F5', 'Perencanaan Kegiatan', 'draf'], ['F6', 'Jadwal Pelaksanaan', 'draf'],
-  ['F7', 'Surat pemberitahuan orang tua', 'nanti'], ['F8', 'Catatan anekdot', 'nanti'], ['F9', 'Jurnal 7 KAIH murid', 'nanti'], ['F10', 'Penilaian diri murid', 'nanti'],
-  ['F11', 'Rubrik dan rekap hasil asesmen', 'ok'], ['F12', 'Evaluasi akhir tahun', 'nanti']];
-const LABEL_DOK = { ok: '✓ Otomatis', draf: 'Draf diperiksa KS', nanti: 'Segera hadir' };
+  ['F7', 'Surat pemberitahuan orang tua', 'siap'], ['F8', 'Catatan anekdot', 'ok'], ['F9', 'Jurnal 7 KAIH murid', 'siap'], ['F10', 'Penilaian diri murid', 'siap'],
+  ['F11', 'Rubrik dan rekap hasil asesmen', 'ok'], ['F12', 'Evaluasi kegiatan', 'siap']];
+const LABEL_DOK = { ok: '✓ Otomatis', siap: '✓ Siap cetak', draf: 'Draf diperiksa KS', nanti: 'Segera hadir' };
 function hariAntara(a, b){ return Math.round((new Date(b + 'T12:00:00') - new Date(a + 'T12:00:00')) / 864e5); }
 async function muatRingkasKoku(){
   $('#kr-isi').innerHTML = ''; pesan('#m-kr', 'Memuat ringkasan…', true);
@@ -349,12 +363,61 @@ $('#kr-isi').addEventListener('click', e => {
   $('#h-kelas').value = kSaya ? '' : $('#kr-kelas').value;
   buka('hari');
 });
+function kembaliMenuKoku(){
+  ['asesmen', 'instrumen'].forEach(x => $('#kk-' + x).classList.add('hidden'));
+  $('#kk-menu').classList.remove('hidden'); $('#kk-ringkas').classList.remove('hidden'); pesan('#m-kkdok', '');
+}
 $('#kk-menu').addEventListener('click', e => {
+  const d = e.target.closest('[data-dok]'); if (d) return unduhDokKoku(d);
   const b = e.target.closest('[data-kk]'); if (!b) return;
   $('#kk-menu').classList.add('hidden'); $('#kk-ringkas').classList.add('hidden'); $('#kk-' + b.dataset.kk).classList.remove('hidden');
   if (b.dataset.kk === 'asesmen') muatKoku();
+  if (b.dataset.kk === 'instrumen') siapkanInstrumen(b.dataset.mode);
 });
-$('#kk-kembali').addEventListener('click', () => { $('#kk-asesmen').classList.add('hidden'); $('#kk-menu').classList.remove('hidden'); $('#kk-ringkas').classList.remove('hidden'); });
+$('#kk-kembali').addEventListener('click', kembaliMenuKoku);
+document.querySelectorAll('.kk-balik').forEach(b => b.addEventListener('click', kembaliMenuKoku));
+/* Bagian 1-3: dokumen program sekolah (Google Docs Kepala Sekolah) diunduh sebagai PDF */
+async function unduhDokKoku(tombol){
+  if (tombol.disabled) return;
+  tombol.disabled = true; pesan('#m-kkdok', 'Menyiapkan PDF… (bisa 10–20 detik)', true);
+  const r = await api({ aksi: 'dokKoku', sesi: SESI, dok: tombol.dataset.dok });
+  tombol.disabled = false;
+  if (!r.ok) return pesan('#m-kkdok', r.pesan);
+  const bin = atob(r.base64), u = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+  UnduhGuru.simpan(new Blob([u], { type: r.mime }), r.nama);
+  pesan('#m-kkdok', '✓ ' + r.nama + ' diunduh.' + (/draf/i.test(r.status) ? ' Catatan: dokumen masih draf yang sedang diperiksa Kepala Sekolah.' : ''), true);
+}
+/* Bagian 4 dan 6: instrumen kelas dan evaluasi (Word berkop, nama murid terisi) */
+const INSTRUMEN_KELAS = [['f7', '✉️ F7 Surat orang tua', 'Satu halaman per murid, dengan potongan balasan.'],
+  ['f8', '📝 F8 Catatan anekdot', 'Terisi dari catatan Anda saat menandai murid B atau M di kartu kegiatan.'],
+  ['f9', '📒 F9 Jurnal kebiasaan 7 KAIH', 'Satu halaman per murid, untuk satu minggu.'],
+  ['f10', '🙂 F10 Penilaian diri', 'Satu halaman per murid, pernyataan sesuai 5 subdimensi sekolah.'],
+  ['mengaji', '📖 Kartu prestasi mengaji', 'Satu kartu per murid.']];
+function siapkanInstrumen(mode){
+  const ev = mode === 'evaluasi';
+  $('#ki-judul').textContent = ev ? 'Evaluasi Kegiatan Kokurikuler' : 'Instrumen Kelas';
+  $('#ki-sub').textContent = ev ? 'F12 untuk setiap kegiatan rutin. Persentase murid Cakap/Mahir terisi dari pengamatan yang sudah divalidasi; sisanya diisi evaluator saat rapat refleksi.'
+    : 'Berkas Word A4 berkop sekolah. Nama murid terisi dari daftar rapor; cetak lalu bagikan.';
+  $('#ki-f9').classList.toggle('hidden', ev); pesan('#m-ki', '');
+  const daftar = ev ? [['f12', '📋 F12 Instrumen evaluasi kegiatan', '5 halaman, satu per kegiatan rutin.']] : INSTRUMEN_KELAS;
+  $('#ki-tombol').innerHTML = daftar.map(x => '<button type="button" class="kk-item" data-ins="' + x[0] + '"><b>' + x[1] + '</b><span>' + esc(x[2]) + '</span></button>').join('');
+}
+$('#ki-tombol').addEventListener('click', async e => {
+  const b = e.target.closest('[data-ins]'); if (!b || b.disabled) return;
+  b.disabled = true; pesan('#m-ki', 'Menyiapkan berkas Word…', true);
+  try {
+    const kelas = $('#ki-kelas').value;
+    const R = await api({ aksi: 'instrumenKoku', sesi: SESI, kelas });
+    if (!R.ok) throw new Error(R.pesan);
+    let tambahan = { kebiasaan: $('#ki-kebiasaan').value, minggu: $('#ki-minggu').value };
+    if (b.dataset.ins === 'f12') { const rk = await api({ aksi: 'ringkasKoku', sesi: SESI, kelas }); tambahan = rk.ok ? rk : {}; }
+    if (b.dataset.ins === 'f8' && !R.anekdot.length) pesan('#m-ki', 'Belum ada catatan anekdot; berkas berisi tabel kosong untuk ditulis tangan.', true);
+    await InstrumenKoku.buat(b.dataset.ins, R, tambahan);
+    if (!(b.dataset.ins === 'f8' && !R.anekdot.length)) pesan('#m-ki', '✓ Berkas diunduh.', true);
+  } catch (err) { pesan('#m-ki', err.message || 'Berkas gagal dibuat.'); }
+  finally { b.disabled = false; }
+});
 async function muatKoku(){
   $('#kk-tabel').innerHTML = ''; $('#kk-kirim').classList.add('hidden'); $('#kk-ket').textContent = '';
   pesan('#m-koku', 'Memuat rekap…', true);
@@ -445,7 +508,13 @@ function muatHariTampil(){
   }).join('');
 }
 /* ---------- Pengamatan kokurikuler (1 subdimensi per kegiatan, bawaan Cakap) ---------- */
-let KOKU_UBAH = {}, KOKU_BUKA = {};
+let KOKU_UBAH = {}, KOKU_BUKA = {}, KOKU_ANEK = {};
+// Catatan anekdot (F8): peristiwa singkat untuk murid yang ditandai B atau M
+function anekdotKoku(b){
+  const a = KOKU_ANEK[b.kunci] || b.koku.anekdot || {}, p = pengecualianKoku(b), o = {};
+  Object.keys(a).forEach(id => { if (a[id] && (p[id] === 'Berkembang' || p[id] === 'Mahir')) o[id] = a[id]; });
+  return o;
+}
 const LV = { Berkembang: 'B', Cakap: 'C', Mahir: 'M', 'Tidak hadir': 'Tidak hadir' };
 function pengecualianKoku(b){ return KOKU_UBAH[b.kunci] || b.koku.tersimpan || {}; }
 function kotakKoku(b, i, bolehSah){
@@ -453,13 +522,15 @@ function kotakKoku(b, i, bolehSah){
   const nama = id => (k.murid.find(m => m.id === id) || {}).nama || id;
   let h = '<div class="koku"><b>🌱 Pengamatan ' + esc(k.subdimensi) + '</b> <span class="kecil">(' + esc(k.dimensi) + ')</span><br>' +
     (k.tersimpan && !KOKU_UBAH[b.kunci] ? '<span class="kecil">✅ Tersimpan · </span>' : '') +
-    (beda.length ? 'Semua Cakap, kecuali: ' + beda.map(id => '<span class="chip">' + esc(nama(id)) + ': ' + esc(p[id]) + '</span>').join('')
+    (beda.length ? 'Semua Cakap, kecuali: ' + beda.map(id => '<span class="chip">' + esc(nama(id)) + ': ' + esc(p[id]) + (anekdotKoku(b)[id] ? ' 📝' : '') + '</span>').join('')
       : 'Semua ' + k.murid.length + ' murid: <b>Cakap</b>');
   if (bolehSah) h += '<br><button type="button" class="link" data-koku="' + i + '">' + (KOKU_BUKA[b.kunci] ? 'Tutup daftar murid' : '👥 Ubah murid yang berbeda') + '</button>';
   if (KOKU_BUKA[b.kunci]) {
     h += '<div class="daftar">' + k.murid.map(m => '<div class="baris"><span>' + esc(m.nama) + '</span>' +
       ['Berkembang', 'Cakap', 'Mahir', 'Tidak hadir'].map(l => '<button type="button" data-kk="' + i + '" data-id="' + esc(m.id) + '" data-lv="' + l + '" class="' +
-        ((p[m.id] || 'Cakap') === l ? 'on' : '') + '">' + LV[l] + '</button>').join('') + '</div>').join('') +
+        ((p[m.id] || 'Cakap') === l ? 'on' : '') + '">' + LV[l] + '</button>').join('') + '</div>' +
+      (p[m.id] === 'Berkembang' || p[m.id] === 'Mahir' ? '<input class="anek" data-anek="' + i + '" data-id="' + esc(m.id) + '" maxlength="300" value="' +
+        esc((KOKU_ANEK[b.kunci] || k.anekdot || {})[m.id] || '') + '" placeholder="📝 Catatan anekdot (boleh kosong): apa yang dilakukan/dikatakan ' + esc(m.nama.split(' ')[0]) + '">' : '')).join('') +
       (b.jurnal ? '<button type="button" class="btn" data-kksimpan="' + i + '">Simpan pengamatan</button>' : '<p class="kecil">Perubahan ikut tersimpan saat Anda menekan ✓ Sesuai.</p>') + '</div>';
   }
   return h + '</div>';
@@ -470,10 +541,15 @@ function pengamatanUntuk(kunci){
   BLOK.forEach(b => { if (b.koku && (!kunci || b.kunci === kunci)) o[b.kunci] = pengecualianKoku(b); });
   return o;
 }
+function anekdotUntuk(kunci){
+  const o = {};
+  BLOK.forEach(b => { if (b.koku && (!kunci || b.kunci === kunci)) o[b.kunci] = anekdotKoku(b); });
+  return o;
+}
 async function sahkan(kunci, tombol){
   tombol.disabled = true; const lama = tombol.textContent; tombol.textContent = 'Menyimpan…';
-  const r = await api({ aksi: 'jurnalSesuai', sesi: SESI, tanggal: HARI.tanggal, kelas: $('#h-kelas').value, kunci, pengamatan: pengamatanUntuk(kunci) });
-  if (r.ok) { if (kunci) delete KOKU_UBAH[kunci]; else KOKU_UBAH = {}; }
+  const r = await api({ aksi: 'jurnalSesuai', sesi: SESI, tanggal: HARI.tanggal, kelas: $('#h-kelas').value, kunci, pengamatan: pengamatanUntuk(kunci), anekdot: anekdotUntuk(kunci) });
+  if (r.ok) { if (kunci) { delete KOKU_UBAH[kunci]; delete KOKU_ANEK[kunci]; } else { KOKU_UBAH = {}; KOKU_ANEK = {}; } }
   tombol.disabled = false; tombol.textContent = lama;
   if (!r.ok) return pesan('#m-hari', r.pesan);
   muatHari();
@@ -489,6 +565,12 @@ $('#h-besok').addEventListener('click', () => { $('#h-tgl').value = geser($('#h-
 
 /* ---------- Isi Jurnal ---------- */
 let PILIH = null;
+$('#h-daftar').addEventListener('input', e => {
+  const t = e.target; if (t.dataset.anek == null) return;
+  const b = BLOK[Number(t.dataset.anek)];
+  KOKU_ANEK[b.kunci] = Object.assign({}, b.koku.anekdot || {}, KOKU_ANEK[b.kunci] || {}, { [t.dataset.id]: t.value });
+  if (!KOKU_UBAH[b.kunci]) KOKU_UBAH[b.kunci] = Object.assign({}, pengecualianKoku(b));   // tandai ada perubahan yang belum tersimpan
+});
 $('#h-daftar').addEventListener('click', e => {
   const t = e.target;
   if (t.dataset.koku != null) { const b = BLOK[Number(t.dataset.koku)]; KOKU_BUKA[b.kunci] = !KOKU_BUKA[b.kunci]; return gambarUlangKartu(); }
@@ -499,8 +581,8 @@ $('#h-daftar').addEventListener('click', e => {
   }
   if (t.dataset.kksimpan != null) {
     const b = BLOK[Number(t.dataset.kksimpan)]; t.disabled = true;
-    return api({ aksi: 'pengamatanSimpan', sesi: SESI, tanggal: HARI.tanggal, kelas: b.kelas, kegiatan: b.kegiatan, pengecualian: pengecualianKoku(b) })
-      .then(r => { if (!r.ok) return pesan('#m-hari', r.pesan); delete KOKU_UBAH[b.kunci]; KOKU_BUKA[b.kunci] = false; muatHari(); });
+    return api({ aksi: 'pengamatanSimpan', sesi: SESI, tanggal: HARI.tanggal, kelas: b.kelas, kegiatan: b.kegiatan, pengecualian: pengecualianKoku(b), anekdot: anekdotKoku(b) })
+      .then(r => { if (!r.ok) return pesan('#m-hari', r.pesan); delete KOKU_UBAH[b.kunci]; delete KOKU_ANEK[b.kunci]; KOKU_BUKA[b.kunci] = false; muatHari(); });
   }
   const is = e.target.dataset.sesuai;
   if (is != null) return sahkan(BLOK[Number(is)].kunci, e.target);
@@ -526,8 +608,8 @@ $('#f-jurnal').addEventListener('submit', async e => {
   const r = await api({ aksi: 'jurnalSimpan', sesi: SESI, tanggal: HARI.tanggal, kelas: PILIH.kelas, kegiatan: PILIH.kegiatan,
     pelaksanaan: (document.querySelector('input[name=pelaksanaan]:checked') || {}).value, uraian: $('#j-uraian').value,
     tidakHadir: $('#j-absen').value, catatan: $('#j-catatan').value, cara: PILIH.jurnal ? '' : 'draf',
-    pengamatan: PILIH.koku ? pengecualianKoku(PILIH) : undefined });
-  if (PILIH.koku) delete KOKU_UBAH[PILIH.kunci];
+    pengamatan: PILIH.koku ? pengecualianKoku(PILIH) : undefined, anekdot: PILIH.koku ? anekdotKoku(PILIH) : undefined });
+  if (PILIH.koku) { delete KOKU_UBAH[PILIH.kunci]; delete KOKU_ANEK[PILIH.kunci]; }
   sibuk(e.target, false);
   if (!r.ok) return pesan('#m-jurnal', r.pesan);
   buka('hari');

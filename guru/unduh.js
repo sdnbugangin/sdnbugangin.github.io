@@ -32,6 +32,42 @@
     return m >= 7 ? y + '/' + (y + 1) : (y - 1) + '/' + y;
   }
 
+  /* ---------- kop SD N Bugangin (dipakai semua dokumen) ---------- */
+  let GAMBAR_KOP = null;
+  async function gambarKop() {
+    if (GAMBAR_KOP) return GAMBAR_KOP;
+    const ambil = async u => new Uint8Array(await (await fetch(u)).arrayBuffer());
+    GAMBAR_KOP = {kiri: await ambil('kop-kendal.png'), kanan: await ambil('kop-sekolah.png')};
+    return GAMBAR_KOP;
+  }
+  // Kop Word: logo Kabupaten Kendal kiri, logo sekolah kanan, garis ganda di bawah. W = lebar isi halaman (twip).
+  async function kopWord(d, W) {
+    const g = await gambarKop(), tanpa = {style: d.BorderStyle.NONE, size: 0, color: 'FFFFFF'}, nol = {top: tanpa, bottom: tanpa, left: tanpa, right: tanpa};
+    const w = [Math.round(W * 0.15), Math.round(W * 0.70)]; w.push(W - w[0] - w[1]);
+    const gb = (data, cx, cy) => new d.Paragraph({alignment: d.AlignmentType.CENTER, children: [new d.ImageRun({data, transformation: {width: cx, height: cy}})]});
+    const br = (t, sz, b) => new d.Paragraph({alignment: d.AlignmentType.CENTER, spacing: {after: 0}, children: [new d.TextRun({text: t, size: sz, bold: !!b, font: 'Arial'})]});
+    const sel = (children, i) => new d.TableCell({width: {size: w[i], type: d.WidthType.DXA}, borders: nol, verticalAlign: d.VerticalAlign.CENTER, children});
+    return [new d.Table({width: {size: W, type: d.WidthType.DXA}, columnWidths: w, layout: d.TableLayoutType.FIXED,
+      borders: {top: tanpa, left: tanpa, right: tanpa, insideHorizontal: tanpa, insideVertical: tanpa, bottom: {style: d.BorderStyle.THICK_THIN_SMALL_GAP, size: 18, color: '000000'}},
+      rows: [new d.TableRow({children: [sel([gb(g.kiri, 60, 79)], 0),
+        sel([br('PEMERINTAH KABUPATEN KENDAL', 24), br('SD N BUGANGIN', 32, true), br('Jl. Soekarno-Hatta No. 395A, Bugangin, Kendal 51314', 20),
+          br('Laman: sdnbugangin.github.io, Pos-el: sdn.bugangin@gmail.com', 20)], 1), sel([gb(g.kanan, 76, 67)], 2)]})]}),
+      new d.Paragraph({spacing: {after: 80}, children: []})];
+  }
+  // Kop Excel di baris 1-4 (logo di kolom pertama dan terakhir).
+  async function kopExcel(wb, ws, n) {
+    const g = await gambarKop(), akhir = ws.getColumn(n).letter;
+    ws.addImage(wb.addImage({buffer: g.kiri, extension: 'png'}), {tl: {col: 0.1, row: 0.1}, ext: {width: 45, height: 59}});
+    ws.addImage(wb.addImage({buffer: g.kanan, extension: 'png'}), {tl: {col: n - 1 + 0.1, row: 0.1}, ext: {width: 57, height: 50}});
+    [['PEMERINTAH KABUPATEN KENDAL', 11, false], ['SD N BUGANGIN', 14, true], ['Jl. Soekarno-Hatta No. 395A, Bugangin, Kendal 51314', 9, false],
+      ['Laman: sdnbugangin.github.io, Pos-el: sdn.bugangin@gmail.com', 9, false]].forEach(([t, sz, b], i) => {
+      ws.mergeCells('B' + (i + 1) + ':' + ws.getColumn(n - 1).letter + (i + 1));
+      const c = ws.getCell('B' + (i + 1)); c.value = t; c.font = {name: 'Arial', size: sz, bold: b}; c.alignment = {horizontal: 'center'};
+    });
+    for (let i = 1; i <= n; i++) ws.getCell(4, i).border = {bottom: {style: 'double', color: {argb: 'FF000000'}}};
+    return 5;   // baris kosong pemisah; isi dimulai baris 6
+  }
+
   /* ---------- isi dokumen ---------- */
   // Bentuk umum: {judul, info:[[label, isi]], kolom:[{judul, lebar}], baris:[[...]], ttd:{tempat, tanggal, kepala, guru, labelGuru}, berkas}
   function isiPromes(P) {
@@ -97,18 +133,19 @@
       width: {size: 9000, type: d.WidthType.DXA}, columnWidths: [2600, 6400],
       rows: D.info.map(([a, b]) => new d.TableRow({children: [sel(a, {lebar: 2600, tanpaGaris: true, ukuran: 20}), sel(': ' + b, {lebar: 6400, tanpaGaris: true, ukuran: 20})]}))
     });
-    const t = D.ttd, setengah = Math.round(lebarHalaman / 2);
+    const t = D.ttd, sepertiga = Math.round(lebarHalaman * 0.36), tengahW = lebarHalaman - 2 * sepertiga;
     const kiri = 'Mengetahui,\nKepala SD Negeri Bugangin\n\n\n\n' + (t.kepala.nama || '..............................') + (t.kepala.nip ? '\nNIP. ' + t.kepala.nip : '');
     const kanan = 'Bugangin, ' + tglPanjang(t.tanggal) + '\n' + t.labelGuru + '\n\n\n\n' + (t.guru.nama || '..............................') + (t.guru.nip ? '\nNIP. ' + t.guru.nip : '');
     const ttd = new d.Table({
-      width: {size: lebarHalaman, type: d.WidthType.DXA}, columnWidths: [setengah, setengah],
-      rows: [new d.TableRow({cantSplit: true, children: [sel(kiri, {lebar: setengah, tanpaGaris: true, ukuran: 22}), sel(kanan, {lebar: setengah, tanpaGaris: true, ukuran: 22})]})]
+      width: {size: lebarHalaman, type: d.WidthType.DXA}, columnWidths: [sepertiga, tengahW, sepertiga],
+      rows: [new d.TableRow({cantSplit: true, children: [sel(kiri, {lebar: sepertiga, tanpaGaris: true, ukuran: 22}), sel('', {lebar: tengahW, tanpaGaris: true}),
+        sel(kanan, {lebar: sepertiga, tanpaGaris: true, ukuran: 22})]})]
     });
     const doc = new d.Document({
       styles: {default: {document: {run: {font: huruf}}}},
       sections: [{
         properties: {page: {size: {orientation: d.PageOrientation.LANDSCAPE, width: 11906, height: 16838}, margin: {top: 720, bottom: 720, left: 720, right: 720}}},
-        children: [teks(D.judul, {tebal: true, tengah: true, ukuran: 28, jarak: 120}), info, teks('', {jarak: 120}), tabel, teks('', {jarak: 240}), ttd]
+        children: [...(await kopWord(d, lebarHalaman)), teks(D.judul, {tebal: true, tengah: true, ukuran: 28, jarak: 120}), info, teks('', {jarak: 120}), tabel, teks('', {jarak: 240}), ttd]
       }]
     });
     simpan(await d.Packer.toBlob(doc), D.berkas + '.docx');
@@ -125,17 +162,17 @@
     });
     const n = D.kolom.length, garis = {style: 'thin', color: {argb: 'FF000000'}};
     ws.columns = D.kolom.map(k => ({width: Math.max(5, k.lebar * 1.15)}));
-    const akhir = ws.getColumn(n).letter;
-    ws.mergeCells('A1:' + akhir + '1');
-    Object.assign(ws.getCell('A1'), {value: D.judul});
-    ws.getCell('A1').font = {name: 'Times New Roman', bold: true, size: 14}; ws.getCell('A1').alignment = {horizontal: 'center'};
+    const akhir = ws.getColumn(n).letter, o = await kopExcel(wb, ws, n);
+    ws.mergeCells('A' + (o + 1) + ':' + akhir + (o + 1));
+    Object.assign(ws.getCell('A' + (o + 1)), {value: D.judul});
+    ws.getCell('A' + (o + 1)).font = {name: 'Times New Roman', bold: true, size: 14}; ws.getCell('A' + (o + 1)).alignment = {horizontal: 'center'};
     D.info.forEach(([a, b], i) => {
-      const r = ws.getRow(3 + i);
-      r.getCell(1).value = a; ws.mergeCells(3 + i, 1, 3 + i, 3);
-      r.getCell(4).value = ': ' + b; ws.mergeCells(3 + i, 4, 3 + i, Math.min(n, 9));
+      const r = ws.getRow(o + 3 + i);
+      r.getCell(1).value = a; ws.mergeCells(o + 3 + i, 1, o + 3 + i, 3);
+      r.getCell(4).value = ': ' + b; ws.mergeCells(o + 3 + i, 4, o + 3 + i, Math.min(n, 9));
       r.font = {name: 'Times New Roman', size: 11};
     });
-    const awal = 4 + D.info.length;
+    const awal = o + 4 + D.info.length;
     const kepala = ws.getRow(awal);
     D.kolom.forEach((k, i) => { kepala.getCell(i + 1).value = k.judul; });
     kepala.eachCell(c => { c.font = {name: 'Times New Roman', bold: true, size: 10}; c.alignment = {horizontal: 'center', vertical: 'middle', wrapText: true};
@@ -147,7 +184,7 @@
         c.border = {top: garis, bottom: garis, left: garis, right: garis}; });
     });
     ws.pageSetup.printTitlesRow = awal + ':' + awal;
-    const t = D.ttd, mulaiTtd = awal + D.baris.length + 2, tengah = Math.ceil(n / 2) + 1;
+    const t = D.ttd, mulaiTtd = awal + D.baris.length + 2, tengah = Math.max(n - 2, Math.ceil(n / 2) + 2);
     const kiri = ['Mengetahui,', 'Kepala SD Negeri Bugangin', '', '', '', t.kepala.nama || '..............................', t.kepala.nip ? 'NIP. ' + t.kepala.nip : ''];
     const kanan = ['Bugangin, ' + tglPanjang(t.tanggal), t.labelGuru, '', '', '', t.guru.nama || '..............................', t.guru.nip ? 'NIP. ' + t.guru.nip : ''];
     kiri.forEach((v, i) => {
@@ -169,5 +206,5 @@
     finally { tombol.disabled = false; tombol.textContent = lama; }
   }
 
-  window.UnduhGuru = {isiPromes, isiJurnal, keWord, keExcel, jalankan};
+  window.UnduhGuru = {isiPromes, isiJurnal, keWord, keExcel, jalankan, muat, simpan, kopWord, tglPanjang, tglPendek, hariIni};
 })();
