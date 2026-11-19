@@ -264,7 +264,8 @@ async function muatHari(){
       if (p.materi) isi += '<div class="materi">Materi ' + esc(p.materiNo) + ': ' + esc(p.materi) + '</div>';
       if (p.tp) isi += '<div class="tp">' + (p.noTP ? '<b>' + esc(p.noTP) + '</b> ' : '') + esc(p.tp) + '</div>';
     } else if (b.jenis === 'Intrakurikuler') isi += '<div class="kecil">Tidak ada baris Promes untuk hari ini (di luar minggu efektif).</div>';
-    const tombolRPP = p && p.jenis === 'Belajar' ? '<button class="dua" data-rpp="' + i + '">' + (p.rpp ? '📄 RPP ✓' : '📄 Buat RPP') + '</button>' : '';
+    const tombolRPP = p && p.jenis === 'Belajar' ? '<button class="dua" data-rpp="' + i + '">' + (p.rpp ? '📄 RPP ✓' : '📄 Buat RPP') + '</button>'
+      : p && p.jenis === 'Ulangan' ? '<button class="dua" data-rpp="' + i + '">' + (p.rpp ? '📝 Soal ulangan ✓' : '📝 Buat soal ulangan') + '</button>' : '';
     isi += '<div class="aksi">' + tombolRPP + (j
       ? '<span class="lencana ok">✅ Jurnal: ' + esc(j.pelaksanaan) + '</span><span class="kecil">oleh ' + esc(j.diajarOleh) + (j.pengganti ? ' (pengganti)' : '') + '</span><button class="dua" data-i="' + i + '">Ubah</button>'
       : '<button data-i="' + i + '">📝 Isi Jurnal</button>') + '</div>';
