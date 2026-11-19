@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="theme-color" content="#d71920">
+<meta name="robots" content="noindex">
+<title>Dashboard Guru | SD N BUGANGIN</title><link rel="icon" type="image/png" href="../logo.png">
+<style>
+:root{--red:#d71920;--red-dark:#9e1117;--yellow:#ffd21f;--blue:#12314f;--cream:#fffaf0;--ink:#16202a;--muted:#5b6b7f;--line:#eadfc7;--green:#15803d;--amber:#b45309}
+*{box-sizing:border-box}body{margin:0;background:var(--cream);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:17px;line-height:1.5}
+.topline{height:6px;background:linear-gradient(90deg,var(--red) 0 42%,var(--yellow) 42% 68%,var(--blue) 68%)}
+.wrap{max-width:820px;margin:auto;padding:18px}
+.back{color:var(--blue);text-decoration:none;font-weight:800;font-size:15px}
+header{margin-top:14px;padding:20px;border-radius:22px;background:linear-gradient(135deg,var(--red),var(--blue));color:#fff;display:flex;align-items:center;gap:16px}
+header img{width:60px;height:60px;object-fit:contain;background:#fff;border-radius:14px;padding:6px;flex:none}
+h1{margin:0;font-size:clamp(1.5rem,5vw,2rem);letter-spacing:-.03em}header p{margin:4px 0 0;color:#ffecef}
+.panel{background:#fff;border:1px solid var(--line);border-radius:20px;padding:20px;margin-top:16px;box-shadow:0 8px 20px rgba(18,49,79,.06)}
+.panel h2{margin:0 0 6px;font-size:22px}.sub{color:var(--muted);margin:0 0 14px}
+label{display:block;font-weight:700;margin:14px 0 6px}
+input,select,textarea{width:100%;font:inherit;font-size:18px;padding:12px;border:2px solid var(--line);border-radius:12px;background:#fff;color:var(--ink)}
+textarea{min-height:110px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
+button{font:inherit;cursor:pointer}
+.btn{display:block;width:100%;margin-top:18px;padding:15px;border:0;border-radius:14px;background:var(--red);color:#fff;font-weight:800;font-size:18px}
+.btn:disabled{opacity:.6}.btn.dua{background:#fff;color:var(--blue);border:2px solid var(--blue)}
+.msg{margin-top:14px;padding:12px 14px;border-radius:12px;display:none}.msg.on{display:block}
+.msg.salah{background:#fdecec;color:var(--red-dark)}.msg.ok{background:#e9f7ee;color:var(--green)}
+.akun{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px}
+.akun b{font-size:18px}.kecil{font-size:14px;color:var(--muted)}
+.link{background:none;border:0;color:var(--blue);font-weight:700;text-decoration:underline;padding:6px 0;font-size:16px}
+nav{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+nav button{flex:1;min-width:110px;padding:12px;border-radius:12px;border:2px solid var(--blue);background:#fff;color:var(--blue);font-weight:800}
+nav button.on{background:var(--blue);color:#fff}
+.tgl{display:flex;gap:8px;align-items:center}.tgl input{flex:1}.tgl button{padding:12px 14px;border-radius:12px;border:2px solid var(--line);background:#fff;font-weight:800;color:var(--blue)}
+.hari{margin:12px 0 0;font-weight:800;font-size:19px}.hari .kecil{font-weight:600}
+.kartu{border:1px solid var(--line);border-radius:16px;padding:16px;margin-top:12px;background:#fff}
+.kartu.intra{border-left:6px solid var(--blue)}.kartu.ulangan{border-left-color:var(--red)}.kartu.cadangan{border-left-color:var(--amber)}
+.kartu .atas{display:flex;justify-content:space-between;gap:8px;color:var(--muted);font-weight:700;font-size:15px;flex-wrap:wrap}
+.kartu .nm{font-weight:800;font-size:20px;margin:4px 0}
+.kartu .materi{font-size:15px;color:var(--muted)}.kartu .tp{margin:6px 0}
+.lencana{display:inline-block;padding:3px 10px;border-radius:999px;font-weight:800;font-size:14px;background:#eef2f6;color:var(--blue)}
+.lencana.Ulangan{background:#fdecec;color:var(--red-dark)}.lencana.Cadangan{background:#fff4e5;color:var(--amber)}.lencana.ok{background:#e9f7ee;color:var(--green)}
+.kartu .aksi{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center}
+.kartu .aksi button{padding:10px 16px;border-radius:12px;border:0;background:var(--red);color:#fff;font-weight:800}
+.kartu .aksi button.dua{background:#fff;color:var(--blue);border:2px solid var(--blue)}
+.pilih{display:flex;gap:8px;flex-wrap:wrap}.pilih label{flex:1;min-width:150px;margin:0;font-weight:700;border:2px solid var(--line);border-radius:12px;padding:12px;display:flex;gap:8px;align-items:center}
+.pilih input{width:auto}
+.sem{display:flex;gap:8px;margin-top:12px}.sem button{flex:1;padding:10px;border-radius:10px;border:2px solid var(--blue);background:#fff;color:var(--blue);font-weight:800}.sem button.on{background:var(--blue);color:#fff}
+.minggu{margin-top:16px;font-weight:800;color:var(--blue);border-bottom:2px solid var(--line);padding-bottom:4px}
+.pr{padding:10px 0;border-bottom:1px solid var(--line)}.pr .baris1{display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-weight:700}
+.tanda{font-size:14px;color:var(--muted)}.tanda b{color:var(--green)}
+table{width:100%;border-collapse:collapse;font-size:15px;margin-top:12px}th,td{border:1px solid #ccc;padding:6px;vertical-align:top;text-align:left}th{background:#f3efe4}
+.dua-kolom{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.hidden{display:none!important}
+.cetak-saja{display:none}
+footer{text-align:center;color:var(--muted);font-size:14px;padding:22px 10px 8px}
+@media print{
+  @page{size:A4 landscape;margin:12mm}
+  body{background:#fff;font-size:12px}.wrap{max-width:none;padding:0}
+  .topline,.back,header,.akun,nav,.no-cetak,footer,.msg{display:none!important}
+  .panel{border:0;box-shadow:none;padding:0;margin:0}.cetak-saja{display:block}
+  table{font-size:11px}th,td{padding:4px}
+}
+</style>
+</head>
+<body>
+<div class="topline"></div>
+<div class="wrap">
+  <a class="back" href="../">← Beranda SD N Bugangin</a>
+  <header><img src="../logo.png" alt="Logo SD N Bugangin"><div><h1>Dashboard Guru</h1><p>Jadwal, Promes, dan Jurnal Mengajar Harian</p></div></header>
+
+  <!-- Masuk -->
+  <section class="panel" id="l-masuk">
+    <h2>Masuk</h2>
+    <p class="sub">Pilih nama Anda, lalu masukkan sandi guru.</p>
+    <form id="f-masuk">
+      <label for="nama">Nama</label>
+      <select id="nama" required><option value="">Memuat daftar guru…</option></select>
+      <label for="sandi">Sandi</label>
+      <input id="sandi" type="password" autocomplete="current-password" required>
+      <button class="btn" type="submit">Masuk</button>
+    </form>
+    <div class="msg" id="m-masuk"></div>
+  </section>
+
+  <!-- Setelah masuk -->
+  <div id="l-isi" class="hidden">
+    <div class="akun"><div><b id="u-nama"></b><div class="kecil" id="u-peran"></div></div><button class="link" id="keluar">Keluar</button></div>
+    <nav id="menu">
+      <button data-l="hari" class="on">📅 Hari Ini</button>
+      <button data-l="promes">🗂️ Promes</button>
+      <button data-l="jurnal">📒 Jurnal</button>
+    </nav>
+
+    <!-- Hari Ini -->
+    <section class="panel" id="l-hari">
+      <div class="tgl"><button id="h-kemarin" aria-label="Hari sebelumnya">‹</button><input type="date" id="h-tgl"><button id="h-besok" aria-label="Hari berikutnya">›</button></div>
+      <label for="h-kelas">Tampilkan</label>
+      <select id="h-kelas"><option value="">Jadwal saya</option></select>
+      <p class="kecil">Menggantikan guru yang berhalangan? Pilih kelasnya di atas, lalu isi jurnal seperti biasa. Nama Anda tercatat sebagai pengganti.</p>
+      <div class="hari" id="h-judul"></div>
+      <div class="msg" id="m-hari"></div>
+      <div id="h-daftar"></div>
+    </section>
+
+    <!-- Isi Jurnal -->
+    <section class="panel hidden" id="l-isi-jurnal">
+      <h2>Isi Jurnal</h2>
+      <div id="j-ringkas" class="sub"></div>
+      <form id="f-jurnal">
+        <label>Pelaksanaan</label>
+        <div class="pilih">
+          <label><input type="radio" name="pelaksanaan" value="Terlaksana" required> ✅ Terlaksana</label>
+          <label><input type="radio" name="pelaksanaan" value="Sebagian"> ◐ Sebagian</label>
+          <label><input type="radio" name="pelaksanaan" value="Tidak terlaksana"> ✖ Tidak terlaksana</label>
+        </div>
+        <label for="j-uraian">Uraian kegiatan pembelajaran</label>
+        <textarea id="j-uraian"></textarea>
+        <div class="dua-kolom">
+          <div><label for="j-absen">Jumlah siswa tidak hadir</label><input id="j-absen" type="number" min="0" max="60" inputmode="numeric" value="0"></div>
+          <div><label for="j-catatan">Catatan / kendala</label><input id="j-catatan" placeholder="boleh dikosongkan"></div>
+        </div>
+        <button class="btn" type="submit">Simpan Jurnal</button>
+        <button class="btn dua" type="button" id="j-batal">Kembali</button>
+      </form>
+      <div class="msg" id="m-jurnal"></div>
+    </section>
+
+    <!-- Promes -->
+    <section class="panel hidden" id="l-promes">
+      <h2 class="no-cetak">Program Semester</h2>
+      <div class="dua-kolom no-cetak">
+        <div><label for="p-kelas">Kelas</label><select id="p-kelas"></select></div>
+        <div><label for="p-mapel">Mata pelajaran</label><select id="p-mapel"></select></div>
+      </div>
+      <div class="sem no-cetak" id="p-sem"><button data-s="1" class="on">Semester 1</button><button data-s="2">Semester 2</button></div>
+      <div class="msg" id="m-promes"></div>
+      <div class="cetak-saja" id="p-kop"></div>
+      <div id="p-daftar"></div>
+    </section>
+
+    <!-- Jurnal -->
+    <section class="panel hidden" id="l-jurnal">
+      <h2 class="no-cetak">Jurnal Mengajar Harian</h2>
+      <div class="no-cetak">
+        <label for="r-kelas">Kelas</label><select id="r-kelas"></select>
+        <div class="dua-kolom">
+          <div><label for="r-dari">Dari tanggal</label><input type="date" id="r-dari"></div>
+          <div><label for="r-sampai">Sampai tanggal</label><input type="date" id="r-sampai"></div>
+        </div>
+        <button class="btn dua" id="r-tampil">Tampilkan</button>
+        <button class="btn" id="r-cetak">🖨️ Cetak / Simpan PDF (A4)</button>
+      </div>
+      <div class="msg" id="m-rekap"></div>
+      <div id="r-daftar"></div>
+    </section>
+  </div>
+  <footer>SD Negeri Bugangin · Kendal</footer>
+</div>
+<script>
+const API_URL = 'https://script.google.com/macros/s/AKfycbz-_YG6rgtxaABRbPSCtiFFWTDmzMU-094w13L6y-jdNjYPOBX_O2TcRDeZIWv_DsfeCw/exec';
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const ROMAWI = ['I', 'II', 'III', 'IV', 'V', 'VI'];
+const BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+let SESI = sessionStorage.getItem('guru-sesi') || '';
+let GURU = JSON.parse(sessionStorage.getItem('guru-data') || 'null');
+let GURU_LIST = [], HARI = null, BLOK = null, PROMES = null, REKAP = null;
+
+function pesan(sel, teks, ok){ const m = $(sel); m.textContent = teks || ''; m.className = 'msg' + (teks ? ' on ' + (ok ? 'ok' : 'salah') : ''); }
+async function api(data){
+  try {
+    const r = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(data) });
+    const j = await r.json();
+    if (j.sesiHabis) { keluarLokal(); pesan('#m-masuk', j.pesan); }
+    return j;
+  } catch (e) { return { ok: false, pesan: 'Tidak tersambung. Periksa sinyal internet lalu coba lagi.' }; }
+}
+function sibuk(el, ya){ el.querySelectorAll('button,input,select,textarea').forEach(x => { x.disabled = ya; }); }
+function isoHariIni(){ const d = new Date(); return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10); }
+function geser(iso, n){ const d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); }
+function tglPanjang(iso){ const p = iso.split('-'); return +p[2] + ' ' + BULAN[+p[1] - 1] + ' ' + p[0]; }
+function tglPendek(iso){ const p = String(iso).split('-'); return p.length === 3 ? p[2] + '/' + p[1] + '/' + p[0] : iso; }
+
+/* ---------- masuk / keluar ---------- */
+async function muatGuru(){
+  const r = await api({ aksi: 'daftarGuru' });
+  if (!r.ok) { $('#nama').innerHTML = '<option value="">Gagal memuat. Muat ulang halaman.</option>'; return pesan('#m-masuk', r.pesan); }
+  GURU_LIST = r.guru;
+  $('#nama').innerHTML = '<option value="">— Pilih nama —</option>' + r.guru.map(g => '<option>' + esc(g.nama) + '</option>').join('');
+  const t = localStorage.getItem('guru-nama'); if (t && r.guru.some(g => g.nama === t)) $('#nama').value = t;
+  gantiLabelSandi();
+}
+function gantiLabelSandi(){ $('label[for=sandi]').textContent = (GURU_LIST.find(g => g.nama === $('#nama').value) || {}).peran === 'Kepala Sekolah' ? 'PIN Kepala Sekolah' : 'Sandi'; }
+$('#nama').addEventListener('change', () => { localStorage.setItem('guru-nama', $('#nama').value); gantiLabelSandi(); });
+$('#f-masuk').addEventListener('submit', async e => {
+  e.preventDefault(); pesan('#m-masuk', ''); sibuk(e.target, true);
+  const r = await api({ aksi: 'masuk', nama: $('#nama').value, sandi: $('#sandi').value });
+  sibuk(e.target, false);
+  if (!r.ok) return pesan('#m-masuk', r.pesan);
+  SESI = r.sesi; GURU = r.guru; $('#sandi').value = '';
+  sessionStorage.setItem('guru-sesi', SESI); sessionStorage.setItem('guru-data', JSON.stringify(GURU));
+  mulai();
+});
+$('#keluar').addEventListener('click', async () => { await api({ aksi: 'keluar', sesi: SESI }); keluarLokal(); });
+function keluarLokal(){ SESI = ''; GURU = null; sessionStorage.removeItem('guru-sesi'); sessionStorage.removeItem('guru-data'); $('#l-isi').classList.add('hidden'); $('#l-masuk').classList.remove('hidden'); }
+
+function mulai(){
+  $('#l-masuk').classList.add('hidden'); $('#l-isi').classList.remove('hidden');
+  $('#u-nama').textContent = GURU.nama;
+  $('#u-peran').textContent = GURU.peran + (GURU.peran === 'Guru Kelas' ? ' ' + GURU.kelas.join(', ') : GURU.peran === 'Guru Mapel' ? ' · ' + GURU.mapel : '');
+  const opsiKelas = ROMAWI.map(k => '<option value="' + k + '">Kelas ' + k + '</option>').join('');
+  $('#h-kelas').innerHTML = '<option value="">Jadwal saya</option>' + opsiKelas;
+  $('#p-kelas').innerHTML = opsiKelas; $('#r-kelas').innerHTML = opsiKelas;
+  const kSaya = GURU.kelas && GURU.kelas.length === 1 ? GURU.kelas[0] : 'I';
+  $('#p-kelas').value = kSaya; $('#r-kelas').value = kSaya;
+  const hi = isoHariIni(); $('#h-tgl').value = hi;
+  const senin = geser(hi, -((new Date(hi + 'T12:00:00').getDay() + 6) % 7));
+  $('#r-dari').value = senin; $('#r-sampai').value = geser(senin, 5);
+  buka('hari');
+}
+
+/* ---------- menu ---------- */
+function buka(l){
+  document.querySelectorAll('#menu button').forEach(b => b.classList.toggle('on', b.dataset.l === l));
+  ['hari', 'isi-jurnal', 'promes', 'jurnal'].forEach(x => $('#l-' + x).classList.toggle('hidden', x !== l));
+  window.scrollTo(0, 0);
+  if (l === 'hari') muatHari();
+  if (l === 'promes') muatPromes();
+  if (l === 'jurnal') muatRekap();
+}
+$('#menu').addEventListener('click', e => { const l = e.target.closest('button')?.dataset.l; if (l) buka(l); });
+
+/* ---------- Hari Ini ---------- */
+async function muatHari(){
+  const iso = $('#h-tgl').value || isoHariIni();
+  $('#h-daftar').innerHTML = ''; $('#h-judul').textContent = ''; pesan('#m-hari', 'Memuat jadwal…', true);
+  const r = await api({ aksi: 'hariIni', sesi: SESI, tanggal: iso, kelas: $('#h-kelas').value });
+  if (!r.ok) return pesan('#m-hari', r.pesan);
+  pesan('#m-hari', ''); HARI = r; BLOK = r.blok;
+  $('#h-judul').innerHTML = esc(r.hari + ' ' + r.pasaran + ', ' + tglPanjang(r.tanggal)) + (r.kelasLain ? ' <span class="kecil">· Kelas ' + esc(r.kelasLain) + '</span>' : '');
+  if (r.libur) return pesan('#m-hari', '🏖️ ' + r.libur + '. Tidak ada pembelajaran.', true);
+  if (!BLOK.length) return pesan('#m-hari', r.hari === 'Minggu' ? 'Hari Minggu, tidak ada jadwal.' : 'Tidak ada jadwal Anda pada hari ini.', true);
+  $('#h-daftar').innerHTML = BLOK.map((b, i) => {
+    const p = b.promes, j = b.jurnal;
+    const kls = 'kartu' + (b.jenis === 'Intrakurikuler' ? ' intra' : '') + (p && p.jenis === 'Ulangan' ? ' ulangan' : '') + (p && p.jenis === 'Cadangan' ? ' cadangan' : '');
+    let isi = '<div class="atas"><span>' + esc(b.mulai + '–' + b.selesai) + (b.jamKe ? ' · Jam ke-' + esc(b.jamKe) : '') + '</span><span>Kelas ' + esc(b.kelas) + '</span></div>';
+    isi += '<div class="nm">' + esc(b.kegiatan) + '</div>';
+    if (b.tidakEfektif) isi += '<div class="msg on salah">Hari tidak efektif kelas ini: ' + esc(b.tidakEfektif) + '</div>';
+    if (b.catatan) isi += '<div class="kecil">ℹ️ ' + esc(b.catatan) + '</div>';
+    if (b.guru && b.guru !== GURU.nama && !/Semua guru/i.test(b.pengampu)) isi += '<div class="kecil">Guru terjadwal: ' + esc(b.guru) + '</div>';
+    if (p) {
+      isi += '<div><span class="lencana ' + esc(p.jenis) + '">' + esc(p.jenis === 'Ulangan' ? 'Ulangan akhir materi' : p.jenis) + '</span>' +
+        (p.pertemuan ? ' <span class="kecil">Pertemuan ' + esc(p.pertemuan) + '</span>' : '') + '</div>';
+      if (p.materi) isi += '<div class="materi">Materi ' + esc(p.materiNo) + ': ' + esc(p.materi) + '</div>';
+      if (p.tp) isi += '<div class="tp">' + (p.noTP ? '<b>' + esc(p.noTP) + '</b> ' : '') + esc(p.tp) + '</div>';
+    } else if (b.jenis === 'Intrakurikuler') isi += '<div class="kecil">Tidak ada baris Promes untuk hari ini (di luar minggu efektif).</div>';
+    isi += '<div class="aksi">' + (j
+      ? '<span class="lencana ok">✅ Jurnal: ' + esc(j.pelaksanaan) + '</span><span class="kecil">oleh ' + esc(j.diajarOleh) + (j.pengganti ? ' (pengganti)' : '') + '</span><button class="dua" data-i="' + i + '">Ubah</button>'
+      : '<button data-i="' + i + '">📝 Isi Jurnal</button>') + '</div>';
+    return '<div class="' + kls + '">' + isi + '</div>';
+  }).join('');
+}
+$('#h-tgl').addEventListener('change', muatHari);
+$('#h-kelas').addEventListener('change', muatHari);
+$('#h-kemarin').addEventListener('click', () => { $('#h-tgl').value = geser($('#h-tgl').value || isoHariIni(), -1); muatHari(); });
+$('#h-besok').addEventListener('click', () => { $('#h-tgl').value = geser($('#h-tgl').value || isoHariIni(), 1); muatHari(); });
+
+/* ---------- Isi Jurnal ---------- */
+let PILIH = null;
+$('#h-daftar').addEventListener('click', e => {
+  const i = e.target.dataset.i; if (i == null) return;
+  PILIH = BLOK[Number(i)]; const b = PILIH, p = b.promes || {}, j = b.jurnal;
+  $('#j-ringkas').innerHTML = '<b>' + esc(b.kegiatan) + '</b> · Kelas ' + esc(b.kelas) + ' · ' + esc(HARI.hari + ', ' + tglPanjang(HARI.tanggal)) +
+    (p.tp ? '<br>' + (p.jenis === 'Ulangan' ? 'Ulangan akhir materi: ' + esc(p.materi) : 'TP: ' + esc(p.tp)) : '');
+  $('#f-jurnal').reset(); pesan('#m-jurnal', '');
+  const usul = p.jenis === 'Ulangan' ? 'Ulangan akhir materi "' + p.materi + '" dan pembahasan soal.' :
+    p.tp ? 'Pembelajaran: ' + p.tp : '';
+  $('#j-uraian').value = j ? j.uraian : usul;
+  $('#j-absen').value = j ? (j.tidakHadir || 0) : 0; $('#j-catatan').value = j ? j.catatan : '';
+  if (j) { const r = document.querySelector('input[name=pelaksanaan][value="' + j.pelaksanaan + '"]'); if (r) r.checked = true; }
+  ['hari', 'promes', 'jurnal'].forEach(x => $('#l-' + x).classList.add('hidden'));
+  $('#l-isi-jurnal').classList.remove('hidden'); window.scrollTo(0, 0);
+});
+$('#j-batal').addEventListener('click', () => buka('hari'));
+$('#f-jurnal').addEventListener('submit', async e => {
+  e.preventDefault(); sibuk(e.target, true);
+  const r = await api({ aksi: 'jurnalSimpan', sesi: SESI, tanggal: HARI.tanggal, kelas: PILIH.kelas, kegiatan: PILIH.kegiatan,
+    pelaksanaan: (document.querySelector('input[name=pelaksanaan]:checked') || {}).value, uraian: $('#j-uraian').value,
+    tidakHadir: $('#j-absen').value, catatan: $('#j-catatan').value });
+  sibuk(e.target, false);
+  if (!r.ok) return pesan('#m-jurnal', r.pesan);
+  buka('hari');
+});
+
+/* ---------- Promes ---------- */
+let SMT = '1';
+async function muatPromes(gantiKelas){
+  $('#p-daftar').innerHTML = ''; pesan('#m-promes', 'Memuat Promes…', true);
+  const r = await api({ aksi: 'promes', sesi: SESI, kelas: $('#p-kelas').value, mapel: gantiKelas ? '' : $('#p-mapel').value, semester: SMT });
+  if (!r.ok) return pesan('#m-promes', r.pesan);
+  pesan('#m-promes', ''); PROMES = r;
+  $('#p-mapel').innerHTML = r.daftarMapel.map(m => '<option' + (m === r.mapel ? ' selected' : '') + '>' + esc(m) + '</option>').join('');
+  if (!r.mapel && r.daftarMapel.length) { $('#p-mapel').value = r.daftarMapel[0]; return muatPromes(); }
+  if (!r.baris.length) return pesan('#m-promes', 'Belum ada Promes untuk pilihan ini.', true);
+  $('#p-kop').innerHTML = '<h3>Program Semester ' + esc(SMT) + ' · ' + esc(r.mapel) + ' · Kelas ' + esc(r.kelas) + ' · SD N Bugangin</h3>';
+  let html = '', mg = '';
+  r.baris.forEach(b => {
+    if (b.minggu !== mg) { mg = b.minggu; html += '<div class="minggu">Minggu ke-' + esc(mg) + '</div>'; }
+    const tanda = [b.rpp ? '<b>✓ RPP</b>' : 'RPP –', b.jurnal ? '<b>✓ Jurnal</b>' : 'Jurnal –', b.terlaksana ? '<b>' + esc(b.terlaksana) + '</b>' : ''].filter(String).join(' · ');
+    html += '<div class="pr"><div class="baris1">' + esc(b.hari + ' ' + tglPendek(b.tanggal)) + ' <span class="kecil">' + esc(b.jp) + ' JP</span> <span class="lencana ' + esc(b.jenis) + '">' + esc(b.jenis) + '</span>' +
+      (b.pertemuan ? ' <span class="kecil">Pertemuan ' + esc(b.pertemuan) + '</span>' : '') + '</div>' +
+      (b.materi ? '<div class="kecil">Materi ' + esc(b.materiNo) + ': ' + esc(b.materi) + '</div>' : '') +
+      (b.jenis === 'Belajar' ? '<div>' + (b.noTP ? '<b>' + esc(b.noTP) + '</b> ' : '') + esc(b.tp) + '</div>' : '') +
+      '<div class="tanda">' + tanda + '</div></div>';
+  });
+  $('#p-daftar').innerHTML = html;
+}
+$('#p-kelas').addEventListener('change', () => muatPromes(true));
+$('#p-mapel').addEventListener('change', () => muatPromes());
+$('#p-sem').addEventListener('click', e => { const s = e.target.dataset.s; if (!s) return; SMT = s; document.querySelectorAll('#p-sem button').forEach(b => b.classList.toggle('on', b.dataset.s === s)); muatPromes(); });
+
+/* ---------- Rekap Jurnal ---------- */
+async function muatRekap(){
+  $('#r-daftar').innerHTML = ''; pesan('#m-rekap', 'Memuat jurnal…', true);
+  const r = await api({ aksi: 'jurnalLihat', sesi: SESI, kelas: $('#r-kelas').value, dari: $('#r-dari').value, sampai: $('#r-sampai').value });
+  if (!r.ok) return pesan('#m-rekap', r.pesan);
+  pesan('#m-rekap', ''); REKAP = r.baris;
+  if (!REKAP.length) return pesan('#m-rekap', 'Belum ada jurnal pada rentang tanggal ini.', true);
+  const kop = '<div class="cetak-saja"><h3 style="margin:0">JURNAL MENGAJAR HARIAN · KELAS ' + esc($('#r-kelas').value) + ' · SD NEGERI BUGANGIN</h3><p style="margin:2px 0 8px">' +
+    esc(tglPanjang($('#r-dari').value) + ' – ' + tglPanjang($('#r-sampai').value)) + '</p></div>';
+  const rows = REKAP.map((b, i) => '<tr><td>' + (i + 1) + '</td><td>' + esc(b.hari) + '<br>' + esc(tglPendek(b.tanggal)) + '</td><td>' + esc(b.jamKe) + '</td><td>' + esc(b.kegiatan) + '</td><td>' +
+    (b.materi ? esc(b.materi) + '<br>' : '') + '<i>' + esc(b.tp) + '</i></td><td>' + esc(b.uraian) + '</td><td>' + esc(b.pelaksanaan) + '</td><td>' + esc(b.tidakHadir) + '</td><td>' + esc(b.diajarOleh) +
+    (b.pengganti ? ' (pengganti)' : '') + '</td><td>' + esc(b.catatan) + '</td></tr>').join('');
+  const guru = REKAP.find(b => !b.pengganti)?.guru || '', ks = r.kepala || {}, nipG = (r.nip || {})[guru] || '';
+  $('#r-daftar').innerHTML = kop + '<table><thead><tr><th>No</th><th>Hari/Tgl</th><th>Jam</th><th>Mapel/Kegiatan</th><th>Materi / TP</th><th>Uraian</th><th>Pelaksanaan</th><th>Tidak hadir</th><th>Guru</th><th>Catatan</th></tr></thead><tbody>' + rows + '</tbody></table>' +
+    '<div class="cetak-saja"><table style="border:0;margin-top:24px"><tr><td style="border:0;width:50%">Mengetahui,<br>Kepala SD N Bugangin<br><br><br><br><b>' + esc(ks.nama) + '</b>' + (ks.nip ? '<br>NIP. ' + esc(ks.nip) : '') + '</td>' +
+    '<td style="border:0">Bugangin, ' + esc(tglPanjang($('#r-sampai').value)) + '<br>Guru<br><br><br><br><b>' + esc(guru) + '</b>' + (nipG ? '<br>NIP. ' + esc(nipG) : '') + '</td></tr></table></div>';
+}
+$('#r-tampil').addEventListener('click', muatRekap);
+$('#r-cetak').addEventListener('click', async () => { await muatRekap(); if (REKAP && REKAP.length) window.print(); });
+
+muatGuru();
+if (SESI && GURU) mulai();
+</script>
+</body>
+</html>
