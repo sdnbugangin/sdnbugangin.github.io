@@ -91,7 +91,7 @@
         '☐ hadir pada gelar karya/pentas hasil kegiatan (waktu akan diberitahukan);',
         '☐ berbagi keahlian sebagai narasumber (bila berkenan) di bidang: ' + titik + ' .'].map(t => a.p(t, {menjorok: 360, jarak: 20})),
       a.p('Atas perhatian dan kerja sama Bapak/Ibu, kami ucapkan terima kasih.', {jarak: 160}),
-      a.ttd(blokTtd('Mengetahui,\nKepala SD N Bugangin', R.kepala), blokTtd('Guru Kelas ' + R.kelas, R.wali)),
+      a.ttd(blokTtd('Mengetahui,\nKepala SD N Bugangin', R.kepala), blokTtd('\nGuru Kelas ' + R.kelas, R.wali)),
       a.spasi(200),
       a.p('✂ - - - - - - - - - - - - - - - - - - Potong dan kembalikan kepada guru kelas - - - - - - - - - - - - - - - - - -', {tengah: true, ukuran: 18, jarak: 160}),
       a.p('Saya, orang tua/wali dari ' + nama + ' Kelas ' + R.kelas + ', ☐ mendukung  ☐ mengizinkan Ananda mengikuti kegiatan kokurikuler tersebut, dan bersedia:  ' +
