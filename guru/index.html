@@ -42,6 +42,9 @@ nav button.on{background:var(--blue);color:#fff}
 .kartu .aksi{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center}
 .kartu .aksi button{padding:10px 16px;border-radius:12px;border:0;background:var(--red);color:#fff;font-weight:800}
 .kartu .aksi button.dua{background:#fff;color:var(--blue);border:2px solid var(--blue)}
+.kartu .aksi button.ok{background:var(--green)}
+.draf{margin-top:8px;padding:10px 12px;border-radius:10px;background:#f6f8fb;border:1px dashed #b8c4d4;font-size:15px;color:#33475b}
+.draf b{color:var(--blue)}
 .pilih{display:flex;gap:8px;flex-wrap:wrap}.pilih label{flex:1;min-width:150px;margin:0;font-weight:700;border:2px solid var(--line);border-radius:12px;padding:12px;display:flex;gap:8px;align-items:center}
 .pilih input{width:auto}
 .sem{display:flex;gap:8px;margin-top:12px}.sem button{flex:1;padding:10px;border-radius:10px;border:2px solid var(--blue);background:#fff;color:var(--blue);font-weight:800}.sem button.on{background:var(--blue);color:#fff}
@@ -100,6 +103,9 @@ footer{text-align:center;color:var(--muted);font-size:14px;padding:22px 10px 8px
       <select id="h-kelas"><option value="">Jadwal saya</option></select>
       <p class="kecil">Menggantikan guru yang berhalangan? Pilih kelasnya di atas, lalu isi jurnal seperti biasa. Nama Anda tercatat sebagai pengganti.</p>
       <div class="hari" id="h-judul"></div>
+      <div id="h-semua" class="hidden"><button type="button" class="btn" id="btn-semua-sesuai">✓ Semua jurnal hari ini sesuai</button>
+        <p class="kecil">Jurnal sudah terisi otomatis dengan kalimat baku dari Promes. Periksa ringkasannya di setiap kartu. Bila ada yang berbeda
+          (mis. ada murid tidak hadir, kegiatan tidak terlaksana), tekan ✏️ Ubah pada kartu itu dulu.</p></div>
       <div class="msg" id="m-hari"></div>
       <div id="h-daftar"></div>
     </section>
@@ -256,7 +262,10 @@ async function muatHari(){
   pesan('#m-hari', ''); HARI = r; BLOK = r.blok;
   if (!r.kelasLain && modePAI()) BLOK.sort((a, b) => a.mulai.localeCompare(b.mulai));   // guru PAI: urut jam, lintas kelas
   $('#h-judul').innerHTML = esc(r.hari + ' ' + r.pasaran + ', ' + tglPanjang(r.tanggal)) + (r.kelasLain ? ' <span class="kecil">· Kelas ' + esc(r.kelasLain) + '</span>' : '');
+  $('#h-semua').classList.add('hidden');
   if (r.libur) return pesan('#m-hari', '🏖️ ' + r.libur + '. Tidak ada pembelajaran.', true);
+  const nDraf = (r.blok || []).filter(b => !b.jurnal && b.draf && !b.tidakEfektif).length;
+  if (nDraf && r.tanggal <= isoHariIni()) { $('#h-semua').classList.remove('hidden'); $('#btn-semua-sesuai').textContent = '✓ Semua jurnal hari ini sesuai (' + nDraf + ')'; }
   if (!BLOK.length) return pesan('#m-hari', r.hari === 'Minggu' ? 'Hari Minggu, tidak ada jadwal.' : 'Tidak ada jadwal Anda pada hari ini.', true);
   $('#h-daftar').innerHTML = BLOK.map((b, i) => {
     const p = b.promes, j = b.jurnal;
@@ -274,12 +283,26 @@ async function muatHari(){
     } else if (b.jenis === 'Intrakurikuler') isi += '<div class="kecil">Tidak ada baris Promes untuk hari ini (di luar minggu efektif).</div>';
     const tombolRPP = p && p.jenis === 'Belajar' ? '<button class="dua" data-rpp="' + i + '">' + (p.rpp ? '📄 RPP ✓' : '📄 Buat RPP') + '</button>'
       : p && p.jenis === 'Ulangan' ? '<button class="dua" data-rpp="' + i + '">' + (p.rpp ? '📝 Soal ulangan ✓' : '📝 Buat soal ulangan') + '</button>' : '';
+    const bolehSah = HARI.tanggal <= isoHariIni() && !b.tidakEfektif;
+    if (!j && b.draf) isi += '<div class="draf"><b>Draf jurnal:</b> ' + esc(b.draf.uraian) + '<br><span class="kecil">Pelaksanaan: Terlaksana · Tidak hadir: 0 murid</span></div>';
     isi += '<div class="aksi">' + tombolRPP + (j
-      ? '<span class="lencana ok">✅ Jurnal: ' + esc(j.pelaksanaan) + '</span><span class="kecil">oleh ' + esc(j.diajarOleh) + (j.pengganti ? ' (pengganti)' : '') + '</span><button class="dua" data-i="' + i + '">Ubah</button>'
-      : '<button data-i="' + i + '">📝 Isi Jurnal</button>') + '</div>';
+      ? '<span class="lencana ok">✅ Jurnal: ' + esc(j.pelaksanaan) + '</span><span class="kecil">oleh ' + esc(j.diajarOleh) + (j.pengganti ? ' (pengganti)' : '') + '</span><button class="dua" data-i="' + i + '">✏️ Ubah</button>'
+      : bolehSah ? '<button class="ok" data-sesuai="' + i + '">✓ Sesuai</button><button class="dua" data-i="' + i + '">✏️ Ubah</button>'
+      : '<span class="kecil">Jurnal disahkan setelah pelajaran berlangsung.</span>') + '</div>';
     return '<div class="' + kls + '">' + isi + '</div>';
   }).join('');
 }
+async function sahkan(kunci, tombol){
+  tombol.disabled = true; const lama = tombol.textContent; tombol.textContent = 'Menyimpan…';
+  const r = await api({ aksi: 'jurnalSesuai', sesi: SESI, tanggal: HARI.tanggal, kelas: $('#h-kelas').value, kunci });
+  tombol.disabled = false; tombol.textContent = lama;
+  if (!r.ok) return pesan('#m-hari', r.pesan);
+  muatHari();
+}
+$('#btn-semua-sesuai').addEventListener('click', e => {
+  const n = BLOK.filter(b => !b.jurnal && b.draf && !b.tidakEfektif).length;
+  if (confirm('Sahkan ' + n + ' jurnal hari ini sesuai draf (terlaksana, tidak ada murid tidak hadir)?')) sahkan('', e.target);
+});
 $('#h-tgl').addEventListener('change', muatHari);
 $('#h-kelas').addEventListener('change', muatHari);
 $('#h-kemarin').addEventListener('click', () => { $('#h-tgl').value = geser($('#h-tgl').value || isoHariIni(), -1); muatHari(); });
@@ -288,6 +311,8 @@ $('#h-besok').addEventListener('click', () => { $('#h-tgl').value = geser($('#h-
 /* ---------- Isi Jurnal ---------- */
 let PILIH = null;
 $('#h-daftar').addEventListener('click', e => {
+  const is = e.target.dataset.sesuai;
+  if (is != null) return sahkan(BLOK[Number(is)].kunci, e.target);
   const ir = e.target.dataset.rpp;
   if (ir != null) { const b = BLOK[Number(ir)]; return bukaRPP([b.kelas, b.kegiatan, b.promes.smt].join('|')); }
   const i = e.target.dataset.i; if (i == null) return;
@@ -297,9 +322,10 @@ $('#h-daftar').addEventListener('click', e => {
   $('#f-jurnal').reset(); pesan('#m-jurnal', '');
   const usul = p.jenis === 'Ulangan' ? 'Ulangan akhir materi "' + p.materi + '" dan pembahasan soal.' :
     p.tp ? 'Pembelajaran: ' + p.tp : '';
-  $('#j-uraian').value = j ? j.uraian : usul;
-  $('#j-absen').value = j ? (j.tidakHadir || 0) : 0; $('#j-catatan').value = j ? j.catatan : '';
-  if (j) { const r = document.querySelector('input[name=pelaksanaan][value="' + j.pelaksanaan + '"]'); if (r) r.checked = true; }
+  const sumber = j || b.draf || null;
+  $('#j-uraian').value = sumber ? sumber.uraian : usul;
+  $('#j-absen').value = sumber ? (sumber.tidakHadir || 0) : 0; $('#j-catatan').value = sumber ? sumber.catatan : '';
+  const pl = document.querySelector('input[name=pelaksanaan][value="' + (sumber ? sumber.pelaksanaan : 'Terlaksana') + '"]'); if (pl) pl.checked = true;
   ['hari', 'promes', 'jurnal'].forEach(x => $('#l-' + x).classList.add('hidden'));
   $('#l-isi-jurnal').classList.remove('hidden'); window.scrollTo(0, 0);
 });
@@ -308,7 +334,7 @@ $('#f-jurnal').addEventListener('submit', async e => {
   e.preventDefault(); sibuk(e.target, true);
   const r = await api({ aksi: 'jurnalSimpan', sesi: SESI, tanggal: HARI.tanggal, kelas: PILIH.kelas, kegiatan: PILIH.kegiatan,
     pelaksanaan: (document.querySelector('input[name=pelaksanaan]:checked') || {}).value, uraian: $('#j-uraian').value,
-    tidakHadir: $('#j-absen').value, catatan: $('#j-catatan').value });
+    tidakHadir: $('#j-absen').value, catatan: $('#j-catatan').value, cara: PILIH.jurnal ? '' : 'draf' });
   sibuk(e.target, false);
   if (!r.ok) return pesan('#m-jurnal', r.pesan);
   buka('hari');
