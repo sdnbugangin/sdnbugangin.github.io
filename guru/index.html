@@ -61,6 +61,20 @@ table{width:100%;border-collapse:collapse;font-size:15px;margin-top:12px}th,td{b
 .koku .daftar{margin-top:8px}.koku .baris{display:flex;align-items:center;gap:6px;padding:5px 0;border-top:1px solid #dcebd4}
 .koku .baris span{flex:1}.koku .baris button{padding:6px 9px;border-radius:8px;border:1px solid #9bd5ae;background:#fff;font-weight:800;font-size:13px}
 .koku .baris button.on{background:var(--green);color:#fff;border-color:var(--green)}
+.kr-kartu{border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-top:12px;background:#fff}
+.kr-kartu h3{margin:0 0 6px;font-size:17px;color:var(--blue)}
+.kr-hitung{display:flex;gap:10px;align-items:center;padding:12px 14px;border-radius:14px;margin-top:12px;font-weight:700}
+.kr-hitung b{font-size:28px}.kr-hitung.biru{background:#eef4fb;color:var(--blue)}.kr-hitung.hijau{background:#e9f7ee;color:var(--green)}.kr-hitung.merah{background:#fdecec;color:var(--red-dark)}
+.kr-sd{padding:8px 0;border-top:1px solid var(--line)}.kr-sd:first-of-type{border-top:0}
+.kr-sd .atas{display:flex;justify-content:space-between;gap:8px;font-size:15px;font-weight:700}
+.kr-bar{height:12px;border-radius:999px;background:#eef2f6;overflow:hidden;margin:5px 0}.kr-bar i{display:block;height:100%}
+.kr-bar.tumpuk{display:flex}.kr-bar.tumpuk i{height:100%}
+.kr-ket{font-size:13px;color:var(--muted)}
+.kr-belum{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 0;border-top:1px dashed var(--line);font-size:15px}
+.kr-belum button{padding:6px 12px;border-radius:10px;border:2px solid var(--blue);background:#fff;color:var(--blue);font-weight:800}
+.kr-dok{display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-top:1px solid var(--line);font-size:15px}
+.kr-dok span{flex:none;align-self:center;font-size:12px;font-weight:800;padding:2px 9px;border-radius:999px;white-space:nowrap}
+.kr-dok .ok{background:#e9f7ee;color:var(--green)}.kr-dok .draf{background:#fff4e5;color:var(--amber)}.kr-dok .nanti{background:#eef2f6;color:var(--muted)}
 .kk-item{display:block;width:100%;text-align:left;margin-top:10px;padding:14px;border:1px solid var(--line);border-radius:14px;background:#fff;color:var(--ink)}
 .kk-item b{display:block;font-size:17px;color:var(--blue)}.kk-item span{font-size:14px;color:var(--muted)}.kk-item:disabled{opacity:.6}
 .kk-tab{display:flex;gap:8px;margin-bottom:10px}.kk-tab button{flex:1;padding:10px;border-radius:10px;border:2px solid var(--blue);background:#fff;color:var(--blue);font-weight:800}.kk-tab button.on{background:var(--blue);color:#fff}
@@ -163,6 +177,11 @@ footer{text-align:center;color:var(--muted);font-size:14px;padding:22px 10px 8px
     <section class="panel hidden" id="l-koku">
       <h2>Kokurikuler</h2>
       <p class="sub">Administrasi kokurikuler sesuai panduan <i>Kokurikuler Siap Jalan</i>. Pengamatan harian sudah tercatat otomatis saat Anda mengesahkan jurnal.</p>
+      <div id="kk-ringkas">
+        <div class="dua-kolom"><div><label for="kr-kelas">Kelas</label><select id="kr-kelas"></select></div><div></div></div>
+        <div class="msg" id="m-kr"></div>
+        <div id="kr-isi"></div>
+      </div>
       <div id="kk-menu">
         <button type="button" class="kk-item" disabled><b>1. Program Kokurikuler Sekolah</b><span>F1 SK Tim · F2 Analisis · F3 Dimensi–Tema–Bentuk · F4 Program Tahunan — segera hadir</span></button>
         <button type="button" class="kk-item" disabled><b>2. Perencanaan Kegiatan</b><span>F5 bagian A–H setiap kegiatan rutin — segera hadir</span></button>
@@ -259,9 +278,9 @@ function mulai(){
   $('#u-peran').textContent = GURU.peran + (GURU.peran === 'Guru Kelas' ? ' ' + GURU.kelas.join(', ') : GURU.peran === 'Guru Mapel' ? ' · ' + GURU.mapel : '');
   const opsiKelas = ROMAWI.map(k => '<option value="' + k + '">Kelas ' + k + '</option>').join('');
   $('#h-kelas').innerHTML = '<option value="">Jadwal saya</option>' + opsiKelas;
-  $('#p-kelas').innerHTML = opsiKelas; $('#r-kelas').innerHTML = opsiKelas; $('#kk-kelas').innerHTML = opsiKelas;
+  $('#p-kelas').innerHTML = opsiKelas; $('#r-kelas').innerHTML = opsiKelas; $('#kk-kelas').innerHTML = opsiKelas; $('#kr-kelas').innerHTML = opsiKelas;
   const kSaya = GURU.kelas && GURU.kelas.length === 1 ? GURU.kelas[0] : 'I';
-  $('#p-kelas').value = kSaya; $('#r-kelas').value = kSaya; $('#kk-kelas').value = kSaya;
+  $('#p-kelas').value = kSaya; $('#r-kelas').value = kSaya; $('#kk-kelas').value = kSaya; $('#kr-kelas').value = kSaya;
   $('#kk-smt').value = (isoHariIni().slice(5, 7) >= '07') ? '1' : '2';
   // Guru mapel (PAI): pilihannya kelas I–VI, mapel terkunci PAI; jurnal hanya kegiatan PAI.
   if (modePAI()) { $('#r-kelas').innerHTML = '<option value="">Semua kelas (I–VI)</option>' + opsiKelas; $('#r-kelas').value = '';
@@ -280,16 +299,62 @@ function buka(l){
   if (l === 'hari') muatHari();
   if (l === 'promes') muatPromes();
   if (l === 'jurnal') muatRekap();
-  if (l === 'koku') { $('#kk-menu').classList.remove('hidden'); $('#kk-asesmen').classList.add('hidden'); }
+  if (l === 'koku') { $('#kk-menu').classList.remove('hidden'); $('#kk-ringkas').classList.remove('hidden'); $('#kk-asesmen').classList.add('hidden'); muatRingkasKoku(); }
 }
 /* ---------- Menu Kokurikuler ---------- */
 let KOKU = null;
+/* Papan ringkasan kokurikuler: pengingat untuk guru */
+const DOK_KOKU = [['F1–F4', 'Program Kokurikuler Sekolah', 'draf'], ['F5', 'Perencanaan Kegiatan', 'draf'], ['F6', 'Jadwal Pelaksanaan', 'draf'],
+  ['F7', 'Surat pemberitahuan orang tua', 'nanti'], ['F8', 'Catatan anekdot', 'nanti'], ['F9', 'Jurnal 7 KAIH murid', 'nanti'], ['F10', 'Penilaian diri murid', 'nanti'],
+  ['F11', 'Rubrik dan rekap hasil asesmen', 'ok'], ['F12', 'Evaluasi akhir tahun', 'nanti']];
+const LABEL_DOK = { ok: '✓ Otomatis', draf: 'Draf diperiksa KS', nanti: 'Segera hadir' };
+function hariAntara(a, b){ return Math.round((new Date(b + 'T12:00:00') - new Date(a + 'T12:00:00')) / 864e5); }
+async function muatRingkasKoku(){
+  $('#kr-isi').innerHTML = ''; pesan('#m-kr', 'Memuat ringkasan…', true);
+  const r = await api({ aksi: 'ringkasKoku', sesi: SESI, kelas: $('#kr-kelas').value });
+  if (!r.ok) return pesan('#m-kr', r.pesan);
+  pesan('#m-kr', '');
+  const hi = isoHariIni(), sisa = r.mulaiKirim ? hariAntara(hi, r.mulaiKirim) : 0;
+  let h = r.terakhirKirim ? '<div class="kr-hitung hijau"><b>✓</b><div>Rapor kokurikuler Kelas ' + esc(r.kelas) + ' sudah dikirim<br><span class="kr-ket">' + esc(r.terakhirKirim) + '</span></div></div>'
+    : r.bolehKirim ? '<div class="kr-hitung merah"><b>📤</b><div>Saatnya mengirim capaian kokurikuler ke Daftar Nilai Digital.<br><span class="kr-ket">Buka bagian 5. Asesmen dan Rapor di bawah.</span></div></div>'
+    : '<div class="kr-hitung biru"><b>' + sisa + '</b><div>hari lagi tombol kirim ke rapor dibuka<br><span class="kr-ket">mulai ' + esc(tglPanjang(r.mulaiKirim)) + ' · semester ' + esc(r.semester) + ' berakhir ' + esc(tglPanjang(r.akhirSemester)) + '</span></div></div>';
+  // kemajuan pengamatan per subdimensi
+  h += '<div class="kr-kartu"><h3>🌱 Kemajuan pengamatan</h3><div class="kr-ket">Kegiatan kokurikuler terjadwal yang sudah divalidasi sejak ' + esc(tglPanjang(r.mulai)) + '.</div>' +
+    r.subdimensi.map(sd => {
+      const p = sd.terjadwal ? Math.round(sd.divalidasi / sd.terjadwal * 100) : 0, warna = p >= 90 ? 'var(--green)' : p >= 60 ? '#e0a100' : 'var(--red)';
+      return '<div class="kr-sd"><div class="atas"><span>' + esc(sd.subdimensi) + '</span><span style="color:' + warna + '">' + sd.divalidasi + '/' + sd.terjadwal + '</span></div>' +
+        '<div class="kr-bar"><i style="width:' + p + '%;background:' + warna + '"></i></div><div class="kr-ket">' + esc(sd.dimensi) +
+        (sd.terakhir ? ' · terakhir diamati ' + esc(tglPanjang(sd.terakhir)) : sd.terjadwal ? ' · belum pernah diamati' : ' · belum ada jadwal') + '</div></div>';
+    }).join('') + '</div>';
+  // pengingat hari yang belum divalidasi
+  h += '<div class="kr-kartu"><h3>' + (r.jumlahBelum ? '⏰ Belum divalidasi (' + r.jumlahBelum + ')' : '✅ Semua pengamatan sudah divalidasi') + '</h3>' +
+    (r.jumlahBelum ? '<div class="kr-ket">Buka harinya, periksa, lalu tekan ✓ Sesuai.</div>' + r.belum.map(b => '<div class="kr-belum"><span>' + esc(b.hari + ', ' + tglPanjang(b.tanggal)) +
+      '<br><span class="kr-ket">' + esc(b.kegiatan) + ' → ' + esc(b.subdimensi) + '</span></span><button type="button" data-buka="' + esc(b.tanggal) + '">Buka</button></div>').join('') : '') + '</div>';
+  // sebaran capaian sementara
+  const sb = Object.keys(r.sebaran);
+  h += '<div class="kr-kartu"><h3>📊 Capaian sementara (' + r.jumlahMurid + ' murid)</h3>' + (sb.length ? '<div class="kr-ket">🟥 Berkembang · 🟩 Cakap · 🟦 Mahir</div>' + sb.map(sd => {
+    const c = r.sebaran[sd], n = (c.Berkembang + c.Cakap + c.Mahir) || 1;
+    return '<div class="kr-sd"><div class="atas"><span>' + esc(sd) + '</span><span class="kr-ket">B ' + c.Berkembang + ' · C ' + c.Cakap + ' · M ' + c.Mahir + '</span></div>' +
+      '<div class="kr-bar tumpuk"><i style="width:' + (c.Berkembang / n * 100) + '%;background:#e57373"></i><i style="width:' + (c.Cakap / n * 100) + '%;background:#81c784"></i><i style="width:' + (c.Mahir / n * 100) + '%;background:#64b5f6"></i></div></div>';
+  }).join('') : '<div class="kr-ket">Belum ada pengamatan yang divalidasi.</div>') + '</div>';
+  // kelengkapan administrasi
+  h += '<div class="kr-kartu"><h3>📁 Kelengkapan administrasi</h3>' + DOK_KOKU.map(d => '<div class="kr-dok"><div><b>' + d[0] + '</b> ' + esc(d[1]) + '</div><span class="' + d[2] + '">' + LABEL_DOK[d[2]] + '</span></div>').join('') + '</div>';
+  $('#kr-isi').innerHTML = h;
+}
+$('#kr-kelas').addEventListener('change', muatRingkasKoku);
+$('#kr-isi').addEventListener('click', e => {
+  const t = e.target.dataset.buka; if (!t) return;
+  $('#h-tgl').value = t;
+  const kSaya = GURU.peran === 'Guru Kelas' && GURU.kelas.length === 1 && GURU.kelas[0] === $('#kr-kelas').value;
+  $('#h-kelas').value = kSaya ? '' : $('#kr-kelas').value;
+  buka('hari');
+});
 $('#kk-menu').addEventListener('click', e => {
   const b = e.target.closest('[data-kk]'); if (!b) return;
-  $('#kk-menu').classList.add('hidden'); $('#kk-' + b.dataset.kk).classList.remove('hidden');
+  $('#kk-menu').classList.add('hidden'); $('#kk-ringkas').classList.add('hidden'); $('#kk-' + b.dataset.kk).classList.remove('hidden');
   if (b.dataset.kk === 'asesmen') muatKoku();
 });
-$('#kk-kembali').addEventListener('click', () => { $('#kk-asesmen').classList.add('hidden'); $('#kk-menu').classList.remove('hidden'); });
+$('#kk-kembali').addEventListener('click', () => { $('#kk-asesmen').classList.add('hidden'); $('#kk-menu').classList.remove('hidden'); $('#kk-ringkas').classList.remove('hidden'); });
 async function muatKoku(){
   $('#kk-tabel').innerHTML = ''; $('#kk-kirim').classList.add('hidden'); $('#kk-ket').textContent = '';
   pesan('#m-koku', 'Memuat rekap…', true);
@@ -381,7 +446,7 @@ function muatHariTampil(){
 }
 /* ---------- Pengamatan kokurikuler (1 subdimensi per kegiatan, bawaan Cakap) ---------- */
 let KOKU_UBAH = {}, KOKU_BUKA = {};
-const LV = { Berkembang: 'B', Cakap: 'C', Mahir: 'M', 'Tidak hadir': 'Absen' };
+const LV = { Berkembang: 'B', Cakap: 'C', Mahir: 'M', 'Tidak hadir': 'Tidak hadir' };
 function pengecualianKoku(b){ return KOKU_UBAH[b.kunci] || b.koku.tersimpan || {}; }
 function kotakKoku(b, i, bolehSah){
   const k = b.koku, p = pengecualianKoku(b), beda = Object.keys(p);
