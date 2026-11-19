@@ -89,6 +89,7 @@ footer{text-align:center;color:var(--muted);font-size:14px;padding:22px 10px 8px
       <button data-l="hari" class="on">📅 Hari Ini</button>
       <button data-l="promes">🗂️ Promes</button>
       <button data-l="jurnal">📒 Jurnal</button>
+      <button data-l="rpp">📄 RPP SUPER</button>
     </nav>
 
     <!-- Hari Ini -->
@@ -228,7 +229,16 @@ function buka(l){
   if (l === 'promes') muatPromes();
   if (l === 'jurnal') muatRekap();
 }
-$('#menu').addEventListener('click', e => { const l = e.target.closest('button')?.dataset.l; if (l) buka(l); });
+$('#menu').addEventListener('click', e => { const l = e.target.closest('button')?.dataset.l; if (!l) return; if (l === 'rpp') return bukaRPP(''); buka(l); });
+
+/* ---------- RPP SUPER (aplikasi terpisah, dibuka di tab baru dengan tiket) ---------- */
+async function bukaRPP(unit){
+  const w = window.open('about:blank', '_blank');
+  if (w) w.document.write('<p style="font-family:sans-serif;padding:24px">Membuka RPP SUPER…</p>');
+  const r = await api({ aksi: 'tiketRPP', sesi: SESI, unit });
+  if (!r.ok) { if (w) w.close(); return alert(r.pesan || 'Gagal membuka RPP SUPER.'); }
+  if (w) w.location = r.url; else location.href = r.url;
+}
 
 /* ---------- Hari Ini ---------- */
 async function muatHari(){
@@ -254,7 +264,8 @@ async function muatHari(){
       if (p.materi) isi += '<div class="materi">Materi ' + esc(p.materiNo) + ': ' + esc(p.materi) + '</div>';
       if (p.tp) isi += '<div class="tp">' + (p.noTP ? '<b>' + esc(p.noTP) + '</b> ' : '') + esc(p.tp) + '</div>';
     } else if (b.jenis === 'Intrakurikuler') isi += '<div class="kecil">Tidak ada baris Promes untuk hari ini (di luar minggu efektif).</div>';
-    isi += '<div class="aksi">' + (j
+    const tombolRPP = p && p.jenis === 'Belajar' ? '<button class="dua" data-rpp="' + i + '">' + (p.rpp ? '📄 RPP ✓' : '📄 Buat RPP') + '</button>' : '';
+    isi += '<div class="aksi">' + tombolRPP + (j
       ? '<span class="lencana ok">✅ Jurnal: ' + esc(j.pelaksanaan) + '</span><span class="kecil">oleh ' + esc(j.diajarOleh) + (j.pengganti ? ' (pengganti)' : '') + '</span><button class="dua" data-i="' + i + '">Ubah</button>'
       : '<button data-i="' + i + '">📝 Isi Jurnal</button>') + '</div>';
     return '<div class="' + kls + '">' + isi + '</div>';
@@ -268,6 +279,8 @@ $('#h-besok').addEventListener('click', () => { $('#h-tgl').value = geser($('#h-
 /* ---------- Isi Jurnal ---------- */
 let PILIH = null;
 $('#h-daftar').addEventListener('click', e => {
+  const ir = e.target.dataset.rpp;
+  if (ir != null) { const b = BLOK[Number(ir)]; return bukaRPP([b.kelas, b.kegiatan, b.promes.smt].join('|')); }
   const i = e.target.dataset.i; if (i == null) return;
   PILIH = BLOK[Number(i)]; const b = PILIH, p = b.promes || {}, j = b.jurnal;
   $('#j-ringkas').innerHTML = '<b>' + esc(b.kegiatan) + '</b> · Kelas ' + esc(b.kelas) + ' · ' + esc(HARI.hari + ', ' + tglPanjang(HARI.tanggal)) +
