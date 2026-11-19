@@ -28,7 +28,9 @@ button{font:inherit;cursor:pointer}
 .akun b{font-size:18px}.kecil{font-size:14px;color:var(--muted)}
 .link{background:none;border:0;color:var(--blue);font-weight:700;text-decoration:underline;padding:6px 0;font-size:16px}
 nav{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
-nav button{flex:1;min-width:0;padding:12px 4px;font-size:15px;border-radius:12px;border:2px solid var(--blue);background:#fff;color:var(--blue);font-weight:800}
+nav{display:grid!important;grid-template-columns:repeat(5,1fr);gap:6px!important}
+nav button i{display:block;font-style:normal;font-size:20px;line-height:1.2}
+nav button{flex:1;min-width:0;padding:8px 1px;font-size:11.5px;letter-spacing:-.02em;border-radius:12px;border:2px solid var(--blue);background:#fff;color:var(--blue);font-weight:800}
 nav button.on{background:var(--blue);color:#fff}
 .tgl{display:flex;gap:8px;align-items:center}.tgl input{flex:1}.tgl button{padding:12px 14px;border-radius:12px;border:2px solid var(--line);background:#fff;font-weight:800;color:var(--blue)}
 .hari{margin:12px 0 0;font-weight:800;font-size:19px}.hari .kecil{font-weight:600}
@@ -59,6 +61,8 @@ table{width:100%;border-collapse:collapse;font-size:15px;margin-top:12px}th,td{b
 .koku .daftar{margin-top:8px}.koku .baris{display:flex;align-items:center;gap:6px;padding:5px 0;border-top:1px solid #dcebd4}
 .koku .baris span{flex:1}.koku .baris button{padding:6px 9px;border-radius:8px;border:1px solid #9bd5ae;background:#fff;font-weight:800;font-size:13px}
 .koku .baris button.on{background:var(--green);color:#fff;border-color:var(--green)}
+.kk-item{display:block;width:100%;text-align:left;margin-top:10px;padding:14px;border:1px solid var(--line);border-radius:14px;background:#fff;color:var(--ink)}
+.kk-item b{display:block;font-size:17px;color:var(--blue)}.kk-item span{font-size:14px;color:var(--muted)}.kk-item:disabled{opacity:.6}
 .kk-tab{display:flex;gap:8px;margin-bottom:10px}.kk-tab button{flex:1;padding:10px;border-radius:10px;border:2px solid var(--blue);background:#fff;color:var(--blue);font-weight:800}.kk-tab button.on{background:var(--blue);color:#fff}
 #kk-tabel select{font-size:14px;padding:4px;width:auto}
 .hidden{display:none!important}
@@ -97,10 +101,11 @@ footer{text-align:center;color:var(--muted);font-size:14px;padding:22px 10px 8px
   <div id="l-isi" class="hidden">
     <div class="akun"><div><b id="u-nama"></b><div class="kecil" id="u-peran"></div></div><button class="link" id="keluar">Keluar</button></div>
     <nav id="menu">
-      <button data-l="hari" class="on">📅 Hari Ini</button>
-      <button data-l="promes">🗂️ Promes</button>
-      <button data-l="jurnal">📒 Rekap</button>
-      <button data-l="rpp">📄 RPP</button>
+      <button data-l="hari" class="on"><i>📅</i>Hari Ini</button>
+      <button data-l="promes"><i>🗂️</i>Promes</button>
+      <button data-l="jurnal"><i>📒</i>Jurnal</button>
+      <button data-l="koku"><i>🌱</i>Kokurikuler</button>
+      <button data-l="rpp"><i>📄</i>RPP</button>
     </nav>
 
     <!-- Hari Ini -->
@@ -154,11 +159,20 @@ footer{text-align:center;color:var(--muted);font-size:14px;padding:22px 10px 8px
       <div id="p-daftar"></div>
     </section>
 
-    <!-- Jurnal -->
-    <section class="panel hidden" id="l-jurnal">
-      <div class="kk-tab no-cetak" id="rk-tab"><button data-t="jurnal" class="on">📒 Jurnal</button><button data-t="koku">🌱 Kokurikuler</button></div>
-      <div id="rk-koku" class="hidden">
-        <h2>Rekap Kokurikuler</h2>
+    <!-- Kokurikuler -->
+    <section class="panel hidden" id="l-koku">
+      <h2>Kokurikuler</h2>
+      <p class="sub">Administrasi kokurikuler sesuai panduan <i>Kokurikuler Siap Jalan</i>. Pengamatan harian sudah tercatat otomatis saat Anda mengesahkan jurnal.</p>
+      <div id="kk-menu">
+        <button type="button" class="kk-item" disabled><b>1. Program Kokurikuler Sekolah</b><span>F1 SK Tim · F2 Analisis · F3 Dimensi–Tema–Bentuk · F4 Program Tahunan — segera hadir</span></button>
+        <button type="button" class="kk-item" disabled><b>2. Perencanaan Kegiatan</b><span>F5 bagian A–H setiap kegiatan rutin — segera hadir</span></button>
+        <button type="button" class="kk-item" disabled><b>3. Jadwal Pelaksanaan</b><span>F6 dari jadwal sekolah — segera hadir</span></button>
+        <button type="button" class="kk-item" disabled><b>4. Instrumen Kelas</b><span>F7 surat orang tua · F9 jurnal 7 KAIH · F10 penilaian diri — segera hadir</span></button>
+        <button type="button" class="kk-item" data-kk="asesmen"><b>5. Asesmen dan Rapor</b><span>Pengamatan harian → rekap rata-rata → kirim ke Daftar Nilai Digital</span></button>
+        <button type="button" class="kk-item" disabled><b>6. Evaluasi</b><span>F12 evaluasi akhir tahun — segera hadir</span></button>
+      </div>
+      <div id="kk-asesmen" class="hidden">
+        <button type="button" class="link" id="kk-kembali">← Menu Kokurikuler</button><h2>Asesmen dan Rapor Kokurikuler</h2>
         <p class="sub">Rata-rata pengamatan harian (Berkembang = 1, Cakap = 2, Mahir = 3). Hasil akhir masih bisa Anda koreksi sebelum dikirim.</p>
         <div class="dua-kolom"><div><label for="kk-kelas">Kelas</label><select id="kk-kelas"></select></div>
           <div><label for="kk-smt">Semester</label><select id="kk-smt"><option value="1">Semester 1</option><option value="2">Semester 2</option></select></div></div>
@@ -167,6 +181,10 @@ footer{text-align:center;color:var(--muted);font-size:14px;padding:22px 10px 8px
         <button class="btn" id="kk-kirim" type="button">📤 Kirim ke Daftar Nilai Digital</button>
         <p class="kecil" id="kk-ket"></p>
       </div>
+    </section>
+
+    <!-- Jurnal -->
+    <section class="panel hidden" id="l-jurnal">
       <div id="rk-jurnal">
       <h2 class="no-cetak">Jurnal Mengajar Harian</h2>
       <div class="no-cetak">
@@ -257,20 +275,21 @@ function mulai(){
 /* ---------- menu ---------- */
 function buka(l){
   document.querySelectorAll('#menu button').forEach(b => b.classList.toggle('on', b.dataset.l === l));
-  ['hari', 'isi-jurnal', 'promes', 'jurnal'].forEach(x => $('#l-' + x).classList.toggle('hidden', x !== l));
+  ['hari', 'isi-jurnal', 'promes', 'jurnal', 'koku'].forEach(x => $('#l-' + x).classList.toggle('hidden', x !== l));
   window.scrollTo(0, 0);
   if (l === 'hari') muatHari();
   if (l === 'promes') muatPromes();
-  if (l === 'jurnal') { if (TAB_REKAP === 'koku') muatKoku(); else muatRekap(); }
+  if (l === 'jurnal') muatRekap();
+  if (l === 'koku') { $('#kk-menu').classList.remove('hidden'); $('#kk-asesmen').classList.add('hidden'); }
 }
-/* ---------- Rekap: tab Jurnal | Kokurikuler ---------- */
-let TAB_REKAP = 'jurnal', KOKU = null;
-$('#rk-tab').addEventListener('click', e => {
-  const t = e.target.dataset.t; if (!t) return; TAB_REKAP = t;
-  document.querySelectorAll('#rk-tab button').forEach(b => b.classList.toggle('on', b.dataset.t === t));
-  $('#rk-koku').classList.toggle('hidden', t !== 'koku'); $('#rk-jurnal').classList.toggle('hidden', t !== 'jurnal');
-  if (t === 'koku') muatKoku(); else muatRekap();
+/* ---------- Menu Kokurikuler ---------- */
+let KOKU = null;
+$('#kk-menu').addEventListener('click', e => {
+  const b = e.target.closest('[data-kk]'); if (!b) return;
+  $('#kk-menu').classList.add('hidden'); $('#kk-' + b.dataset.kk).classList.remove('hidden');
+  if (b.dataset.kk === 'asesmen') muatKoku();
 });
+$('#kk-kembali').addEventListener('click', () => { $('#kk-asesmen').classList.add('hidden'); $('#kk-menu').classList.remove('hidden'); });
 async function muatKoku(){
   $('#kk-tabel').innerHTML = ''; $('#kk-kirim').classList.add('hidden'); $('#kk-ket').textContent = '';
   pesan('#m-koku', 'Memuat rekap…', true);
@@ -352,11 +371,11 @@ function muatHariTampil(){
     if (!j && b.draf) isi += '<div class="draf"><b>Draf jurnal:</b> ' + esc(b.draf.uraian) + '<br><span class="kecil">Pelaksanaan: Terlaksana · ' +
       (b.draf.presensi === 'ada' ? 'Tidak hadir: ' + esc(b.draf.tidakHadir) + ' murid' + (b.draf.catatan ? ' (' + esc(b.draf.catatan.replace(/ \(sesuai Presensi Digital\)$/, '')) + ')' : '') + ' · dari Presensi Digital'
         : HARI.tanggal <= isoHariIni() ? '⚠️ Presensi kelas ini belum diisi. <a href="../presensi/" target="_blank">Buka Presensi Digital</a>' : 'Kehadiran diambil dari Presensi Digital') + '</span></div>';
+    if (b.koku) isi += kotakKoku(b, i, bolehSah);
     isi += '<div class="aksi">' + tombolRPP + (j
       ? '<span class="lencana ok">✅ Jurnal: ' + esc(j.pelaksanaan) + '</span><span class="kecil">oleh ' + esc(j.diajarOleh) + (j.pengganti ? ' (pengganti)' : '') + '</span><button class="dua" data-i="' + i + '">✏️ Ubah</button>'
       : bolehSah ? '<button class="ok" data-sesuai="' + i + '">✓ Sesuai</button><button class="dua" data-i="' + i + '">✏️ Ubah</button>'
       : '<span class="kecil">Jurnal disahkan setelah pelajaran berlangsung.</span>') + '</div>';
-    if (b.koku) isi += kotakKoku(b, i, bolehSah);
     return '<div class="' + kls + '">' + isi + '</div>';
   }).join('');
 }
