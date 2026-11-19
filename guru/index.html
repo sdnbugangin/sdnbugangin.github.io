@@ -138,6 +138,9 @@ th{background:#F3EFFF}
 .kr-dok .ok{background:#E6F7EF;color:#23805F}.kr-dok .draf{background:#FFF3E3;color:#9A6420}.kr-dok .nanti{background:#F1EEFF;color:var(--muted)}.kr-dok .siap{background:#EAF4FF;color:#3A6FA8}
 footer{color:var(--muted)}
 ::selection{background:#F5D3E2}
+.segar{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:14px;color:var(--muted)}
+.segar i{width:14px;height:14px;border-radius:50%;border:2px solid #DCD3F6;border-top-color:#8B7CF0;animation:putar .8s linear infinite}
+@keyframes putar{to{transform:rotate(360deg)}}
 @media print{
   @page{size:A4 landscape;margin:12mm}
   body{background:#fff;font-size:12px}.wrap{max-width:none;padding:0}
@@ -189,6 +192,7 @@ footer{color:var(--muted)}
       <div id="h-semua" class="hidden"><button type="button" class="btn" id="btn-semua-sesuai">✓ Semua jurnal hari ini sesuai</button>
         <p class="kecil">Jurnal sudah terisi otomatis dengan kalimat baku dari Promes. Periksa ringkasannya di setiap kartu. Bila ada yang berbeda
           (mis. kegiatan tidak terlaksana), tekan ✏️ Ubah pada kartu itu dulu. Jumlah murid tidak hadir diambil dari Presensi Digital.</p></div>
+      <div class="segar hidden" id="h-segar"><i></i>Memperbarui data…</div>
       <div class="msg" id="m-hari"></div>
       <div id="h-daftar"></div>
     </section>
@@ -227,6 +231,7 @@ footer{color:var(--muted)}
       <div class="unduh no-cetak"><button type="button" class="btn dua" id="p-word">⬇️ Promes Word (A4)</button><button type="button" class="btn dua" id="p-excel">⬇️ Promes Excel (A4)</button></div>
         <div class="unduh no-cetak"><button type="button" class="btn dua" id="p-prota-word">⬇️ Prota Word (A4)</button><button type="button" class="btn dua" id="p-prota-excel">⬇️ Prota Excel (A4)</button></div>
         <p class="kecil no-cetak">Prota = ringkasan satu tahun (semester 1 dan 2) dari Promes mapel yang dipilih.</p>
+      <div class="segar hidden no-cetak" id="p-segar"><i></i>Memperbarui data…</div>
       <div class="msg" id="m-promes"></div>
       <div class="cetak-saja" id="p-kop"></div>
       <div id="p-daftar"></div>
@@ -315,6 +320,22 @@ async function api(data){
     return j;
   } catch (e) { return { ok: false, pesan: 'Tidak tersambung. Periksa sinyal internet lalu coba lagi.' }; }
 }
+/* Cadangan lokal: tampilan terakhir langsung muncul, lalu diperbarui dari server di belakang layar.
+   Nama murid tidak disimpan di perangkat. */
+function kunciLokal(k){ return 'dg|' + (GURU ? GURU.nama : '') + '|' + k; }
+function simpanLokal(k, data){
+  try {
+    const salin = JSON.parse(JSON.stringify(data));
+    (salin.blok || []).forEach(b => { if (b.koku) b.koku.murid = b.koku.murid.map(m => ({ id: m.id, nama: '' })); });
+    localStorage.setItem(kunciLokal(k), JSON.stringify({ t: Date.now(), d: salin }));
+  } catch (e) { /* penyimpanan penuh: abaikan */ }
+}
+function ambilLokal(k, umurJam){
+  try { const o = JSON.parse(localStorage.getItem(kunciLokal(k)) || 'null'); return o && Date.now() - o.t < (umurJam || 24) * 36e5 ? o.d : null; } catch (e) { return null; }
+}
+function hapusLokal(){ Object.keys(localStorage).filter(k => k.startsWith('dg|')).forEach(k => localStorage.removeItem(k)); }
+function tandaSegar(sel, ya){ const el = $(sel); if (el) el.classList.toggle('hidden', !ya); }
+fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: '{"aksi":"panaskan"}' }).catch(() => {});   // bangunkan server sejak halaman dibuka
 function sibuk(el, ya){ el.querySelectorAll('button,input,select,textarea').forEach(x => { x.disabled = ya; }); }
 function isoHariIni(){ const d = new Date(); return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10); }
 function geser(iso, n){ const d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); }
@@ -342,7 +363,7 @@ $('#f-masuk').addEventListener('submit', async e => {
   mulai();
 });
 $('#keluar').addEventListener('click', async () => { await api({ aksi: 'keluar', sesi: SESI }); keluarLokal(); });
-function keluarLokal(){ SESI = ''; GURU = null; sessionStorage.removeItem('guru-sesi'); sessionStorage.removeItem('guru-data'); $('#l-isi').classList.add('hidden'); $('#l-masuk').classList.remove('hidden'); }
+function keluarLokal(){ hapusLokal(); SESI = ''; GURU = null; sessionStorage.removeItem('guru-sesi'); sessionStorage.removeItem('guru-data'); $('#l-isi').classList.add('hidden'); $('#l-masuk').classList.remove('hidden'); }
 
 function mulai(){
   $('#l-masuk').classList.add('hidden'); $('#l-isi').classList.remove('hidden');
@@ -511,7 +532,11 @@ $('#kk-kirim').addEventListener('click', async e => {
 $('#menu').addEventListener('click', e => { const l = e.target.closest('button')?.dataset.l; if (!l) return; if (l === 'rpp') return bukaRPP(''); buka(l); });
 
 /* ---------- RPP SUPER (aplikasi terpisah, dibuka di tab baru dengan tiket) ---------- */
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && SEGAR_PROMES && SESI) { if (!$('#l-hari').classList.contains('hidden')) muatHari({ diam: true }); else if (!$('#l-promes').classList.contains('hidden')) muatPromes(); }
+});
 async function bukaRPP(unit){
+  SEGAR_PROMES = true;
   const w = window.open('about:blank', '_blank');
   if (w) w.document.write('<p style="font-family:sans-serif;padding:24px">Membuka RPP SUPER…</p>');
   const r = await api({ aksi: 'tiketRPP', sesi: SESI, unit });
@@ -520,22 +545,31 @@ async function bukaRPP(unit){
 }
 
 /* ---------- Hari Ini ---------- */
-async function muatHari(){
-  const iso = $('#h-tgl').value || isoHariIni();
-  $('#h-daftar').innerHTML = ''; $('#h-judul').textContent = ''; pesan('#m-hari', 'Memuat jadwal…', true);
-  const r = await api({ aksi: 'hariIni', sesi: SESI, tanggal: iso, kelas: $('#h-kelas').value });
-  if (!r.ok) return pesan('#m-hari', r.pesan);
-  pesan('#m-hari', ''); HARI = r; BLOK = r.blok;
-  if (!r.kelasLain && modePAI()) BLOK.sort((a, b) => a.mulai.localeCompare(b.mulai));   // guru PAI: urut jam, lintas kelas
-  muatHariTampil();
+let HARI_LAMA = false, MUAT_KE = 0, SEGAR_PROMES = false;
+async function muatHari(opsi){
+  opsi = opsi || {};
+  const iso = $('#h-tgl').value || isoHariIni(), kelas = $('#h-kelas').value, kunci = 'hari|' + iso + '|' + kelas, ke = ++MUAT_KE;
+  const lama = !opsi.diam && ambilLokal(kunci, 12);
+  if (lama) { HARI = lama; BLOK = lama.blok; HARI_LAMA = true; pesan('#m-hari', ''); urutPAI(); muatHariTampil(); }
+  else if (!opsi.diam) { $('#h-daftar').innerHTML = ''; $('#h-judul').textContent = ''; pesan('#m-hari', 'Memuat jadwal…', true); }
+  tandaSegar('#h-segar', true);
+  const r = await api({ aksi: 'hariIni', sesi: SESI, tanggal: iso, kelas, segar: SEGAR_PROMES ? 'Promes' : '' });
+  if (ke !== MUAT_KE) return;   // sudah ada permintaan yang lebih baru (ganti tanggal/kelas)
+  tandaSegar('#h-segar', false);
+  if (!r.ok) { if (!lama && !opsi.diam) pesan('#m-hari', r.pesan); return; }
+  SEGAR_PROMES = false;
+  pesan('#m-hari', ''); HARI = r; BLOK = r.blok; HARI_LAMA = false; simpanLokal(kunci, r);
+  urutPAI();
+  const y = window.scrollY; muatHariTampil(); if (lama || opsi.diam) window.scrollTo(0, y);
 }
+function urutPAI(){ if (!HARI.kelasLain && modePAI()) BLOK.sort((a, b) => a.mulai.localeCompare(b.mulai)); }   // guru PAI: urut jam, lintas kelas
 function muatHariTampil(){
   const r = HARI;
   $('#h-judul').innerHTML = esc(r.hari + ' ' + r.pasaran + ', ' + tglPanjang(r.tanggal)) + (r.kelasLain ? ' <span class="kecil">· Kelas ' + esc(r.kelasLain) + '</span>' : '');
   $('#h-semua').classList.add('hidden');
   if (r.libur) return pesan('#m-hari', '🏖️ ' + r.libur + '. Tidak ada pembelajaran.', true);
   const nDraf = (r.blok || []).filter(b => !b.jurnal && b.draf && !b.tidakEfektif).length;
-  if (nDraf && r.tanggal <= isoHariIni()) { $('#h-semua').classList.remove('hidden'); $('#btn-semua-sesuai').textContent = '✓ Semua jurnal hari ini sesuai (' + nDraf + ')'; }
+  if (nDraf && r.tanggal <= isoHariIni() && !HARI_LAMA) { $('#h-semua').classList.remove('hidden'); $('#btn-semua-sesuai').textContent = '✓ Semua jurnal hari ini sesuai (' + nDraf + ')'; }
   if (!BLOK.length) return pesan('#m-hari', r.hari === 'Minggu' ? 'Hari Minggu, tidak ada jadwal.' : 'Tidak ada jadwal Anda pada hari ini.', true);
   $('#h-daftar').innerHTML = BLOK.map((b, i) => {
     const p = b.promes, j = b.jurnal;
@@ -553,14 +587,16 @@ function muatHariTampil(){
     } else if (b.jenis === 'Intrakurikuler') isi += '<div class="kecil">Tidak ada baris Promes untuk hari ini (di luar minggu efektif).</div>';
     const tombolRPP = p && p.jenis === 'Belajar' ? '<button class="dua" data-rpp="' + i + '">' + (p.rpp ? '📄 RPP ✓' : '📄 Buat RPP') + '</button>'
       : p && p.jenis === 'Ulangan' ? '<button class="dua" data-rpp="' + i + '">' + (p.rpp ? '📝 Soal ulangan ✓' : '📝 Buat soal ulangan') + '</button>' : '';
-    const bolehSah = HARI.tanggal <= isoHariIni() && !b.tidakEfektif;
+    const bolehSah = HARI.tanggal <= isoHariIni() && !b.tidakEfektif && !HARI_LAMA;
     if (!j && b.draf) isi += '<div class="draf"><b>Draf jurnal:</b> ' + esc(b.draf.uraian) + '<br><span class="kecil">Pelaksanaan: Terlaksana · ' +
       (b.draf.presensi === 'ada' ? 'Tidak hadir: ' + esc(b.draf.tidakHadir) + ' murid' + (b.draf.catatan ? ' (' + esc(b.draf.catatan.replace(/ \(sesuai Presensi Digital\)$/, '')) + ')' : '') + ' · dari Presensi Digital'
         : HARI.tanggal <= isoHariIni() ? '⚠️ Presensi kelas ini belum diisi. <a href="../presensi/" target="_blank">Buka Presensi Digital</a>' : 'Kehadiran diambil dari Presensi Digital') + '</span></div>';
     if (b.koku) isi += kotakKoku(b, i, bolehSah);
     isi += '<div class="aksi">' + tombolRPP + (j
-      ? '<span class="lencana ok">✅ Jurnal: ' + esc(j.pelaksanaan) + '</span><span class="kecil">oleh ' + esc(j.diajarOleh) + (j.pengganti ? ' (pengganti)' : '') + '</span><button class="dua" data-i="' + i + '">✏️ Ubah</button>'
+      ? (j.menunggu ? '<span class="lencana">⏳ Menyimpan…</span>' : '<span class="lencana ok">✅ Jurnal: ' + esc(j.pelaksanaan) + '</span><span class="kecil">oleh ' + esc(j.diajarOleh) + (j.pengganti ? ' (pengganti)' : '') + '</span>' +
+        (HARI_LAMA ? '' : '<button class="dua" data-i="' + i + '">✏️ Ubah</button>'))
       : bolehSah ? '<button class="ok" data-sesuai="' + i + '">✓ Sesuai</button><button class="dua" data-i="' + i + '">✏️ Ubah</button>'
+      : HARI_LAMA && HARI.tanggal <= isoHariIni() ? '<span class="kecil">⏳ Menyiapkan tombol…</span>'
       : '<span class="kecil">Jurnal disahkan setelah pelajaran berlangsung.</span>') + '</div>';
     return '<div class="' + kls + '">' + isi + '</div>';
   }).join('');
@@ -605,12 +641,21 @@ function anekdotUntuk(kunci){
   return o;
 }
 async function sahkan(kunci, tombol){
-  tombol.disabled = true; const lama = tombol.textContent; tombol.textContent = 'Menyimpan…';
-  const r = await api({ aksi: 'jurnalSesuai', sesi: SESI, tanggal: HARI.tanggal, kelas: $('#h-kelas').value, kunci, pengamatan: pengamatanUntuk(kunci), anekdot: anekdotUntuk(kunci) });
-  if (r.ok) { if (kunci) { delete KOKU_UBAH[kunci]; delete KOKU_ANEK[kunci]; } else { KOKU_UBAH = {}; KOKU_ANEK = {}; } }
-  tombol.disabled = false; tombol.textContent = lama;
-  if (!r.ok) return pesan('#m-hari', r.pesan);
-  muatHari();
+  const data = { aksi: 'jurnalSesuai', sesi: SESI, tanggal: HARI.tanggal, kelas: $('#h-kelas').value, kunci, pengamatan: pengamatanUntuk(kunci), anekdot: anekdotUntuk(kunci) };
+  // Tampilkan langsung sebagai tersimpan; bila server gagal, dikembalikan.
+  const target = BLOK.filter(b => !b.jurnal && b.draf && !b.tidakEfektif && (!kunci || b.kunci === kunci));
+  target.forEach(b => { b.jurnal = { pelaksanaan: 'Terlaksana', diajarOleh: GURU.nama, menunggu: true }; });
+  if (!kunci) $('#h-semua').classList.add('hidden');
+  gambarUlangKartu();
+  const r = await api(data);
+  if (!r.ok) {
+    target.forEach(b => { delete b.jurnal; });
+    gambarUlangKartu(); return pesan('#m-hari', r.pesan || 'Gagal menyimpan. Coba lagi.');
+  }
+  if (kunci) { delete KOKU_UBAH[kunci]; delete KOKU_ANEK[kunci]; } else { KOKU_UBAH = {}; KOKU_ANEK = {}; }
+  target.forEach(b => { b.jurnal.menunggu = false; });
+  pesan('#m-hari', '✓ ' + (r.pesan || 'Tersimpan.'), true); gambarUlangKartu();
+  muatHari({ diam: true });
 }
 $('#btn-semua-sesuai').addEventListener('click', e => {
   const n = BLOK.filter(b => !b.jurnal && b.draf && !b.tidakEfektif).length;
@@ -640,7 +685,7 @@ $('#h-daftar').addEventListener('click', e => {
   if (t.dataset.kksimpan != null) {
     const b = BLOK[Number(t.dataset.kksimpan)]; t.disabled = true;
     return api({ aksi: 'pengamatanSimpan', sesi: SESI, tanggal: HARI.tanggal, kelas: b.kelas, kegiatan: b.kegiatan, pengecualian: pengecualianKoku(b), anekdot: anekdotKoku(b) })
-      .then(r => { if (!r.ok) return pesan('#m-hari', r.pesan); delete KOKU_UBAH[b.kunci]; delete KOKU_ANEK[b.kunci]; KOKU_BUKA[b.kunci] = false; muatHari(); });
+      .then(r => { if (!r.ok) return pesan('#m-hari', r.pesan); const baru = pengecualianKoku(b), anek = anekdotKoku(b); delete KOKU_UBAH[b.kunci]; delete KOKU_ANEK[b.kunci]; KOKU_BUKA[b.kunci] = false; b.koku.tersimpan = baru; b.koku.anekdot = anek; gambarUlangKartu(); pesan('#m-hari', '✓ Pengamatan tersimpan.', true); muatHari({ diam: true }); });
   }
   const is = e.target.dataset.sesuai;
   if (is != null) return sahkan(BLOK[Number(is)].kunci, e.target);
@@ -670,16 +715,34 @@ $('#f-jurnal').addEventListener('submit', async e => {
   if (PILIH.koku) { delete KOKU_UBAH[PILIH.kunci]; delete KOKU_ANEK[PILIH.kunci]; }
   sibuk(e.target, false);
   if (!r.ok) return pesan('#m-jurnal', r.pesan);
-  buka('hari');
+  // Tampilkan hasil langsung tanpa menunggu muat ulang; data server diperbarui di belakang layar.
+  PILIH.jurnal = { pelaksanaan: (document.querySelector('input[name=pelaksanaan]:checked') || {}).value, diajarOleh: GURU.nama,
+    uraian: $('#j-uraian').value, tidakHadir: $('#j-absen').value, catatan: $('#j-catatan').value };
+  document.querySelectorAll('#menu button').forEach(b => b.classList.toggle('on', b.dataset.l === 'hari'));
+  ['hari', 'isi-jurnal', 'promes', 'jurnal', 'koku'].forEach(x => $('#l-' + x).classList.toggle('hidden', x !== 'hari'));
+  muatHariTampil(); pesan('#m-hari', '✓ Jurnal tersimpan.', true); window.scrollTo(0, 0);
+  muatHari({ diam: true });
 });
 
 /* ---------- Promes ---------- */
 let SMT = '1';
 function modePAI(){ return !!(GURU && GURU.peran === 'Guru Mapel' && /PAI/.test(GURU.mapel || '')); }
+let PROMES_KE = 0;
 async function muatPromes(gantiKelas){
-  $('#p-daftar').innerHTML = ''; pesan('#m-promes', 'Memuat Promes…', true);
-  const r = await api({ aksi: 'promes', sesi: SESI, kelas: $('#p-kelas').value, mapel: gantiKelas ? '' : $('#p-mapel').value, semester: SMT });
-  if (!r.ok) return pesan('#m-promes', r.pesan);
+  const q = { aksi: 'promes', sesi: SESI, kelas: $('#p-kelas').value, mapel: gantiKelas ? '' : $('#p-mapel').value, semester: SMT };
+  const kunci = 'promes|' + q.kelas + '|' + q.mapel + '|' + q.semester, ke = ++PROMES_KE, lama = ambilLokal(kunci, 24);
+  if (lama) { tampilPromes(lama); } else { $('#p-daftar').innerHTML = ''; pesan('#m-promes', 'Memuat Promes…', true); }
+  tandaSegar('#p-segar', true);
+  if (SEGAR_PROMES) q.segar = 'Promes';
+  const r = await api(q);
+  if (ke !== PROMES_KE) return;
+  tandaSegar('#p-segar', false);
+  if (!r.ok) { if (!lama) pesan('#m-promes', r.pesan); return; }
+  SEGAR_PROMES = false; simpanLokal(kunci, r);
+  if (!r.mapel || JSON.stringify(r) !== JSON.stringify(lama)) tampilPromes(r, !!lama);
+}
+function tampilPromes(r, diam){
+  const y = window.scrollY;
   pesan('#m-promes', ''); PROMES = r;
   if (modePAI()) {
     r.daftarMapel = r.daftarMapel.filter(m => /PAI/.test(m));
@@ -700,6 +763,7 @@ async function muatPromes(gantiKelas){
       '<div class="tanda">' + tanda + '</div></div>';
   });
   $('#p-daftar').innerHTML = html;
+  if (diam) window.scrollTo(0, y);
 }
 $('#p-kelas').addEventListener('change', () => muatPromes(true));
 $('#p-mapel').addEventListener('change', () => muatPromes());
