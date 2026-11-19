@@ -50,6 +50,7 @@ nav button.on{background:var(--blue);color:#fff}
 .tanda{font-size:14px;color:var(--muted)}.tanda b{color:var(--green)}
 table{width:100%;border-collapse:collapse;font-size:15px;margin-top:12px}th,td{border:1px solid #ccc;padding:6px;vertical-align:top;text-align:left}th{background:#f3efe4}
 .dua-kolom{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.unduh{display:flex;gap:8px;flex-wrap:wrap}.unduh .btn{flex:1;min-width:160px;margin-top:12px}
 .hidden{display:none!important}
 .cetak-saja{display:none}
 footer{text-align:center;color:var(--muted);font-size:14px;padding:22px 10px 8px}
@@ -134,6 +135,7 @@ footer{text-align:center;color:var(--muted);font-size:14px;padding:22px 10px 8px
         <div><label for="p-mapel">Mata pelajaran</label><select id="p-mapel"></select></div>
       </div>
       <div class="sem no-cetak" id="p-sem"><button data-s="1" class="on">Semester 1</button><button data-s="2">Semester 2</button></div>
+      <div class="unduh no-cetak"><button type="button" class="btn dua" id="p-word">⬇️ Unduh Word (A4)</button><button type="button" class="btn dua" id="p-excel">⬇️ Unduh Excel (A4)</button></div>
       <div class="msg" id="m-promes"></div>
       <div class="cetak-saja" id="p-kop"></div>
       <div id="p-daftar"></div>
@@ -149,6 +151,7 @@ footer{text-align:center;color:var(--muted);font-size:14px;padding:22px 10px 8px
           <div><label for="r-sampai">Sampai tanggal</label><input type="date" id="r-sampai"></div>
         </div>
         <button class="btn dua" id="r-tampil">Tampilkan</button>
+        <div class="unduh"><button type="button" class="btn dua" id="r-word">⬇️ Unduh Word (A4)</button><button type="button" class="btn dua" id="r-excel">⬇️ Unduh Excel (A4)</button></div>
         <button class="btn" id="r-cetak">🖨️ Cetak / Simpan PDF (A4)</button>
       </div>
       <div class="msg" id="m-rekap"></div>
@@ -157,6 +160,7 @@ footer{text-align:center;color:var(--muted);font-size:14px;padding:22px 10px 8px
   </div>
   <footer>SD Negeri Bugangin · Kendal</footer>
 </div>
+<script src="unduh.js"></script>
 <script>
 const API_URL = 'https://script.google.com/macros/s/AKfycbz-_YG6rgtxaABRbPSCtiFFWTDmzMU-094w13L6y-jdNjYPOBX_O2TcRDeZIWv_DsfeCw/exec';
 const $ = s => document.querySelector(s);
@@ -165,7 +169,7 @@ const ROMAWI = ['I', 'II', 'III', 'IV', 'V', 'VI'];
 const BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 let SESI = sessionStorage.getItem('guru-sesi') || '';
 let GURU = JSON.parse(sessionStorage.getItem('guru-data') || 'null');
-let GURU_LIST = [], HARI = null, BLOK = null, PROMES = null, REKAP = null;
+let REKAP_META = null, GURU_LIST = [], HARI = null, BLOK = null, PROMES = null, REKAP = null;
 
 function pesan(sel, teks, ok){ const m = $(sel); m.textContent = teks || ''; m.className = 'msg' + (teks ? ' on ' + (ok ? 'ok' : 'salah') : ''); }
 async function api(data){
@@ -214,6 +218,9 @@ function mulai(){
   $('#p-kelas').innerHTML = opsiKelas; $('#r-kelas').innerHTML = opsiKelas;
   const kSaya = GURU.kelas && GURU.kelas.length === 1 ? GURU.kelas[0] : 'I';
   $('#p-kelas').value = kSaya; $('#r-kelas').value = kSaya;
+  // Guru mapel (PAI): pilihannya kelas I–VI, mapel terkunci PAI; jurnal hanya kegiatan PAI.
+  if (modePAI()) { $('#r-kelas').innerHTML = '<option value="">Semua kelas (I–VI)</option>' + opsiKelas; $('#r-kelas').value = '';
+    $('label[for=p-mapel]').textContent = 'Mata pelajaran (khusus Anda)'; }
   const hi = isoHariIni(); $('#h-tgl').value = hi;
   const senin = geser(hi, -((new Date(hi + 'T12:00:00').getDay() + 6) % 7));
   $('#r-dari').value = senin; $('#r-sampai').value = geser(senin, 5);
@@ -247,6 +254,7 @@ async function muatHari(){
   const r = await api({ aksi: 'hariIni', sesi: SESI, tanggal: iso, kelas: $('#h-kelas').value });
   if (!r.ok) return pesan('#m-hari', r.pesan);
   pesan('#m-hari', ''); HARI = r; BLOK = r.blok;
+  if (!r.kelasLain && modePAI()) BLOK.sort((a, b) => a.mulai.localeCompare(b.mulai));   // guru PAI: urut jam, lintas kelas
   $('#h-judul').innerHTML = esc(r.hari + ' ' + r.pasaran + ', ' + tglPanjang(r.tanggal)) + (r.kelasLain ? ' <span class="kecil">· Kelas ' + esc(r.kelasLain) + '</span>' : '');
   if (r.libur) return pesan('#m-hari', '🏖️ ' + r.libur + '. Tidak ada pembelajaran.', true);
   if (!BLOK.length) return pesan('#m-hari', r.hari === 'Minggu' ? 'Hari Minggu, tidak ada jadwal.' : 'Tidak ada jadwal Anda pada hari ini.', true);
@@ -308,11 +316,16 @@ $('#f-jurnal').addEventListener('submit', async e => {
 
 /* ---------- Promes ---------- */
 let SMT = '1';
+function modePAI(){ return !!(GURU && GURU.peran === 'Guru Mapel' && /PAI/.test(GURU.mapel || '')); }
 async function muatPromes(gantiKelas){
   $('#p-daftar').innerHTML = ''; pesan('#m-promes', 'Memuat Promes…', true);
   const r = await api({ aksi: 'promes', sesi: SESI, kelas: $('#p-kelas').value, mapel: gantiKelas ? '' : $('#p-mapel').value, semester: SMT });
   if (!r.ok) return pesan('#m-promes', r.pesan);
   pesan('#m-promes', ''); PROMES = r;
+  if (modePAI()) {
+    r.daftarMapel = r.daftarMapel.filter(m => /PAI/.test(m));
+    if (!/PAI/.test(r.mapel) && r.daftarMapel.length) { $('#p-mapel').innerHTML = '<option>' + esc(r.daftarMapel[0]) + '</option>'; return muatPromes(); }
+  }
   $('#p-mapel').innerHTML = r.daftarMapel.map(m => '<option' + (m === r.mapel ? ' selected' : '') + '>' + esc(m) + '</option>').join('');
   if (!r.mapel && r.daftarMapel.length) { $('#p-mapel').value = r.daftarMapel[0]; return muatPromes(); }
   if (!r.baris.length) return pesan('#m-promes', 'Belum ada Promes untuk pilihan ini.', true);
@@ -338,9 +351,10 @@ async function muatRekap(){
   $('#r-daftar').innerHTML = ''; pesan('#m-rekap', 'Memuat jurnal…', true);
   const r = await api({ aksi: 'jurnalLihat', sesi: SESI, kelas: $('#r-kelas').value, dari: $('#r-dari').value, sampai: $('#r-sampai').value });
   if (!r.ok) return pesan('#m-rekap', r.pesan);
-  pesan('#m-rekap', ''); REKAP = r.baris;
+  pesan('#m-rekap', ''); REKAP = modePAI() ? r.baris.filter(b => /PAI/.test(b.kegiatan)) : r.baris;
+  REKAP_META = {kelas: $('#r-kelas').value, dari: $('#r-dari').value, sampai: $('#r-sampai').value, kepala: r.kepala, nip: r.nip, pai: modePAI(), guruSaya: GURU.nama};
   if (!REKAP.length) return pesan('#m-rekap', 'Belum ada jurnal pada rentang tanggal ini.', true);
-  const kop = '<div class="cetak-saja"><h3 style="margin:0">JURNAL MENGAJAR HARIAN · KELAS ' + esc($('#r-kelas').value) + ' · SD NEGERI BUGANGIN</h3><p style="margin:2px 0 8px">' +
+  const kop = '<div class="cetak-saja"><h3 style="margin:0">JURNAL MENGAJAR HARIAN · ' + (modePAI() ? 'PAI DAN BUDI PEKERTI · ' : '') + 'KELAS ' + esc($('#r-kelas').value || 'I–VI') + ' · SD NEGERI BUGANGIN</h3><p style="margin:2px 0 8px">' +
     esc(tglPanjang($('#r-dari').value) + ' – ' + tglPanjang($('#r-sampai').value)) + '</p></div>';
   const rows = REKAP.map((b, i) => '<tr><td>' + (i + 1) + '</td><td>' + esc(b.hari) + '<br>' + esc(tglPendek(b.tanggal)) + '</td><td>' + esc(b.jamKe) + '</td><td>' + esc(b.kegiatan) + '</td><td>' +
     (b.materi ? esc(b.materi) + '<br>' : '') + '<i>' + esc(b.tp) + '</i></td><td>' + esc(b.uraian) + '</td><td>' + esc(b.pelaksanaan) + '</td><td>' + esc(b.tidakHadir) + '</td><td>' + esc(b.diajarOleh) +
@@ -351,6 +365,12 @@ async function muatRekap(){
     '<td style="border:0">Bugangin, ' + esc(tglPanjang($('#r-sampai').value)) + '<br>Guru<br><br><br><br><b>' + esc(guru) + '</b>' + (nipG ? '<br>NIP. ' + esc(nipG) : '') + '</td></tr></table></div>';
 }
 $('#r-tampil').addEventListener('click', muatRekap);
+/* ---------- Unduh Word / Excel (guru/unduh.js) ---------- */
+function isiPromesUnduh(){ if (!PROMES || !PROMES.baris.length) { alert('Tampilkan dulu Promes yang akan diunduh.'); return null; } return UnduhGuru.isiPromes(PROMES); }
+$('#p-word').addEventListener('click', e => UnduhGuru.jalankan(e.target, isiPromesUnduh, 'docx'));
+$('#p-excel').addEventListener('click', e => UnduhGuru.jalankan(e.target, isiPromesUnduh, 'xlsx'));
+$('#r-word').addEventListener('click', async e => { await muatRekap(); UnduhGuru.jalankan(e.target, () => REKAP && REKAP.length ? UnduhGuru.isiJurnal(Object.assign({baris: REKAP}, REKAP_META)) : (alert('Belum ada jurnal pada rentang tanggal ini.'), null), 'docx'); });
+$('#r-excel').addEventListener('click', async e => { await muatRekap(); UnduhGuru.jalankan(e.target, () => REKAP && REKAP.length ? UnduhGuru.isiJurnal(Object.assign({baris: REKAP}, REKAP_META)) : (alert('Belum ada jurnal pada rentang tanggal ini.'), null), 'xlsx'); });
 $('#r-cetak').addEventListener('click', async () => { await muatRekap(); if (REKAP && REKAP.length) window.print(); });
 
 muatGuru();
