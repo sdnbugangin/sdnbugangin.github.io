@@ -224,7 +224,9 @@ footer{color:var(--muted)}
         <div><label for="p-mapel">Mata pelajaran</label><select id="p-mapel"></select></div>
       </div>
       <div class="sem no-cetak" id="p-sem"><button data-s="1" class="on">Semester 1</button><button data-s="2">Semester 2</button></div>
-      <div class="unduh no-cetak"><button type="button" class="btn dua" id="p-word">⬇️ Unduh Word (A4)</button><button type="button" class="btn dua" id="p-excel">⬇️ Unduh Excel (A4)</button></div>
+      <div class="unduh no-cetak"><button type="button" class="btn dua" id="p-word">⬇️ Promes Word (A4)</button><button type="button" class="btn dua" id="p-excel">⬇️ Promes Excel (A4)</button></div>
+        <div class="unduh no-cetak"><button type="button" class="btn dua" id="p-prota-word">⬇️ Prota Word (A4)</button><button type="button" class="btn dua" id="p-prota-excel">⬇️ Prota Excel (A4)</button></div>
+        <p class="kecil no-cetak">Prota = ringkasan satu tahun (semester 1 dan 2) dari Promes mapel yang dipilih.</p>
       <div class="msg" id="m-promes"></div>
       <div class="cetak-saja" id="p-kop"></div>
       <div id="p-daftar"></div>
@@ -726,6 +728,18 @@ $('#r-tampil').addEventListener('click', muatRekap);
 function isiPromesUnduh(){ if (!PROMES || !PROMES.baris.length) { alert('Tampilkan dulu Promes yang akan diunduh.'); return null; } return UnduhGuru.isiPromes(PROMES); }
 $('#p-word').addEventListener('click', e => UnduhGuru.jalankan(e.target, isiPromesUnduh, 'docx'));
 $('#p-excel').addEventListener('click', e => UnduhGuru.jalankan(e.target, isiPromesUnduh, 'xlsx'));
+// Prota: ambil Promes semester 1 dan 2 sekaligus untuk mapel yang sedang dipilih
+async function unduhProta(tombol, format){
+  if (!PROMES || !PROMES.mapel) return alert('Tampilkan dulu Promes mapel yang akan dibuat Prota-nya.');
+  const lama = tombol.textContent; tombol.disabled = true; tombol.textContent = 'Memuat Promes setahun…';
+  const r = await api({ aksi: 'promes', sesi: SESI, kelas: PROMES.kelas, mapel: PROMES.mapel, semester: '' });
+  tombol.disabled = false; tombol.textContent = lama;
+  if (!r.ok) return alert(r.pesan);
+  if (!r.baris.length) return alert('Belum ada Promes untuk mapel ini.');
+  UnduhGuru.jalankan(tombol, () => UnduhGuru.isiProta(r), format);
+}
+$('#p-prota-word').addEventListener('click', e => unduhProta(e.target, 'docx'));
+$('#p-prota-excel').addEventListener('click', e => unduhProta(e.target, 'xlsx'));
 $('#r-word').addEventListener('click', async e => { await muatRekap(); UnduhGuru.jalankan(e.target, () => REKAP && REKAP.length ? UnduhGuru.isiJurnal(Object.assign({baris: REKAP}, REKAP_META)) : (alert('Belum ada jurnal pada rentang tanggal ini.'), null), 'docx'); });
 $('#r-excel').addEventListener('click', async e => { await muatRekap(); UnduhGuru.jalankan(e.target, () => REKAP && REKAP.length ? UnduhGuru.isiJurnal(Object.assign({baris: REKAP}, REKAP_META)) : (alert('Belum ada jurnal pada rentang tanggal ini.'), null), 'xlsx'); });
 $('#r-cetak').addEventListener('click', async () => { await muatRekap(); if (REKAP && REKAP.length) window.print(); });
