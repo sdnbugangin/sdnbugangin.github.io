@@ -21,6 +21,7 @@ Kredensial clasp ada di variabel lingkungan `CLASPRC_JSON` (isi `~/.clasprc.json
 - Uji perubahan sebelum `clasp push`.
 - Pasang dengan memperbarui deployment yang sudah ada (cek `clasp --help` untuk nama perintahnya, misalnya `clasp update-deployment <Deployment ID>`). Jangan membuat deployment baru, karena alamatnya berubah dan tautan di website serta grup WA orang tua jadi putus.
 - Minta persetujuan Kepala Sekolah sebelum `push` dan sebelum memasang versi baru; aplikasi dipakai guru dan orang tua setiap hari.
+- Setelah disetujui lewat chat, Claude sendiri yang menjalankan langkahnya (push, pasang versi, menjalankan menu Program Terintegrasi lewat aksi `adminJalankan` berPIN Kepala Sekolah). Yang tetap dikerjakan Kepala Sekolah/guru hanya: memberi izin Google pertama kali untuk aplikasi baru, dan memasukkan kunci Gemini (jangan pernah lewat chat).
 - Jika `clasp` belum ada di sesi: `npm install -g @google/clasp`.
 
 ## Pengaman agar kode lama yang sudah bagus tidak rusak
@@ -35,7 +36,7 @@ Ikuti urutan ini setiap kali mengubah aplikasi Apps Script:
 6. **Cek setelah dipasang**, lalu laporkan nomor versi lama dan baru.
 7. **Jika bermasalah, kembalikan segera** ke versi yang dicatat di langkah 1: `clasp update-deployment <Deployment ID> -V <nomor versi lama>`. Alamat tetap sama.
 
-Untuk website (repo ini): kerjakan di cabang kerja, bukan langsung di cabang utama; perubahan baru tayang setelah Kepala Sekolah menyetujui penggabungan di GitHub. Halaman yang rusak dikembalikan dengan `git revert`, bukan menghapus riwayat.
+Untuk website (repo ini): kerjakan di cabang kerja, bukan langsung di cabang utama; perubahan baru tayang setelah Kepala Sekolah menyetujui. Persetujuan boleh diberikan lewat chat (mis. "setuju gabung #50"); setelah itu Claude yang membuat dan menggabungkan pull request sendiri, Kepala Sekolah tidak perlu mengklik apa pun. Halaman yang rusak dikembalikan dengan `git revert`, bukan menghapus riwayat.
 
 ## Rapor (dikelola di bolonulis.github.io)
 
@@ -54,3 +55,15 @@ Untuk website (repo ini): kerjakan di cabang kerja, bukan langsung di cabang uta
 - Data bantuan (PIP, BAZNAS, yatim piatu) dan pelanggaran hanya untuk guru. Halaman publik tidak boleh menampilkan nama siswa; jumlah di bawah 3 disamarkan.
   - Pengecualian (keputusan Kepala Sekolah): daftar pilihan kelas → nama lengkap siswa di layar masuk Pantau Belajar / Tumbuh Kembang. Data di balik nama itu tetap hanya terbuka dengan sandi orang tua.
 - Nomor WA orang tua dan data siswa adalah data pribadi anak (UU No. 27/2022): jangan disalin ke repo.
+
+## Program Terintegrasi, Dashboard Guru, RPP SUPER
+
+| Aplikasi | Script ID | Deployment ID | Catatan |
+|---|---|---|---|
+| Program Terintegrasi (Jadwal, ATP, Promes, Jurnal, API Dashboard Guru) | `1vwHqK9o4MWaKkwJG6D8rstz2CN4YXM7WgHiq9tKUImiNgZT4rj6ZQIIk` | `AKfycbz-_YG6rgtxaABRbPSCtiFFWTDmzMU-094w13L6y-jdNjYPOBX_O2TcRDeZIWv_DsfeCw` | terikat spreadsheet "PROGRAM TERINTEGRASI SD N BUGANGIN 2026 2027" |
+| RPP SUPER (salinan mesin RPP FLASH khusus sekolah) | `1uA1_rMOtTo2nBv9DAOEjRJKyraI8XmsqKd7kyxUjaYOqijMnpQfcW2ey` | `AKfycbyviEVO7c4GGWB_P2SaeOMaExJx0F83CUaAZUET-RGcv-A8Si-7B4kkvDe_qft7TvSbuA` | dibuka dari Dashboard Guru dengan tiket; dokumen di folder Drive "RPP SUPER - Dokumen Guru SD N Bugangin", tanpa tautan publik |
+
+- Halaman `guru/` (Dashboard Guru) memanggil API Program Terintegrasi. Sandi guru dan PIN Kepala Sekolah ada di sheet *Pengaturan Dashboard*, bukan di repo.
+- RPP FLASH (bolonulis, dipakai banyak sekolah) tidak boleh diubah; perubahan untuk sekolah ini hanya di RPP SUPER.
+- Kunci penanda tiket (`Rahasia.js`) hanya ada di kedua proyek Apps Script; jangan disalin ke repo.
+
