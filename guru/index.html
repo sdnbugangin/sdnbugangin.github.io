@@ -28,7 +28,7 @@ button{font:inherit;cursor:pointer}
 .akun b{font-size:18px}.kecil{font-size:14px;color:var(--muted)}
 .link{background:none;border:0;color:var(--blue);font-weight:700;text-decoration:underline;padding:6px 0;font-size:16px}
 nav{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
-nav button{flex:1;min-width:110px;padding:12px;border-radius:12px;border:2px solid var(--blue);background:#fff;color:var(--blue);font-weight:800}
+nav button{flex:1;min-width:0;padding:12px 4px;font-size:15px;border-radius:12px;border:2px solid var(--blue);background:#fff;color:var(--blue);font-weight:800}
 nav button.on{background:var(--blue);color:#fff}
 .tgl{display:flex;gap:8px;align-items:center}.tgl input{flex:1}.tgl button{padding:12px 14px;border-radius:12px;border:2px solid var(--line);background:#fff;font-weight:800;color:var(--blue)}
 .hari{margin:12px 0 0;font-weight:800;font-size:19px}.hari .kecil{font-weight:600}
@@ -54,6 +54,13 @@ nav button.on{background:var(--blue);color:#fff}
 table{width:100%;border-collapse:collapse;font-size:15px;margin-top:12px}th,td{border:1px solid #ccc;padding:6px;vertical-align:top;text-align:left}th{background:#f3efe4}
 .dua-kolom{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .unduh{display:flex;gap:8px;flex-wrap:wrap}.unduh .btn{flex:1;min-width:160px;margin-top:12px}
+.koku{margin-top:8px;padding:10px 12px;border-radius:10px;background:#f1f8e9;border:1px dashed #9bd5ae;font-size:15px}
+.koku b{color:var(--green)}.koku .chip{display:inline-block;margin:3px 4px 0 0;padding:2px 8px;border-radius:999px;background:#fff;border:1px solid #9bd5ae;font-size:13px}
+.koku .daftar{margin-top:8px}.koku .baris{display:flex;align-items:center;gap:6px;padding:5px 0;border-top:1px solid #dcebd4}
+.koku .baris span{flex:1}.koku .baris button{padding:6px 9px;border-radius:8px;border:1px solid #9bd5ae;background:#fff;font-weight:800;font-size:13px}
+.koku .baris button.on{background:var(--green);color:#fff;border-color:var(--green)}
+.kk-tab{display:flex;gap:8px;margin-bottom:10px}.kk-tab button{flex:1;padding:10px;border-radius:10px;border:2px solid var(--blue);background:#fff;color:var(--blue);font-weight:800}.kk-tab button.on{background:var(--blue);color:#fff}
+#kk-tabel select{font-size:14px;padding:4px;width:auto}
 .hidden{display:none!important}
 .cetak-saja{display:none}
 footer{text-align:center;color:var(--muted);font-size:14px;padding:22px 10px 8px}
@@ -92,8 +99,8 @@ footer{text-align:center;color:var(--muted);font-size:14px;padding:22px 10px 8px
     <nav id="menu">
       <button data-l="hari" class="on">📅 Hari Ini</button>
       <button data-l="promes">🗂️ Promes</button>
-      <button data-l="jurnal">📒 Jurnal</button>
-      <button data-l="rpp">📄 RPP SUPER</button>
+      <button data-l="jurnal">📒 Rekap</button>
+      <button data-l="rpp">📄 RPP</button>
     </nav>
 
     <!-- Hari Ini -->
@@ -149,6 +156,18 @@ footer{text-align:center;color:var(--muted);font-size:14px;padding:22px 10px 8px
 
     <!-- Jurnal -->
     <section class="panel hidden" id="l-jurnal">
+      <div class="kk-tab no-cetak" id="rk-tab"><button data-t="jurnal" class="on">📒 Jurnal</button><button data-t="koku">🌱 Kokurikuler</button></div>
+      <div id="rk-koku" class="hidden">
+        <h2>Rekap Kokurikuler</h2>
+        <p class="sub">Rata-rata pengamatan harian (Berkembang = 1, Cakap = 2, Mahir = 3). Hasil akhir masih bisa Anda koreksi sebelum dikirim.</p>
+        <div class="dua-kolom"><div><label for="kk-kelas">Kelas</label><select id="kk-kelas"></select></div>
+          <div><label for="kk-smt">Semester</label><select id="kk-smt"><option value="1">Semester 1</option><option value="2">Semester 2</option></select></div></div>
+        <div class="msg" id="m-koku"></div>
+        <div id="kk-tabel"></div>
+        <button class="btn" id="kk-kirim" type="button">📤 Kirim ke Daftar Nilai Digital</button>
+        <p class="kecil" id="kk-ket"></p>
+      </div>
+      <div id="rk-jurnal">
       <h2 class="no-cetak">Jurnal Mengajar Harian</h2>
       <div class="no-cetak">
         <label for="r-kelas">Kelas</label><select id="r-kelas"></select>
@@ -162,6 +181,7 @@ footer{text-align:center;color:var(--muted);font-size:14px;padding:22px 10px 8px
       </div>
       <div class="msg" id="m-rekap"></div>
       <div id="r-daftar"></div>
+      </div>
     </section>
   </div>
   <footer>SD Negeri Bugangin · Kendal</footer>
@@ -221,9 +241,10 @@ function mulai(){
   $('#u-peran').textContent = GURU.peran + (GURU.peran === 'Guru Kelas' ? ' ' + GURU.kelas.join(', ') : GURU.peran === 'Guru Mapel' ? ' · ' + GURU.mapel : '');
   const opsiKelas = ROMAWI.map(k => '<option value="' + k + '">Kelas ' + k + '</option>').join('');
   $('#h-kelas').innerHTML = '<option value="">Jadwal saya</option>' + opsiKelas;
-  $('#p-kelas').innerHTML = opsiKelas; $('#r-kelas').innerHTML = opsiKelas;
+  $('#p-kelas').innerHTML = opsiKelas; $('#r-kelas').innerHTML = opsiKelas; $('#kk-kelas').innerHTML = opsiKelas;
   const kSaya = GURU.kelas && GURU.kelas.length === 1 ? GURU.kelas[0] : 'I';
-  $('#p-kelas').value = kSaya; $('#r-kelas').value = kSaya;
+  $('#p-kelas').value = kSaya; $('#r-kelas').value = kSaya; $('#kk-kelas').value = kSaya;
+  $('#kk-smt').value = (isoHariIni().slice(5, 7) >= '07') ? '1' : '2';
   // Guru mapel (PAI): pilihannya kelas I–VI, mapel terkunci PAI; jurnal hanya kegiatan PAI.
   if (modePAI()) { $('#r-kelas').innerHTML = '<option value="">Semua kelas (I–VI)</option>' + opsiKelas; $('#r-kelas').value = '';
     $('label[for=p-mapel]').textContent = 'Mata pelajaran (khusus Anda)'; }
@@ -240,8 +261,48 @@ function buka(l){
   window.scrollTo(0, 0);
   if (l === 'hari') muatHari();
   if (l === 'promes') muatPromes();
-  if (l === 'jurnal') muatRekap();
+  if (l === 'jurnal') { if (TAB_REKAP === 'koku') muatKoku(); else muatRekap(); }
 }
+/* ---------- Rekap: tab Jurnal | Kokurikuler ---------- */
+let TAB_REKAP = 'jurnal', KOKU = null;
+$('#rk-tab').addEventListener('click', e => {
+  const t = e.target.dataset.t; if (!t) return; TAB_REKAP = t;
+  document.querySelectorAll('#rk-tab button').forEach(b => b.classList.toggle('on', b.dataset.t === t));
+  $('#rk-koku').classList.toggle('hidden', t !== 'koku'); $('#rk-jurnal').classList.toggle('hidden', t !== 'jurnal');
+  if (t === 'koku') muatKoku(); else muatRekap();
+});
+async function muatKoku(){
+  $('#kk-tabel').innerHTML = ''; $('#kk-kirim').classList.add('hidden'); $('#kk-ket').textContent = '';
+  pesan('#m-koku', 'Memuat rekap…', true);
+  const r = await api({ aksi: 'rekapKoku', sesi: SESI, kelas: $('#kk-kelas').value, semester: $('#kk-smt').value });
+  if (!r.ok) return pesan('#m-koku', r.pesan);
+  KOKU = r; pesan('#m-koku', '');
+  if (!r.subdimensi.length) return pesan('#m-koku', 'Belum ada pengamatan kokurikuler yang divalidasi untuk kelas dan semester ini.', true);
+  const opsi = (v) => ['Berkembang', 'Cakap', 'Mahir'].map(l => '<option' + (l === v ? ' selected' : '') + '>' + l + '</option>').join('');
+  $('#kk-tabel').innerHTML = '<table><thead><tr><th>No</th><th>Nama Murid</th>' + r.subdimensi.map(sd => '<th>' + esc(sd) +
+    '<br><span class="kecil">' + r.jumlahPengamatan[sd] + ' kali diamati</span></th>').join('') + '</tr></thead><tbody>' +
+    r.murid.map((m, i) => '<tr><td>' + (i + 1) + '</td><td>' + esc(m.nama) + '</td>' + r.subdimensi.map(sd => {
+      const h = m.hasil[sd] || {};
+      return '<td>' + (h.n ? '<select data-id="' + esc(m.id) + '" data-sd="' + esc(sd) + '">' + opsi(h.level) + '</select><br><span class="kecil">rata-rata ' +
+        String(h.rata).replace('.', ',') + '</span>' : '–') + '</td>';
+    }).join('') + '</tr>').join('') + '</tbody></table>';
+  $('#kk-kirim').classList.toggle('hidden', !r.bolehKirim);
+  $('#kk-ket').textContent = (r.terakhirKirim ? 'Terakhir dikirim: ' + r.terakhirKirim + '. ' : '') +
+    (r.bolehKirim ? 'Setelah dikirim, kalimat rapor kokurikuler tersusun otomatis di Daftar Nilai Digital.'
+      : 'Ini rekap sementara. Tombol kirim muncul menjelang akhir semester' + (r.mulaiKirim ? ' (mulai ' + tglPanjang(r.mulaiKirim) + ')' : '') + ' untuk guru kelas.');
+}
+$('#kk-kelas').addEventListener('change', muatKoku);
+$('#kk-smt').addEventListener('change', muatKoku);
+$('#kk-kirim').addEventListener('click', async e => {
+  if (!KOKU || !confirm('Kirim capaian kokurikuler Kelas ' + KOKU.kelas + ' semester ' + KOKU.semester + ' ke Daftar Nilai Digital?')) return;
+  const hasil = {};
+  document.querySelectorAll('#kk-tabel select').forEach(s => { (hasil[s.dataset.id] = hasil[s.dataset.id] || {})[s.dataset.sd] = s.value; });
+  e.target.disabled = true;
+  const r = await api({ aksi: 'kirimKoku', sesi: SESI, kelas: KOKU.kelas, semester: KOKU.semester, subdimensi: KOKU.subdimensi, hasil });
+  e.target.disabled = false;
+  pesan('#m-koku', r.pesan, r.ok);
+  if (r.ok) $('#kk-ket').textContent = 'Terakhir dikirim: ' + r.terakhirKirim + '.';
+});
 $('#menu').addEventListener('click', e => { const l = e.target.closest('button')?.dataset.l; if (!l) return; if (l === 'rpp') return bukaRPP(''); buka(l); });
 
 /* ---------- RPP SUPER (aplikasi terpisah, dibuka di tab baru dengan tiket) ---------- */
@@ -261,6 +322,10 @@ async function muatHari(){
   if (!r.ok) return pesan('#m-hari', r.pesan);
   pesan('#m-hari', ''); HARI = r; BLOK = r.blok;
   if (!r.kelasLain && modePAI()) BLOK.sort((a, b) => a.mulai.localeCompare(b.mulai));   // guru PAI: urut jam, lintas kelas
+  muatHariTampil();
+}
+function muatHariTampil(){
+  const r = HARI;
   $('#h-judul').innerHTML = esc(r.hari + ' ' + r.pasaran + ', ' + tglPanjang(r.tanggal)) + (r.kelasLain ? ' <span class="kecil">· Kelas ' + esc(r.kelasLain) + '</span>' : '');
   $('#h-semua').classList.add('hidden');
   if (r.libur) return pesan('#m-hari', '🏖️ ' + r.libur + '. Tidak ada pembelajaran.', true);
@@ -291,12 +356,40 @@ async function muatHari(){
       ? '<span class="lencana ok">✅ Jurnal: ' + esc(j.pelaksanaan) + '</span><span class="kecil">oleh ' + esc(j.diajarOleh) + (j.pengganti ? ' (pengganti)' : '') + '</span><button class="dua" data-i="' + i + '">✏️ Ubah</button>'
       : bolehSah ? '<button class="ok" data-sesuai="' + i + '">✓ Sesuai</button><button class="dua" data-i="' + i + '">✏️ Ubah</button>'
       : '<span class="kecil">Jurnal disahkan setelah pelajaran berlangsung.</span>') + '</div>';
+    if (b.koku) isi += kotakKoku(b, i, bolehSah);
     return '<div class="' + kls + '">' + isi + '</div>';
   }).join('');
 }
+/* ---------- Pengamatan kokurikuler (1 subdimensi per kegiatan, bawaan Cakap) ---------- */
+let KOKU_UBAH = {}, KOKU_BUKA = {};
+const LV = { Berkembang: 'B', Cakap: 'C', Mahir: 'M', 'Tidak hadir': 'Absen' };
+function pengecualianKoku(b){ return KOKU_UBAH[b.kunci] || b.koku.tersimpan || {}; }
+function kotakKoku(b, i, bolehSah){
+  const k = b.koku, p = pengecualianKoku(b), beda = Object.keys(p);
+  const nama = id => (k.murid.find(m => m.id === id) || {}).nama || id;
+  let h = '<div class="koku"><b>🌱 Pengamatan ' + esc(k.subdimensi) + '</b> <span class="kecil">(' + esc(k.dimensi) + ')</span><br>' +
+    (k.tersimpan && !KOKU_UBAH[b.kunci] ? '<span class="kecil">✅ Tersimpan · </span>' : '') +
+    (beda.length ? 'Semua Cakap, kecuali: ' + beda.map(id => '<span class="chip">' + esc(nama(id)) + ': ' + esc(p[id]) + '</span>').join('')
+      : 'Semua ' + k.murid.length + ' murid: <b>Cakap</b>');
+  if (bolehSah) h += '<br><button type="button" class="link" data-koku="' + i + '">' + (KOKU_BUKA[b.kunci] ? 'Tutup daftar murid' : '👥 Ubah murid yang berbeda') + '</button>';
+  if (KOKU_BUKA[b.kunci]) {
+    h += '<div class="daftar">' + k.murid.map(m => '<div class="baris"><span>' + esc(m.nama) + '</span>' +
+      ['Berkembang', 'Cakap', 'Mahir', 'Tidak hadir'].map(l => '<button type="button" data-kk="' + i + '" data-id="' + esc(m.id) + '" data-lv="' + l + '" class="' +
+        ((p[m.id] || 'Cakap') === l ? 'on' : '') + '">' + LV[l] + '</button>').join('') + '</div>').join('') +
+      (b.jurnal ? '<button type="button" class="btn" data-kksimpan="' + i + '">Simpan pengamatan</button>' : '<p class="kecil">Perubahan ikut tersimpan saat Anda menekan ✓ Sesuai.</p>') + '</div>';
+  }
+  return h + '</div>';
+}
+function gambarUlangKartu(){ const y = window.scrollY; muatHariTampil(); window.scrollTo(0, y); }
+function pengamatanUntuk(kunci){
+  const o = {};
+  BLOK.forEach(b => { if (b.koku && (!kunci || b.kunci === kunci)) o[b.kunci] = pengecualianKoku(b); });
+  return o;
+}
 async function sahkan(kunci, tombol){
   tombol.disabled = true; const lama = tombol.textContent; tombol.textContent = 'Menyimpan…';
-  const r = await api({ aksi: 'jurnalSesuai', sesi: SESI, tanggal: HARI.tanggal, kelas: $('#h-kelas').value, kunci });
+  const r = await api({ aksi: 'jurnalSesuai', sesi: SESI, tanggal: HARI.tanggal, kelas: $('#h-kelas').value, kunci, pengamatan: pengamatanUntuk(kunci) });
+  if (r.ok) { if (kunci) delete KOKU_UBAH[kunci]; else KOKU_UBAH = {}; }
   tombol.disabled = false; tombol.textContent = lama;
   if (!r.ok) return pesan('#m-hari', r.pesan);
   muatHari();
@@ -313,6 +406,18 @@ $('#h-besok').addEventListener('click', () => { $('#h-tgl').value = geser($('#h-
 /* ---------- Isi Jurnal ---------- */
 let PILIH = null;
 $('#h-daftar').addEventListener('click', e => {
+  const t = e.target;
+  if (t.dataset.koku != null) { const b = BLOK[Number(t.dataset.koku)]; KOKU_BUKA[b.kunci] = !KOKU_BUKA[b.kunci]; return gambarUlangKartu(); }
+  if (t.dataset.kk != null) {
+    const b = BLOK[Number(t.dataset.kk)], p = Object.assign({}, pengecualianKoku(b));
+    if (t.dataset.lv === 'Cakap') delete p[t.dataset.id]; else p[t.dataset.id] = t.dataset.lv;
+    KOKU_UBAH[b.kunci] = p; return gambarUlangKartu();
+  }
+  if (t.dataset.kksimpan != null) {
+    const b = BLOK[Number(t.dataset.kksimpan)]; t.disabled = true;
+    return api({ aksi: 'pengamatanSimpan', sesi: SESI, tanggal: HARI.tanggal, kelas: b.kelas, kegiatan: b.kegiatan, pengecualian: pengecualianKoku(b) })
+      .then(r => { if (!r.ok) return pesan('#m-hari', r.pesan); delete KOKU_UBAH[b.kunci]; KOKU_BUKA[b.kunci] = false; muatHari(); });
+  }
   const is = e.target.dataset.sesuai;
   if (is != null) return sahkan(BLOK[Number(is)].kunci, e.target);
   const ir = e.target.dataset.rpp;
@@ -336,7 +441,9 @@ $('#f-jurnal').addEventListener('submit', async e => {
   e.preventDefault(); sibuk(e.target, true);
   const r = await api({ aksi: 'jurnalSimpan', sesi: SESI, tanggal: HARI.tanggal, kelas: PILIH.kelas, kegiatan: PILIH.kegiatan,
     pelaksanaan: (document.querySelector('input[name=pelaksanaan]:checked') || {}).value, uraian: $('#j-uraian').value,
-    tidakHadir: $('#j-absen').value, catatan: $('#j-catatan').value, cara: PILIH.jurnal ? '' : 'draf' });
+    tidakHadir: $('#j-absen').value, catatan: $('#j-catatan').value, cara: PILIH.jurnal ? '' : 'draf',
+    pengamatan: PILIH.koku ? pengecualianKoku(PILIH) : undefined });
+  if (PILIH.koku) delete KOKU_UBAH[PILIH.kunci];
   sibuk(e.target, false);
   if (!r.ok) return pesan('#m-jurnal', r.pesan);
   buka('hari');
