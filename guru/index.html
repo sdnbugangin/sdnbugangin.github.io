@@ -135,7 +135,7 @@ th{background:#F3EFFF}
 .kk-item b,.kr-kartu h3{color:#5B4FA8}
 .kr-hitung{border-radius:18px}.kr-hitung.biru{background:linear-gradient(90deg,#EEF0FF,#EAF5FF);color:#4A3F94}.kr-hitung.hijau{background:#E9F8F1;color:#23805F}.kr-hitung.merah{background:#FFEFF4;color:#A9435F}
 .kr-bar{background:#EFECF8}
-.kr-dok .ok{background:#E6F7EF;color:#23805F}.kr-dok .draf{background:#FFF3E3;color:#9A6420}.kr-dok .nanti{background:#F1EEFF;color:var(--muted)}.kr-dok .siap{background:#EAF4FF;color:#3A6FA8}
+.kr-dok .ok{background:#E6F7EF;color:#23805F}.kr-dok .draf{background:#FFF3E3;color:#9A6420}.kr-dok .nanti{background:#F1EEFF;color:var(--muted)}.kr-dok .siap{background:#EAF4FF;color:#3A6FA8}.kr-dok .sah{background:#E6F7EF;color:#23805F}
 footer{color:var(--muted)}
 ::selection{background:#F5D3E2}
 .segar{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:14px;color:var(--muted)}
@@ -397,10 +397,10 @@ function buka(l){
 /* ---------- Menu Kokurikuler ---------- */
 let KOKU = null;
 /* Papan ringkasan kokurikuler: pengingat untuk guru */
-const DOK_KOKU = [['F1–F4', 'Program Kokurikuler Sekolah', 'draf'], ['F5', 'Perencanaan Kegiatan', 'draf'], ['F6', 'Jadwal Pelaksanaan', 'draf'],
+const DOK_KOKU = [['F1–F4', 'Program Kokurikuler Sekolah', 'sah'], ['F5', 'Perencanaan Kegiatan', 'sah'], ['F6', 'Jadwal Pelaksanaan', 'sah'],
   ['F7', 'Surat pemberitahuan orang tua', 'siap'], ['F8', 'Catatan anekdot', 'ok'], ['F9', 'Jurnal 7 KAIH murid', 'siap'], ['F10', 'Penilaian diri murid', 'siap'],
   ['F11', 'Rubrik dan rekap hasil asesmen', 'ok'], ['F12', 'Evaluasi kegiatan', 'siap']];
-const LABEL_DOK = { ok: '✓ Otomatis', siap: '✓ Siap cetak', draf: 'Draf diperiksa KS', nanti: 'Segera hadir' };
+const LABEL_DOK = { ok: '✓ Otomatis', siap: '✓ Siap cetak', sah: '✓ Disahkan', draf: 'Draf diperiksa KS', nanti: 'Segera hadir' };
 function hariAntara(a, b){ return Math.round((new Date(b + 'T12:00:00') - new Date(a + 'T12:00:00')) / 864e5); }
 async function muatRingkasKoku(){
   $('#kr-isi').innerHTML = ''; pesan('#m-kr', 'Memuat ringkasan…', true);
