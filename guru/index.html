@@ -523,9 +523,9 @@ $('#kk-kirim').addEventListener('click', async e => {
   if (!KOKU || !confirm('Kirim capaian kokurikuler Kelas ' + KOKU.kelas + ' semester ' + KOKU.semester + ' ke Daftar Nilai Digital?')) return;
   const hasil = {};
   document.querySelectorAll('#kk-tabel select').forEach(s => { (hasil[s.dataset.id] = hasil[s.dataset.id] || {})[s.dataset.sd] = s.value; });
-  e.target.disabled = true;
+  e.target.disabled = true; const lamaT = e.target.textContent; e.target.textContent = '⏳ Mengirim… mohon tunggu';
   const r = await api({ aksi: 'kirimKoku', sesi: SESI, kelas: KOKU.kelas, semester: KOKU.semester, subdimensi: KOKU.subdimensi, hasil });
-  e.target.disabled = false;
+  e.target.disabled = false; e.target.textContent = lamaT;
   pesan('#m-koku', r.pesan, r.ok);
   if (r.ok) $('#kk-ket').textContent = 'Terakhir dikirim: ' + r.terakhirKirim + '.';
 });
@@ -535,7 +535,10 @@ $('#menu').addEventListener('click', e => { const l = e.target.closest('button')
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible' && SEGAR_PROMES && SESI) { if (!$('#l-hari').classList.contains('hidden')) muatHari({ diam: true }); else if (!$('#l-promes').classList.contains('hidden')) muatPromes(); }
 });
+let RPP_MEMBUKA = false;
 async function bukaRPP(unit){
+  if (RPP_MEMBUKA) return;   // cegah tab RPP SUPER terbuka berkali-kali
+  RPP_MEMBUKA = true; setTimeout(() => { RPP_MEMBUKA = false; }, 5000);
   SEGAR_PROMES = true;
   const w = window.open('about:blank', '_blank');
   if (w) w.document.write('<p style="font-family:sans-serif;padding:24px">Membuka RPP SUPER…</p>');
@@ -658,6 +661,7 @@ async function sahkan(kunci, tombol){
   muatHari({ diam: true });
 }
 $('#btn-semua-sesuai').addEventListener('click', e => {
+  if (BLOK.some(b => b.jurnal && b.jurnal.menunggu)) return;
   const n = BLOK.filter(b => !b.jurnal && b.draf && !b.tidakEfektif).length;
   if (confirm('Sahkan ' + n + ' jurnal hari ini sesuai draf (terlaksana, kehadiran sesuai Presensi Digital)?')) sahkan('', e.target);
 });
@@ -688,7 +692,7 @@ $('#h-daftar').addEventListener('click', e => {
       .then(r => { if (!r.ok) return pesan('#m-hari', r.pesan); const baru = pengecualianKoku(b), anek = anekdotKoku(b); delete KOKU_UBAH[b.kunci]; delete KOKU_ANEK[b.kunci]; KOKU_BUKA[b.kunci] = false; b.koku.tersimpan = baru; b.koku.anekdot = anek; gambarUlangKartu(); pesan('#m-hari', '✓ Pengamatan tersimpan.', true); muatHari({ diam: true }); });
   }
   const is = e.target.dataset.sesuai;
-  if (is != null) return sahkan(BLOK[Number(is)].kunci, e.target);
+  if (is != null) { if (BLOK[Number(is)].jurnal) return; return sahkan(BLOK[Number(is)].kunci, e.target); }
   const ir = e.target.dataset.rpp;
   if (ir != null) { const b = BLOK[Number(ir)]; return bukaRPP([b.kelas, b.kegiatan, b.promes.smt].join('|')); }
   const i = e.target.dataset.i; if (i == null) return;
