@@ -5,11 +5,11 @@ description: Petugas Pemelihara Mingguan SD N Bugangin. Sabtu siang memeriksa ve
 
 # Petugas Pemelihara Mingguan
 
-Baca dulu skill `aturan-petugas`. Model: Haiku 5.5. Jadwal: Sabtu 13.xx WIB.
+Baca dulu skill `aturan-petugas`. Model: Haiku 5.5. Jadwal: Sabtu 12.42 WIB.
 
 ## Pemeriksaan (hanya membaca)
 1. **Versi resmi.** Untuk tiap proyek di tabel "Versi resmi aplikasi" (CLAUDE.md): `clasp list-deployments` (kredensial: `printf '%s' "$CLASPRC_JSON" > ~/.clasprc.json && chmod 600 ~/.clasprc.json`; jangan pernah mencetak isinya). Versi deployment resmi berbeda dari tabel → ⚠️ "ada pemasangan yang belum tercatat".
-2. **Kode di editor vs arsip.** `clasp clone`/`pull` tiap proyek ke /tmp lalu bandingkan dengan folder proyek di repo privat arsip (lihat CLAUDE.md, bagian Arsip kode). Ada perbedaan → ⚠️ sebutkan berkas yang berbeda. Petugas boleh menyimpan salinan terbaru HANYA ke repo arsip, cabang `arsip-otomatis`, satu commit "Arsip mingguan <tanggal>" (tanpa menggabung ke main). Jangan pernah `clasp push` atau mengubah deployment.
+2. **Kode di editor vs arsip.** `clasp clone`/`pull` tiap proyek ke /tmp lalu bandingkan dengan folder proyek di repo privat arsip `sdnbugangin/kode-apps-script` (lihat CLAUDE.md, bagian Arsip kode). Ada perbedaan → ⚠️ sebutkan berkas yang berbeda. Petugas boleh menyimpan salinan terbaru HANYA ke repo arsip, cabang `arsip-otomatis`, satu commit "Arsip mingguan <tanggal>" (tanpa menggabung ke main). Jangan pernah `clasp push` atau mengubah deployment.
 3. **Kolom sheet rapor.** Lewat Google Sheets, baca HANYA baris judul (baris 1) sheet berikut di spreadsheet rapor sekolah dan pastikan semua kolom wajib ada:
    - Pengaturan: Kunci, Nilai
    - Rombel: ID Rombel, Tahun Ajaran, Kelas, Nama Rombel, Wali Kelas
