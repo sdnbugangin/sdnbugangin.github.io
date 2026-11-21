@@ -80,5 +80,31 @@ Setiap petugas punya skill di `.claude/skills/` dan wajib membaca `aturan-petuga
 | Rekap Kepala Sekolah | `petugas-rekap-kepsek` | Rabu & Jumat 03.34 (rekap disusun saat itu, ditulis ke spreadsheet privat "Rekap Kepala Sekolah SD N Bugangin") | Haiku 5.5 |
 | Cek Aplikasi | `petugas-cek-aplikasi` | Senin–Sabtu 05.11 | Haiku 5.5 |
 | Tindak Lanjut | `petugas-tindak-lanjut` | Senin–Sabtu 12.10 & 19.10 (perintah ditulis Kepala Sekolah di tab Tindak Lanjut) | Haiku 5.5 |
+| Pemelihara Mingguan | `petugas-pemelihara` | Sabtu 13.xx (dipasang setelah repo arsip ada) | Haiku 5.5 |
 | Pengingat Guru | `petugas-pengingat` | atas perintah | — |
 | Kabar Sekolah | `petugas-kabar` | atas perintah | — |
+
+## Versi resmi aplikasi (titik kembali)
+
+Perbarui tabel ini setiap kali memasang versi baru. Petugas Pemelihara membandingkan versi resmi dengan tabel ini setiap minggu.
+
+| Aplikasi | Versi resmi | Dicatat |
+|---|---|---|
+| Presensi Digital | @64 | 21/11/2026 |
+| Super Admin | @8 | 21/11/2026 |
+| Persuratan | @2 | 21/11/2026 |
+| Update Nomor WA | @6 | 21/11/2026 |
+| Pantau Belajar Anak | @3 (dan @2, server lama untuk halaman lama) | 21/11/2026 |
+| Program Terintegrasi | @18 (Rekap + Ruang KS; sebelumnya @17, @16) | 21/11/2026 |
+| RPP SUPER | @13 | 21/11/2026 |
+
+## Cara kerja tim (wajib di setiap sesi)
+
+1. **Rencana singkat dulu**, disetujui Kepala Sekolah.
+2. **Bangun di cabang kerja / versi uji**; aplikasi resmi tidak tersentuh.
+3. **Wajib lulus tes otomatis** sebelum diajukan. Setiap bagian kode lama yang disentuh ditambah tesnya (aplikasi lama tidak ditulis ulang).
+4. **Periksa ulang sebelum diajukan**: bug, keamanan, data siswa tidak bocor ke repo/halaman publik, kode lama tidak ikut berubah.
+5. **Kepala Sekolah mencoba**, lalu "setuju pasang". Pasang siang/sore, catat versi lama, perbarui tabel versi di atas.
+6. **Dijaga** oleh Petugas Cek Aplikasi (harian) dan Petugas Pemelihara (mingguan).
+
+Hemat token: petugas rutin memakai Haiku; perhitungan berat dikerjakan Apps Script; satu sesi untuk satu proyek.
