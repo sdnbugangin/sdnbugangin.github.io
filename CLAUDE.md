@@ -70,3 +70,14 @@ Untuk website (repo ini): kerjakan di cabang kerja, bukan langsung di cabang uta
 - **Pengecualian aturan "rapor hanya dibaca":** Program Terintegrasi boleh menulis ke spreadsheet rapor sekolah HANYA sheet `Kokurikuler`, `Capaian Kokurikuler`, dan `Kegiatan Kokurikuler` (izin Kepala Sekolah 20/11/2026), hanya lewat tombol "Kirim ke Daftar Nilai Digital", dengan format yang sama dengan server rapor (Kokurikuler.js: Tahun Ajaran, Semester, Kelas, No, Dimensi, Subdimensi; Tahun Ajaran, Semester, ID Siswa, Subdimensi, Level; Tahun Ajaran, Semester, Kelas, No, Tema, Nama Kegiatan, Tujuan Akhir, Subdimensi — maks. 4 kegiatan, tema ≤100, nama ≤150, tujuan ≤500 karakter) dan menolak rombel yang raport-nya terkunci. Kegiatan yang diisi guru sendiri di DND tidak ditimpa.
 - **Kegiatan di DND (keputusan Kepala Sekolah 20/11/2026):** karena DND membatasi 4 kegiatan, Literasi dan Numerasi digabung menjadi satu kegiatan "Gerakan Literasi dan Numerasi Pagi" (subdimensi Membaca dan Penyelesaian Masalah). Di e-Rapor tetap 5 kegiatan terpisah. Sheet rapor lain tetap hanya dibaca; server bolonulis tidak disentuh.
 
+
+## Petugas AI (agen terjadwal)
+
+Setiap petugas punya skill di `.claude/skills/` dan wajib membaca `aturan-petugas` lebih dulu. Laporan hanya untuk Kepala Sekolah; petugas melapor dan menyiapkan draf, tidak mengubah atau mengirim apa pun tanpa izin.
+
+| Petugas | Skill | Jadwal (WIB) | Model |
+|---|---|---|---|
+| Rekap Kepala Sekolah | `petugas-rekap-kepsek` | Rabu & Jumat 04.00 (rekap Apps Script 03.30) | Haiku 5.5 |
+| Cek Aplikasi | `petugas-cek-aplikasi` | Senin–Sabtu 05.30 | Haiku 5.5 |
+| Pengingat Guru | `petugas-pengingat` | atas perintah | — |
+| Kabar Sekolah | `petugas-kabar` | atas perintah | — |
