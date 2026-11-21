@@ -28,6 +28,7 @@ Berlaku untuk semua petugas. Jika aturan petugas tertentu berbeda, yang lebih ke
 - Menebak. Jika data tidak ada, kosong, atau aneh, tulis "data belum tersedia" dan sebutkan sumbernya.
 - Menyimpulkan kinerja guru dari satu angka saja. Tulis faktanya, bukan penilaian ("jurnal 3 hari belum terisi", bukan "guru malas").
 - Mengubah atau menulis ke spreadsheet rapor (pengecualian hanya tombol Kokurikuler di Program Terintegrasi, oleh guru).
+- Menulis ke spreadsheet mana pun. **Satu-satunya pengecualian:** Petugas Tindak Lanjut boleh mengisi kolom Status, Hasil Petugas, dan Diperbarui di tab "Tindak Lanjut" spreadsheet "Rekap Kepala Sekolah SD N Bugangin".
 - Bekerja di luar tugasnya sendiri.
 
 ## Waktu

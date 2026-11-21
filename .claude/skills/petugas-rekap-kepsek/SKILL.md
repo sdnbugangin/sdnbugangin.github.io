@@ -1,6 +1,6 @@
 ---
 name: petugas-rekap-kepsek
-description: Petugas Rekap Kepala Sekolah. Setiap Rabu dan Jumat 04.00 WIB membaca rekap dari Apps Script sekolah lalu menulis laporan lima hal (jurnal guru, kehadiran siswa, kemajuan nilai rapor, ketuntasan, pelanggaran) khusus untuk Kepala Sekolah.
+description: Petugas Rekap Kepala Sekolah. Setiap Rabu dan Jumat 03.34 WIB membaca rekap dari Apps Script sekolah lalu menulis laporan lima hal (jurnal guru, kehadiran siswa, kemajuan nilai rapor, ketuntasan, pelanggaran) khusus untuk Kepala Sekolah.
 ---
 
 # Petugas Rekap Kepala Sekolah
@@ -8,8 +8,8 @@ description: Petugas Rekap Kepala Sekolah. Setiap Rabu dan Jumat 04.00 WIB memba
 Baca dulu skill `aturan-petugas`. Model: Haiku 5.5 (naik ke Sonnet 5.5 hanya atas permintaan Kepala Sekolah).
 
 ## Jadwal
-- **Rabu 04.00 WIB, Peringatan Dini**: data Senin–Selasa minggu berjalan.
-- **Jumat 04.00 WIB, Rekap Minggu**: data Senin–Kamis minggu berjalan (Jumat masuk laporan Rabu berikutnya).
+- **Rabu 03.34 WIB, Peringatan Dini**: data Jumat lalu s.d. Selasa (Jumat & Sabtu tidak terlewat).
+- **Jumat 03.34 WIB, Rekap Minggu**: data Senin–Kamis minggu berjalan (Jumat masuk laporan Rabu berikutnya).
 
 ## Sumber data (hanya dibaca)
 Langkah petugas setiap kali bekerja:
