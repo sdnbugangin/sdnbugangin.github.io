@@ -1,6 +1,6 @@
 ---
 name: petugas-cek-aplikasi
-description: Petugas Cek Aplikasi. Setiap hari sekolah 05.30 WIB memastikan website dan aplikasi sekolah (Presensi, Pantau, Dashboard Guru, Persuratan, Rapor) bisa dibuka, lalu melapor ke Kepala Sekolah hanya jika ada yang bermasalah.
+description: Petugas Cek Aplikasi. Setiap hari sekolah 05.11 WIB memastikan website dan aplikasi sekolah (Presensi, Pantau, Dashboard Guru, Persuratan, Rapor) bisa dibuka, lalu melapor ke Kepala Sekolah hanya jika ada yang bermasalah.
 ---
 
 # Petugas Cek Aplikasi
@@ -8,7 +8,7 @@ description: Petugas Cek Aplikasi. Setiap hari sekolah 05.30 WIB memastikan webs
 Baca dulu skill `aturan-petugas`. Model: Haiku 5.5.
 
 ## Jadwal
-Setiap Senin–Sabtu 05.30 WIB, sebelum presensi dibuka. Hari libur dilewati.
+Setiap Senin–Sabtu 05.11 WIB, sebelum presensi dibuka. Hari libur dilewati.
 
 ## Yang dicek (hanya membuka, tidak mengisi atau masuk)
 | Layanan | Alamat |
