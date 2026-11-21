@@ -12,7 +12,12 @@ Baca dulu skill `aturan-petugas`. Model: Haiku 5.5 (naik ke Sonnet 5.5 hanya ata
 - **Jumat 04.00 WIB, Rekap Minggu**: data Senin–Kamis minggu berjalan (Jumat masuk laporan Rabu berikutnya).
 
 ## Sumber data (hanya dibaca)
-Rekap disiapkan pukul 03.30 oleh fungsi rekap di Program Terintegrasi (aksi API `rekapKepsek`, dilindungi kunci). Petugas **tidak membuka spreadsheet mentah**. Isi rekap:
+Langkah petugas setiap kali bekerja:
+1. Minta Program Terintegrasi menyusun ulang rekap: kirim POST JSON `{"aksi":"rekapKepsekBuat"}` ke alamat web app Program Terintegrasi (Deployment ID di CLAUDE.md, `https://script.google.com/macros/s/<ID>/exec`). Jawabannya hanya `ok` dan jam, **tanpa isi rekap**.
+2. Baca spreadsheet privat **"Rekap Kepala Sekolah SD N Bugangin"** lewat sambungan Google Sheets milik Kepala Sekolah (cari berdasarkan judul di Google Drive). Sheet: `Ringkasan`, `Perhatian`, `Angka`.
+3. Jika baris `Dibuat Pada` di Ringkasan lebih tua dari 2 jam, atau ada baris `GAGAL: ...`, sebutkan di laporan.
+
+Petugas **tidak membuka spreadsheet sumber** (Program Terintegrasi, Presensi, rapor) secara langsung. Isi rekap:
 
 | No | Hal | Asal data |
 |---|---|---|
@@ -24,12 +29,12 @@ Rekap disiapkan pukul 03.30 oleh fungsi rekap di Program Terintegrasi (aksi API 
 
 ## Tanda ⚠️ (dihitung Apps Script, petugas tidak mengubah batasnya)
 1. Guru belum mengisi jurnal untuk 2 hari mengajar atau lebih.
-2. Siswa tidak hadir (Sakit/Izin/Tanpa Keterangan) 3 hari atau lebih dalam 2 minggu, atau Tanpa Keterangan 2 hari berturut-turut.
+2. Siswa tidak hadir (Sakit/Izin/Tanpa Keterangan) 3 hari atau lebih dalam 2 minggu, atau Tanpa Keterangan 2 hari berturut-turut. Kelas yang presensinya belum diisi guru juga ditandai.
 3. TP yang sudah dinilai di suatu kelas & mapel kurang dari 50% padahal rapor tinggal 4 minggu atau kurang.
 4. Siswa belum tuntas di 3 mapel atau lebih, atau ketuntasan satu kelas pada satu mapel di bawah 60%.
 5. Siswa tercatat 2 pelanggaran atau lebih dalam 2 minggu, atau ada pelanggaran tingkat Berat.
 
-Batas ini diubah hanya oleh Kepala Sekolah (sheet Pengaturan Dashboard).
+Batas ini diubah hanya oleh Kepala Sekolah: tambahkan baris di sheet Pengaturan Dashboard dengan kunci `Rekap Jurnal Hari Belum`, `Rekap Absen Hari`, `Rekap Alpa Berturut`, `Rekap Nilai Persen`, `Rekap Nilai Minggu`, `Rekap Mapel Belum Tuntas`, `Rekap Tuntas Kelas Persen`, `Rekap Pelanggaran`, atau `Batas Tuntas`. "Akhir semester" diambil dari sheet Kalender Pendidikan.
 
 ## Bentuk laporan
 ```

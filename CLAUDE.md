@@ -77,7 +77,7 @@ Setiap petugas punya skill di `.claude/skills/` dan wajib membaca `aturan-petuga
 
 | Petugas | Skill | Jadwal (WIB) | Model |
 |---|---|---|---|
-| Rekap Kepala Sekolah | `petugas-rekap-kepsek` | Rabu & Jumat 04.00 (rekap Apps Script 03.30) | Haiku 5.5 |
+| Rekap Kepala Sekolah | `petugas-rekap-kepsek` | Rabu & Jumat 04.00 (rekap disusun saat itu, ditulis ke spreadsheet privat "Rekap Kepala Sekolah SD N Bugangin") | Haiku 5.5 |
 | Cek Aplikasi | `petugas-cek-aplikasi` | Senin–Sabtu 05.30 | Haiku 5.5 |
 | Pengingat Guru | `petugas-pengingat` | atas perintah | — |
 | Kabar Sekolah | `petugas-kabar` | atas perintah | — |
