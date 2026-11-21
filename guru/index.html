@@ -303,6 +303,7 @@ nav button{font-weight:700}
       <button data-l="hari" class="on"><i>📅</i>Hari Ini</button>
       <button data-l="jurnal"><i>📒</i>Jurnal</button>
       <button data-l="koku"><i>🌱</i>Kokurikuler</button>
+      <button data-l="ks" id="menu-ks" class="hidden"><i>🧭</i>Ruang KS</button>
     </nav>
 
     <!-- Hari Ini -->
@@ -360,6 +361,18 @@ nav button{font-weight:700}
       <div class="msg" id="m-promes"></div>
       <div class="cetak-saja" id="p-kop"></div>
       <div id="p-daftar"></div>
+    </section>
+
+    <!-- Ruang KS: khusus Kepala Sekolah. Data dari spreadsheet privat "Rekap Kepala Sekolah", tidak disimpan di perangkat. -->
+    <section class="panel hidden" id="l-ks">
+      <h2>🧭 Ruang Kepala Sekolah</h2>
+      <p class="kecil" id="ks-ringkas"></p>
+      <div class="msg" id="m-ks"></div>
+      <h3>⚠️ Perlu perhatian</h3>
+      <p class="kecil">Setiap temuan sudah disertai usulan. Ketuk <b>✅ Setuju</b> agar petugas mengerjakannya (pukul 12.10 / 19.10), <b>✏️ Ubah</b> untuk mengganti perintah, atau <b>✖ Abaikan</b>.</p>
+      <div id="ks-perhatian"></div>
+      <h3>📋 Hasil tindak lanjut</h3>
+      <div id="ks-tl"></div>
     </section>
 
     <!-- Kokurikuler -->
@@ -494,6 +507,7 @@ function mulai(){
   document.body.classList.add('sudah-masuk');
   $('#l-masuk').classList.add('hidden'); $('#l-isi').classList.remove('hidden');
   $('#u-nama').textContent = GURU.nama;
+  $('#menu-ks').classList.toggle('hidden', GURU.peran !== 'Kepala Sekolah');
   $('#u-peran').textContent = GURU.peran + (GURU.peran === 'Guru Kelas' ? ' ' + GURU.kelas.join(', ') : GURU.peran === 'Guru Mapel' ? ' · ' + GURU.mapel : '');
   const opsiKelas = ROMAWI.map(k => '<option value="' + k + '">Kelas ' + k + '</option>').join('');
   $('#h-kelas').innerHTML = '<option value="">Jadwal saya</option>' + opsiKelas;
@@ -513,13 +527,57 @@ function mulai(){
 /* ---------- menu ---------- */
 function buka(l){
   document.querySelectorAll('#menu button').forEach(b => b.classList.toggle('on', b.dataset.l === l));
-  ['hari', 'isi-jurnal', 'promes', 'jurnal', 'koku'].forEach(x => $('#l-' + x).classList.toggle('hidden', x !== l));
+  ['hari', 'isi-jurnal', 'promes', 'jurnal', 'koku', 'ks'].forEach(x => $('#l-' + x).classList.toggle('hidden', x !== l));
   window.scrollTo(0, 0);
   if (l === 'hari') muatHari();
   if (l === 'promes') muatPromes();
   if (l === 'jurnal') muatRekap();
   if (l === 'koku') { kembaliMenuKoku(); muatRingkasKoku(); }
+  if (l === 'ks') muatKS();
 }
+/* ---------- Ruang KS ---------- */
+let KS = null;
+const IKON_KS = { 'Jurnal guru': '📒', 'Kehadiran siswa': '🙋', 'Kemajuan nilai rapor': '📝', 'Ketuntasan': '🎯', 'Pelanggaran': '⚖️' };
+async function muatKS(){
+  pesan('#m-ks', 'Memuat rekap…', true); $('#ks-perhatian').innerHTML = ''; $('#ks-tl').innerHTML = '';
+  const r = await api({ aksi: 'ruangKS', sesi: SESI });
+  if (!r.ok) return pesan('#m-ks', r.pesan);
+  KS = r; pesan('#m-ks', '');
+  const g = r.ringkas || {};
+  $('#ks-ringkas').textContent = 'Rekap ' + (g['Rentang Laporan'] || '-') + ' · diperbarui ' + (g['Dibuat Pada'] || '-') + ' · ' + r.perhatian.length + ' temuan';
+  $('#ks-perhatian').innerHTML = r.perhatian.length ? r.perhatian.map((p, i) => `<div class="kartu">
+      <b>${IKON_KS[p.hal] || '•'} ${esc(p.hal)}${p.kelas ? ' · ' + esc(p.kelas) : ''}</b> — ${esc(p.siapa)}
+      <div class="kecil">${esc(p.fakta)}</div>
+      ${p.tindak ? `<div class="aksi"><span class="lencana">${esc(p.tindak === 'Diabaikan' ? '✖ Diabaikan' : '✓ Sudah diperintahkan (' + p.tindak + ')')}</span></div>` :
+      `<div class="kecil" style="margin-top:6px">💡 <i id="ks-u${i}">${esc(p.usulan)}</i></div>
+      <div class="aksi"><button class="btn" data-ks="setuju" data-i="${i}">✅ Setuju</button>
+      <button class="btn" style="background:#fff;color:inherit;border:1px solid #ccc" data-ks="ubah" data-i="${i}">✏️ Ubah</button>
+      <button class="btn" style="background:#fff;color:inherit;border:1px solid #ccc" data-ks="abaikan" data-i="${i}">✖ Abaikan</button></div>`}
+    </div>`).join('') : '<div class="kartu">✅ Tidak ada temuan. Semua normal.</div>';
+  $('#ks-tl').innerHTML = r.tindakLanjut.length ? r.tindakLanjut.map((t, i) => `<div class="kartu">
+      <div class="kecil">${esc(t.tanggal)} · <span class="lencana">${esc(t.status || 'Baru')}</span></div>
+      <b>${esc(t.perintah)}</b><div class="kecil">${esc(t.masalah)}</div>
+      ${t.hasil ? `<div style="white-space:pre-wrap;margin-top:8px;padding:10px;background:#f6f8fa;border-radius:10px">${esc(t.hasil)}</div>
+      <div class="aksi"><button class="btn" data-tl="salin" data-i="${i}">📋 Salin</button>
+      <a class="btn" style="text-decoration:none" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(t.hasil)}">💬 Kirim lewat WA</a></div>` :
+      (t.status === 'Diabaikan' ? '' : '<div class="kecil" style="margin-top:6px">⏳ Menunggu petugas (12.10 / 19.10).</div>')}
+    </div>`).join('') : '<p class="kecil">Belum ada tindak lanjut.</p>';
+}
+$('#ks-perhatian').addEventListener('click', async e => {
+  const b = e.target.closest('button[data-ks]'); if (!b || !KS) return;
+  const p = KS.perhatian[+b.dataset.i]; let perintah = p.usulan, status = 'Baru';
+  if (b.dataset.ks === 'ubah') { perintah = prompt('Perintah untuk petugas:', p.usulan); if (!perintah) return; }
+  if (b.dataset.ks === 'abaikan') { status = 'Diabaikan'; perintah = ''; }
+  sibuk(b.parentNode, true);
+  const r = await api({ aksi: 'tindakLanjutTambah', sesi: SESI, masalah: p.kunci + ': ' + p.fakta, perintah, status });
+  pesan('#m-ks', r.pesan, r.ok);
+  if (r.ok) muatKS(); else sibuk(b.parentNode, false);
+});
+$('#ks-tl').addEventListener('click', e => {
+  const b = e.target.closest('button[data-tl=salin]'); if (!b || !KS) return;
+  navigator.clipboard.writeText(KS.tindakLanjut[+b.dataset.i].hasil).then(() => { b.textContent = '✓ Tersalin'; });
+});
+
 /* ---------- Menu Kokurikuler ---------- */
 let KOKU = null;
 /* Papan ringkasan kokurikuler: pengingat untuk guru */
