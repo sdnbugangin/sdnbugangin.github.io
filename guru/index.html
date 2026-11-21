@@ -231,14 +231,39 @@ nav button{font-weight:700}
 @media (min-width: 1500px){ #h-daftar{grid-template-columns:repeat(3,1fr)} }
 
 @media (min-width: 1000px){
-  #h-daftar .tp:not(.buka),#h-daftar .draf:not(.buka){display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;cursor:pointer}
-  #h-daftar .tp:not(.buka){-webkit-line-clamp:2}
-  #h-daftar .tp,#h-daftar .draf{cursor:pointer}
+
   #kr-isi{display:block;columns:2;column-gap:12px}
   #kr-isi > *{break-inside:avoid;margin:0 0 12px!important}
   #kk-ringkas .dua-kolom{display:flex;gap:12px;align-items:center}#kk-ringkas .dua-kolom label{margin:0}
   #l-koku > .sub{margin-bottom:6px}
 }
+
+/* ===== Tampilan fokus: ringkas dulu, rincian saat diketuk ===== */
+#h-daftar{display:block!important}
+.kartu.lipat{padding:0!important;margin-top:8px;overflow:hidden;border-left-width:5px}
+.kartu.lipat .ringkas{display:flex;align-items:center;gap:12px;padding:11px 14px;cursor:pointer;user-select:none}
+.kartu.lipat .ringkas:hover{background:rgba(185,163,245,.08)}
+.ringkas .jam{flex:0 0 58px;font-weight:800;font-size:16px;color:#4A3F94;line-height:1.1}.ringkas .jam small{display:block;font-weight:600;font-size:11.5px;color:var(--muted)}
+.ringkas .judul-k{flex:1;min-width:0;line-height:1.25}.ringkas .judul-k b{display:block;font-size:16.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ringkas .judul-k small{display:block;font-size:13px;color:var(--muted);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ringkas .lencana{flex:none;font-size:12.5px}
+.ringkas .cepat{flex:none;padding:7px 13px!important;border-radius:999px;border:0;background:linear-gradient(120deg,#6CCBA6,#7FC4E0);color:#fff;font-weight:800;font-size:14px}
+.ringkas .panah{flex:none;color:var(--muted);font-size:14px;width:14px;text-align:center}
+.kartu.lipat .rinci{display:none;padding:2px 14px 13px;border-top:1px dashed #E5DEF6}
+.kartu.lipat.buka .rinci{display:block}
+.kartu.lipat.buka .ringkas{background:rgba(185,163,245,.07)}
+@media (max-width: 560px){ .ringkas{gap:8px!important;padding:10px 11px!important} .ringkas .jam{flex-basis:48px;font-size:15px} .ringkas .lencana{display:none} .ringkas .judul-k b{font-size:15.5px} }
+/* Promes ringkas */
+#p-daftar .pr.lipat{cursor:pointer}
+#p-daftar .pr.lipat:not(.buka) > div.kecil,#p-daftar .pr.lipat:not(.buka) > div.tanda{display:none!important}
+#p-daftar .pr.lipat:not(.buka) > div:not(.baris1){display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+#p-daftar .pr.lipat:hover{background:rgba(185,163,245,.06)}
+/* Kokurikuler ringkas */
+.kr-kartu.lipat > h3{cursor:pointer;display:flex;justify-content:space-between;align-items:center;margin:0}
+.kr-kartu.lipat > h3 .panah{color:var(--muted);font-size:14px}
+.kr-kartu.lipat:not(.buka) > :not(h3){display:none}
+.kr-kartu.lipat.buka > h3{margin-bottom:6px}
+@media (min-width:1000px){ #p-daftar .pr.lipat:not(.buka){grid-template-columns:310px minmax(0,1fr)} #p-daftar .pr.lipat:not(.buka) > .baris1{grid-row:auto} }
 @media print{
   @page{size:A4 landscape;margin:12mm}
   body{background:#fff;font-size:12px}.wrap{max-width:none;padding:0}
@@ -534,9 +559,12 @@ async function muatRingkasKoku(){
   // kelengkapan administrasi
   h += '<div class="kr-kartu"><h3>📁 Kelengkapan administrasi</h3>' + DOK_KOKU.map(d => '<div class="kr-dok"><div><b>' + d[0] + '</b> ' + esc(d[1]) + '</div><span class="' + d[2] + '">' + LABEL_DOK[d[2]] + '</span></div>').join('') + '</div>';
   $('#kr-isi').innerHTML = h;
+  $('#kr-isi').querySelectorAll('.kr-kartu').forEach(k => { k.classList.add('lipat'); const h3 = k.querySelector('h3'); if (h3) h3.insertAdjacentHTML('beforeend', '<span class="panah">▾</span>'); });
 }
 $('#kr-kelas').addEventListener('change', muatRingkasKoku);
 $('#kr-isi').addEventListener('click', e => {
+  const h3 = e.target.closest('.kr-kartu.lipat > h3');
+  if (h3) { const k = h3.parentElement; k.classList.toggle('buka'); h3.querySelector('.panah').textContent = k.classList.contains('buka') ? '▴' : '▾'; return; }
   const t = e.target.dataset.buka; if (!t) return;
   $('#h-tgl').value = t;
   const kSaya = GURU.peran === 'Guru Kelas' && GURU.kelas.length === 1 && GURU.kelas[0] === $('#kr-kelas').value;
@@ -649,7 +677,7 @@ async function bukaRPP(unit){
 }
 
 /* ---------- Hari Ini ---------- */
-let HARI_LAMA = false, MUAT_KE = 0, SEGAR_PROMES = false;
+let HARI_LAMA = false, MUAT_KE = 0, SEGAR_PROMES = false, BUKA_KARTU = {};
 async function muatHari(opsi){
   opsi = opsi || {};
   const iso = $('#h-tgl').value || isoHariIni(), kelas = $('#h-kelas').value, kunci = 'hari|' + iso + '|' + kelas, ke = ++MUAT_KE;
@@ -677,9 +705,19 @@ function muatHariTampil(){
   if (!BLOK.length) return pesan('#m-hari', r.hari === 'Minggu' ? 'Hari Minggu, tidak ada jadwal.' : 'Tidak ada jadwal Anda pada hari ini.', true);
   $('#h-daftar').innerHTML = BLOK.map((b, i) => {
     const p = b.promes, j = b.jurnal;
-    const kls = 'kartu' + (b.jenis === 'Intrakurikuler' ? ' intra' : '') + (p && p.jenis === 'Ulangan' ? ' ulangan' : '') + (p && p.jenis === 'Cadangan' ? ' cadangan' : '');
-    let isi = '<div class="atas"><span>' + esc(b.mulai + '–' + b.selesai) + (b.jamKe ? ' · Jam ke-' + esc(b.jamKe) : '') + '</span><span>Kelas ' + esc(b.kelas) + '</span></div>';
-    isi += '<div class="nm">' + esc(b.kegiatan) + '</div>';
+    const buka = !!BUKA_KARTU[b.kunci];
+    const kls = 'kartu lipat' + (buka ? ' buka' : '') + (b.jenis === 'Intrakurikuler' ? ' intra' : '') + (p && p.jenis === 'Ulangan' ? ' ulangan' : '') + (p && p.jenis === 'Cadangan' ? ' cadangan' : '');
+    const bolehSah0 = HARI.tanggal <= isoHariIni() && !b.tidakEfektif && !HARI_LAMA;
+    const status = b.tidakEfektif ? '<span class="lencana Ulangan">Tidak efektif</span>'
+      : j ? (j.menunggu ? '<span class="lencana">⏳ Menyimpan…</span>' : '<span class="lencana ok">✅ Selesai</span>')
+      : HARI.tanggal > isoHariIni() ? '<span class="lencana">Belum berlangsung</span>'
+      : '<span class="lencana Cadangan">Perlu disahkan</span>';
+    // Baris ringkas: jam, kegiatan, status, tombol cepat. Rincian muncul saat baris diketuk.
+    let isi = '<div class="ringkas" data-lipat="' + i + '"><span class="jam">' + esc(b.mulai) + '<small>' + (b.jamKe ? 'Jam ' + esc(b.jamKe) : '') + '</small></span>' +
+      '<span class="judul-k"><b>' + esc(b.kegiatan) + '</b><small>' + (HARI.kelasLain || modePAI() ? 'Kelas ' + esc(b.kelas) + ' · ' : '') +
+      (p ? esc(p.jenis === 'Ulangan' ? 'Ulangan akhir materi' : p.jenis) + (p.pertemuan ? ' · pertemuan ' + esc(p.pertemuan) : '') : b.koku ? 'Kokurikuler · ' + esc(b.koku.subdimensi) : esc(b.jenis || '')) + '</small></span>' +
+      status + (!j && b.draf && bolehSah0 ? '<button class="ok cepat" data-sesuai="' + i + '">✓ Sesuai</button>' : '') + '<span class="panah">' + (buka ? '▴' : '▾') + '</span></div><div class="rinci">';
+    isi += '<div class="atas"><span>' + esc(b.mulai + '–' + b.selesai) + (b.jamKe ? ' · Jam ke-' + esc(b.jamKe) : '') + '</span><span>Kelas ' + esc(b.kelas) + '</span></div>';
     if (b.tidakEfektif) isi += '<div class="msg on salah">Hari tidak efektif kelas ini: ' + esc(b.tidakEfektif) + '</div>';
     if (b.catatan) isi += '<div class="kecil">ℹ️ ' + esc(b.catatan) + '</div>';
     if (b.guru && b.guru !== GURU.nama && !/Semua guru/i.test(b.pengampu)) isi += '<div class="kecil">Guru terjadwal: ' + esc(b.guru) + '</div>';
@@ -701,7 +739,7 @@ function muatHariTampil(){
         (HARI_LAMA ? '' : '<button class="dua" data-i="' + i + '">✏️ Ubah</button>'))
       : bolehSah ? '<button class="ok" data-sesuai="' + i + '">✓ Sesuai</button><button class="dua" data-i="' + i + '">✏️ Ubah</button>'
       : HARI_LAMA && HARI.tanggal <= isoHariIni() ? '<span class="kecil">⏳ Menyiapkan tombol…</span>'
-      : '<span class="kecil">Jurnal disahkan setelah pelajaran berlangsung.</span>') + '</div>';
+      : '<span class="kecil">Jurnal disahkan setelah pelajaran berlangsung.</span>') + '</div></div>';
     return '<div class="' + kls + '">' + isi + '</div>';
   }).join('');
 }
@@ -781,8 +819,8 @@ $('#h-daftar').addEventListener('input', e => {
 });
 $('#h-daftar').addEventListener('click', e => {
   const t = e.target;
-  const ringkas = t.closest('.tp, .draf');   // laptop: teks panjang diringkas 2 baris, ketuk untuk membuka
-  if (ringkas && t.tagName !== 'A' && t.tagName !== 'BUTTON') { ringkas.classList.toggle('buka'); return; }
+  const baris = t.closest('[data-lipat]');
+  if (baris && t.tagName !== 'BUTTON') { const b = BLOK[Number(baris.dataset.lipat)]; BUKA_KARTU[b.kunci] = !BUKA_KARTU[b.kunci]; return gambarUlangKartu(); }
   if (t.dataset.koku != null) { const b = BLOK[Number(t.dataset.koku)]; KOKU_BUKA[b.kunci] = !KOKU_BUKA[b.kunci]; return gambarUlangKartu(); }
   if (t.dataset.kk != null) {
     const b = BLOK[Number(t.dataset.kk)], p = Object.assign({}, pengecualianKoku(b));
@@ -848,6 +886,8 @@ async function muatPromes(gantiKelas){
   SEGAR_PROMES = false; simpanLokal(kunci, r);
   if (!r.mapel || JSON.stringify(r) !== JSON.stringify(lama)) tampilPromes(r, !!lama);
 }
+// Promes: baris diketuk untuk melihat materi dan tanda RPP/Jurnal
+document.addEventListener('click', e => { const pr = e.target.closest('#p-daftar .pr.lipat'); if (pr) pr.classList.toggle('buka'); });
 function tampilPromes(r, diam){
   const y = window.scrollY;
   pesan('#m-promes', ''); PROMES = r;
@@ -863,7 +903,7 @@ function tampilPromes(r, diam){
   r.baris.forEach(b => {
     if (b.minggu !== mg) { mg = b.minggu; html += '<div class="minggu">Minggu ke-' + esc(mg) + '</div>'; }
     const tanda = [b.rpp ? '<b>✓ RPP</b>' : 'RPP –', b.jurnal ? '<b>✓ Jurnal</b>' : 'Jurnal –', b.terlaksana ? '<b>' + esc(b.terlaksana) + '</b>' : ''].filter(String).join(' · ');
-    html += '<div class="pr" data-tgl="' + esc(b.tanggal) + '"><div class="baris1">' + esc(b.hari + ' ' + tglPendek(b.tanggal)) + ' <span class="kecil">' + esc(b.jp) + ' JP</span> <span class="lencana ' + esc(b.jenis) + '">' + esc(b.jenis) + '</span>' +
+    html += '<div class="pr lipat" data-tgl="' + esc(b.tanggal) + '"><div class="baris1">' + esc(b.hari + ' ' + tglPendek(b.tanggal)) + ' <span class="kecil">' + esc(b.jp) + ' JP</span> <span class="lencana ' + esc(b.jenis) + '">' + esc(b.jenis) + '</span>' +
       (b.pertemuan ? ' <span class="kecil">Pertemuan ' + esc(b.pertemuan) + '</span>' : '') + '</div>' +
       (b.materi ? '<div class="kecil">Materi ' + esc(b.materiNo) + ': ' + esc(b.materi) + '</div>' : '') +
       (b.jenis === 'Belajar' ? '<div>' + (b.noTP ? '<b>' + esc(b.noTP) + '</b> ' : '') + esc(b.tp) + '</div>' : '') +
