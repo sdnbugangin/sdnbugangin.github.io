@@ -370,6 +370,7 @@ nav button{font-weight:700}
       <div class="msg" id="m-ks"></div>
       <h3>⚠️ Perlu perhatian</h3>
       <p class="kecil">Setiap temuan sudah disertai usulan. Ketuk <b>✅ Setuju</b> agar petugas mengerjakannya (pukul 12.10 / 19.10), <b>✏️ Ubah</b> untuk mengganti perintah, atau <b>✖ Abaikan</b>.</p>
+      <div class="aksi" id="ks-semua-wadah"><button class="btn" id="ks-semua">✅ Setujui semua usulan</button></div>
       <div id="ks-perhatian"></div>
       <h3>📋 Hasil tindak lanjut</h3>
       <div id="ks-tl"></div>
@@ -543,7 +544,13 @@ async function muatKS(){
   const r = await api({ aksi: 'ruangKS', sesi: SESI });
   if (!r.ok) return pesan('#m-ks', r.pesan);
   KS = r; pesan('#m-ks', '');
-  const g = r.ringkas || {};
+  tampilKS();
+}
+function tampilKS(){
+  const r = KS, g = r.ringkas || {};
+  const sisa = r.perhatian.filter(p => !p.tindak).length;
+  $('#ks-semua-wadah').classList.toggle('hidden', sisa < 2);
+  $('#ks-semua').textContent = '✅ Setujui semua usulan (' + sisa + ')';
   $('#ks-ringkas').textContent = 'Rekap ' + (g['Rentang Laporan'] || '-') + ' · diperbarui ' + (g['Dibuat Pada'] || '-') + ' · ' + r.perhatian.length + ' temuan';
   $('#ks-perhatian').innerHTML = r.perhatian.length ? r.perhatian.map((p, i) => `<div class="kartu">
       <b>${IKON_KS[p.hal] || '•'} ${esc(p.hal)}${p.kelas ? ' · ' + esc(p.kelas) : ''}</b> — ${esc(p.siapa)}
@@ -571,7 +578,22 @@ $('#ks-perhatian').addEventListener('click', async e => {
   sibuk(b.parentNode, true);
   const r = await api({ aksi: 'tindakLanjutTambah', sesi: SESI, masalah: p.kunci + ': ' + p.fakta, perintah, status });
   pesan('#m-ks', r.pesan, r.ok);
-  if (r.ok) muatKS(); else sibuk(b.parentNode, false);
+  if (!r.ok) return sibuk(b.parentNode, false);
+  catatLokalKS(p, perintah, status); tampilKS();
+});
+// Perubahan dicatat di layar saja (tanpa memuat ulang); data server tetap sumber kebenaran saat menu dibuka lagi.
+function catatLokalKS(p, perintah, status){
+  p.tindak = status;
+  KS.tindakLanjut.unshift({ tanggal: tglPendek(isoHariIni()), masalah: p.kunci + ': ' + p.fakta, perintah: perintah || '(diabaikan)', status, hasil: '' });
+}
+$('#ks-semua').addEventListener('click', async e => {
+  const daftar = KS.perhatian.filter(p => !p.tindak && p.usulan);
+  if (!daftar.length || !confirm('Setujui ' + daftar.length + ' usulan sekaligus?')) return;
+  e.target.disabled = true; pesan('#m-ks', 'Mencatat ' + daftar.length + ' perintah…', true);
+  const hasil = await Promise.all(daftar.map(p => api({ aksi: 'tindakLanjutTambah', sesi: SESI, masalah: p.kunci + ': ' + p.fakta, perintah: p.usulan, status: 'Baru' })));
+  let n = 0; hasil.forEach((r, i) => { if (r.ok) { n++; catatLokalKS(daftar[i], daftar[i].usulan, 'Baru'); } });
+  e.target.disabled = false; tampilKS();
+  pesan('#m-ks', n + ' perintah tercatat' + (n < daftar.length ? ', ' + (daftar.length - n) + ' gagal, coba lagi.' : '. Petugas mengerjakannya pukul 12.10 / 19.10.'), n === daftar.length);
 });
 $('#ks-tl').addEventListener('click', e => {
   const b = e.target.closest('button[data-tl=salin]'); if (!b || !KS) return;
