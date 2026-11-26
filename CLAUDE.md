@@ -92,7 +92,7 @@ Perbarui tabel ini setiap kali memasang versi baru. Petugas Pemelihara membandin
 |---|---|---|
 | Presensi Digital | @64 | 21/11/2026 |
 | Super Admin | @8 | 21/11/2026 |
-| Persuratan | @2 | 21/11/2026 |
+| Persuratan | @4 (arsip tertutup, unduh lewat aplikasi; sebelumnya @3 Surat Buatan Guru, @2) | 26/11/2026 |
 | Update Nomor WA | @6 | 21/11/2026 |
 | Pantau Belajar Anak | @3 (dan @2, server lama untuk halaman lama) | 21/11/2026 |
 | Program Terintegrasi | @18 (Rekap + Ruang KS; sebelumnya @17, @16) | 21/11/2026 |
