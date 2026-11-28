@@ -68,6 +68,7 @@ Untuk website (repo ini): kerjakan di cabang kerja, bukan langsung di cabang uta
 - Kunci penanda tiket (`Rahasia.js`) hanya ada di kedua proyek Apps Script; jangan disalin ke repo.
 - **Kokurikuler (keputusan Kepala Sekolah):** 5 subdimensi sekolah, satu per kegiatan rutin (Mengaji/Salat/Duha/Yasinan → Hubungan dengan Tuhan Yang Maha Esa; Numerasi → Penyelesaian Masalah; Literasi → Membaca; Senam → Kebugaran, kesehatan fisik, dan kesehatan mental; Pembiasaan → Bertanggung Jawab). Pengamatan harian di kartu kegiatan (bawaan Cakap, guru mengubah yang berbeda), disimpan di sheet *Pengamatan Kokurikuler*. Rekap rata-rata (B=1, C=2, M=3) dikirim guru kelas ke Daftar Nilai Digital menjelang akhir semester.
 - **Pengecualian aturan "rapor hanya dibaca":** Program Terintegrasi boleh menulis ke spreadsheet rapor sekolah HANYA sheet `Kokurikuler`, `Capaian Kokurikuler`, dan `Kegiatan Kokurikuler` (izin Kepala Sekolah 20/11/2026), hanya lewat tombol "Kirim ke Daftar Nilai Digital", dengan format yang sama dengan server rapor (Kokurikuler.js: Tahun Ajaran, Semester, Kelas, No, Dimensi, Subdimensi; Tahun Ajaran, Semester, ID Siswa, Subdimensi, Level; Tahun Ajaran, Semester, Kelas, No, Tema, Nama Kegiatan, Tujuan Akhir, Subdimensi — maks. 4 kegiatan, tema ≤100, nama ≤150, tujuan ≤500 karakter) dan menolak rombel yang raport-nya terkunci. Kegiatan yang diisi guru sendiri di DND tidak ditimpa.
+- **Susunan kokurikuler di DND (28/11/2026):** atas permintaan Kepala Sekolah, Kantor Pusat mengisikan langsung sheet `Kokurikuler` (kelas 1–6 × 5 subdimensi) dan `Kegiatan Kokurikuler` (4 kegiatan per kelas) TA 2026/2027 smt 1, tanpa nilai. Sejak @19 tombol Kirim selalu menulis keempat kegiatan dan kelima subdimensi; capaian tetap hanya dari pengamatan.
 - **Kegiatan di DND (keputusan Kepala Sekolah 20/11/2026):** karena DND membatasi 4 kegiatan, Literasi dan Numerasi digabung menjadi satu kegiatan "Gerakan Literasi dan Numerasi Pagi" (subdimensi Membaca dan Penyelesaian Masalah). Di e-Rapor tetap 5 kegiatan terpisah. Sheet rapor lain tetap hanya dibaca; server bolonulis tidak disentuh.
 
 
@@ -95,7 +96,7 @@ Perbarui tabel ini setiap kali memasang versi baru. Petugas Pemelihara membandin
 | Persuratan | @4 (arsip tertutup, unduh lewat aplikasi; sebelumnya @3 Surat Buatan Guru, @2) | 26/11/2026 |
 | Update Nomor WA | @6 | 21/11/2026 |
 | Pantau Belajar Anak | @3 (dan @2, server lama untuk halaman lama) | 21/11/2026 |
-| Program Terintegrasi | @18 (Rekap + Ruang KS; sebelumnya @17, @16) | 21/11/2026 |
+| Program Terintegrasi | @19 (Kirim kokurikuler selalu menulis 4 kegiatan dan 5 subdimensi, capaian hanya dari pengamatan; titik kembali @18) | 28/11/2026 |
 | RPP SUPER | @13 | 21/11/2026 |
 
 ## Arsip kode
